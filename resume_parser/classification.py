@@ -11,11 +11,29 @@ Architecture:
 
 Model: TF-IDF (word n-grams 1-2) + Logistic Regression (balanced class weights)
 Features: Text content + structural features from B2
+
+Implementation status (v1 baseline):
+- Block-level classification IS implemented (one label per candidate block).
+- Semantic span detection is NOT yet inferred: the data model supports spans
+  (BlockClassification.semantic_spans, LabelledBlock.semantic_spans, multi-row
+  CSV annotations), but inference assigns a single block-level label. Mixed
+  blocks are therefore labelled as a whole in v1; span splitting is future work.
+- The v1 model uses TF-IDF TEXT features only. extract_semantic_features /
+  extract_structural_features are implemented, tested helpers reserved for a
+  future fusion stage; the `feature_weight` plumbing is stored but inactive.
+- sklearn label boundary: sklearn mangles str-Enum members (LabelEncoder /
+  pipeline classes_ come back as plain strings, not SectionLabel members), so
+  ALL labels are coerced to plain value strings before any sklearn call and
+  converted back to SectionLabel at the API boundary (see label_values()).
+
+Boilerplate decision: B2 excludes boilerplate-flagged lines from candidate
+blocks (they live in SegmentationResult.boilerplate, never deleted). B3
+therefore never receives boilerplate text; the SectionLabel.BOILERPLATE value
+is reserved for B4+ use.
 """
 
 from __future__ import annotations
 
-import json
 import pickle
 import warnings
 from dataclasses import dataclass
@@ -31,7 +49,6 @@ from sklearn.metrics import (
     accuracy_score,
     precision_recall_fscore_support,
     confusion_matrix,
-    classification_report,
 )
 
 from resume_parser.models import (
@@ -132,6 +149,17 @@ SUMMARY_WORDS = {
     "years", "professional", "expertise", "specialist", "passionate",
     "driven", "results", "track record", "background",
 }
+
+
+def label_values(labels: list[SectionLabel] | list[str]) -> list[str]:
+    """Coerce labels to plain value strings for sklearn.
+
+    REQUIRED: sklearn's encoders mangle str-Enum members (pipeline classes_
+    come back as strings, breaking SectionLabel(...) lookups and silently
+    zeroing every metric). Never pass SectionLabel members to fit/predict/
+    scoring directly — convert at this boundary and back at the API edge.
+    """
+    return [l.value if isinstance(l, SectionLabel) else str(l) for l in labels]
 
 
 def extract_semantic_features(text: str) -> dict[str, float]:
@@ -389,9 +417,10 @@ class SectionClassifier:
         """
         self.pipeline = self._build_pipeline()
         self.classes_ = sorted(set(labels), key=lambda x: x.value)
-        
-        # Train on full training set
-        self.pipeline.fit(texts, labels)
+
+        # Train on full training set (labels coerced: see label_values()).
+        fit_labels = label_values(labels)
+        self.pipeline.fit(texts, fit_labels)
         
         # Evaluate on validation set if provided
         eval_metrics = {}
@@ -429,7 +458,7 @@ class SectionClassifier:
         
         for train_idx, test_idx in gkf.split(texts, labels, groups):
             train_texts = [texts[i] for i in train_idx]
-            train_labels = [labels[i] for i in train_idx]
+            train_labels = label_values([labels[i] for i in train_idx])
             test_texts = [texts[i] for i in test_idx]
             test_labels = [labels[i] for i in test_idx]
             
@@ -445,31 +474,56 @@ class SectionClassifier:
     def _compute_metrics(
         self, y_true: list[SectionLabel], y_pred: list[SectionLabel], prefix: str = ""
     ) -> dict[str, Any]:
-        """Compute comprehensive classification metrics."""
-        accuracy = accuracy_score(y_true, y_pred)
+        """Compute comprehensive classification metrics.
+
+        Both inputs are coerced to plain value strings (see label_values())
+        so SectionLabel members and raw sklearn string outputs compare equal.
+        """
+        yt = label_values(y_true)
+        yp = label_values(y_pred)
+        # Score every class observed on either side. A test resume may contain
+        # sections absent from training (never predicted: honest zeros) or
+        # predictions outside the gold set — every sample stays counted and
+        # sklearn's labels∩y_true requirement is satisfied by construction.
+        scored = sorted(set(yt) | set(yp))
+        if not scored:
+            return {
+                f"{prefix}accuracy": 0.0,
+                f"{prefix}macro_precision": 0.0,
+                f"{prefix}macro_recall": 0.0,
+                f"{prefix}macro_f1": 0.0,
+                f"{prefix}per_class": {},
+                f"{prefix}confusion_matrix": {"labels": [], "matrix": []},
+            }
+        accuracy = accuracy_score(yt, yp)
         precision, recall, f1, support = precision_recall_fscore_support(
-            y_true, y_pred, average=None, labels=self.classes_, zero_division=0
+            yt, yp, average=None, labels=scored, zero_division=0
         )
         macro_precision, macro_recall, macro_f1, _ = precision_recall_fscore_support(
-            y_true, y_pred, average="macro", zero_division=0
+            yt, yp, average="macro", zero_division=0
         )
-        
+        cm = confusion_matrix(yt, yp, labels=scored)
+
         # Per-class metrics
         per_class = {}
-        for i, cls in enumerate(self.classes_):
-            per_class[cls.value] = {
+        for i, cls_value in enumerate(scored):
+            per_class[cls_value] = {
                 "precision": float(precision[i]),
                 "recall": float(recall[i]),
                 "f1": float(f1[i]),
                 "support": int(support[i]),
             }
-        
+
         return {
             f"{prefix}accuracy": float(accuracy),
             f"{prefix}macro_precision": float(macro_precision),
             f"{prefix}macro_recall": float(macro_recall),
             f"{prefix}macro_f1": float(macro_f1),
             f"{prefix}per_class": per_class,
+            f"{prefix}confusion_matrix": {
+                "labels": scored,
+                "matrix": [[int(v) for v in row] for row in cm],
+            },
         }
     
     def evaluate(self, texts: list[str], labels: list[SectionLabel]) -> dict[str, Any]:
@@ -552,7 +606,9 @@ class SectionClassifier:
         )
         clf.pipeline = save_data["pipeline"]
         clf.metadata = save_data.get("metadata", {})
-        clf.classes_ = list(clf.pipeline.classes_)
+        # pipeline.classes_ are plain value strings (see label_values());
+        # restore SectionLabel members at the API edge.
+        clf.classes_ = [SectionLabel(s) for s in clf.pipeline.classes_]
         return clf
 
 
@@ -572,13 +628,14 @@ def classify_blocks(
     if not classifier.pipeline:
         raise RuntimeError("Classifier not trained")
     
-    # Prepare texts for classification
+    # Prepare texts for classification. NOTE: B2 excludes boilerplate-flagged
+    # lines from candidate blocks (they live in SegmentationResult.boilerplate),
+    # so every block here is content and gets classified. Boilerplate provenance
+    # is preserved at B2; the BOILERPLATE label is reserved for B4+ use.
     texts = []
     blocks_to_classify = []
     
     for block in seg_result.blocks:
-        # Skip boilerplate-flagged blocks (they're not real content)
-        # But we still include them with BOILERPLATE label
         texts.append(block.text)
         blocks_to_classify.append(block)
     
@@ -721,8 +778,12 @@ def train_section_classifier(
         eval_texts=val_texts, eval_labels=val_labels,
     )
     
-    # Final evaluation on test set
-    test_metrics = classifier.evaluate(test_texts, test_labels)
+    # Final evaluation on test set (skipped explicitly when the split is empty,
+    # e.g. tiny development datasets — never silently scored).
+    if test_texts and test_labels:
+        test_metrics = classifier.evaluate(test_texts, test_labels)
+    else:
+        test_metrics = {"skipped": True, "reason": "empty test split"}
     metadata["test_metrics"] = test_metrics
     metadata["train_dataset_size"] = len(train_ds)
     metadata["val_dataset_size"] = len(val_ds)
@@ -967,6 +1028,7 @@ __all__ = [
     "extract_semantic_features",
     "extract_structural_features",
     "build_feature_text",
+    "label_values",
     "create_labelled_dataset_from_csv",
     "create_bootstrap_training_dataset",
     "ROLE_WORDS",

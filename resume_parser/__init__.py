@@ -1,4 +1,4 @@
-"""Public package surface for B0+B1+B2+B3."""
+"""Public package surface for B0 through B9 (complete pipeline)."""
 
 from .conversion import convert_bytes, convert_file
 from .errors import (
@@ -9,25 +9,46 @@ from .errors import (
 )
 from .evaluation import evaluate_document, print_report
 from .integrity import build_integrity_report, verify_integrity
-from .lexicon import LEXICON, REV, TYPES, rule_header
 from .models import (
     AlternativePrediction,
     AssignmentStatus,
     BlockClassification,
+    BlockResolution,
+    BlockVerdict,
     BoundarySignal,
     BoilerplateLine,
     CandidateBlock,
+    CareerGap,
     ClassificationResult,
     ConvertedDocument,
+    DateExtractionPolicy,
+    DateExtractionResult,
+    DateGranularity,
+    DateRange,
     DisplayLine,
+    EntryDates,
     EvaluationReport,
     IntegrityReport,
     LineKind,
     LineRecord,
+    LLMConfig,
+    LLMResolutionResult,
     NormalizedDocument,
+    ParsedDate,
     SectionLabel,
     SemanticSpan,
     SegmentationResult,
+    TimelineEvent,
+    TimelinePolicy,
+    TimelineResult,
+    ValidationPolicy,
+    ValidationResult,
+    Verdict,
+    FinalBlockSection,
+    FinalSectionOutput,
+    FinalSource,
+    BlockEntry,
+    EntrySegmentationResult,
 )
 from .normalization import normalize_document
 from .segmentation import (
@@ -37,6 +58,16 @@ from .segmentation import (
     DisplayLine,
     SegmentationResult,
     segment_document,
+)
+from .validation import validate_classification
+from .final_sections import build_final_sections
+from .entries import build_entries
+from .date_extraction import extract_entry_dates, extract_text_dates
+from .timeline import build_timeline
+from .resolution import (
+    AnthropicLLMClient,
+    ScriptedLLMClient,
+    resolve_escalated,
 )
 from .classification import (
     SectionClassifier,
@@ -52,45 +83,71 @@ from .classification import (
 
 __all__ = [
     "AlternativePrediction",
+    "AnthropicLLMClient",
     "AssignmentStatus",
     "BlockClassification",
     "BOOTSTRAP_TRAINING_DATA",
+    "BlockEntry",
+    "BlockResolution",
+    "BlockVerdict",
     "BoundarySignal",
     "BoilerplateLine",
     "CandidateBlock",
+    "CareerGap",
     "ClassificationResult",
     "ConversionError",
     "ConversionWarning",
     "ConvertedDocument",
+    "DateExtractionPolicy",
+    "DateExtractionResult",
+    "DateGranularity",
+    "DateRange",
     "DisplayLine",
+    "EntryDates",
     "EvaluationReport",
+    "EntrySegmentationResult",
+    "FinalBlockSection",
+    "FinalSectionOutput",
+    "FinalSource",
     "IntegrityError",
     "IntegrityReport",
     "LabelledBlock",
     "LabelledDocument",
-    "LEXICON",
     "LineKind",
     "LineRecord",
+    "LLMConfig",
+    "LLMResolutionResult",
     "NormalizedDocument",
-    "REV",
+    "ParsedDate",
+    "ScriptedLLMClient",
     "SectionClassifier",
     "SectionLabel",
     "SemanticSpan",
     "SegmentationResult",
-    "TYPES",
+    "TimelineEvent",
+    "TimelinePolicy",
+    "TimelineResult",
     "TrainingDataset",
     "UnsupportedFormatError",
+    "ValidationPolicy",
+    "ValidationResult",
+    "Verdict",
     "build_integrity_report",
+    "build_timeline",
     "classify_blocks",
     "convert_bytes",
     "convert_file",
     "create_bootstrap_training_dataset",
     "create_labelled_dataset_from_csv",
+    "build_final_sections",
+    "build_entries",
     "evaluate_document",
+    "extract_entry_dates",
+    "extract_text_dates",
     "normalize_document",
     "print_report",
-    "rule_header",
+    "resolve_escalated",
     "segment_document",
-    "train_section_classifier",
+    "validate_classification",
     "verify_integrity",
 ]
