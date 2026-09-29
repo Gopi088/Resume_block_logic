@@ -1,4 +1,4 @@
-"""Public package surface for B0+B1+B2."""
+"""Public package surface for B0+B1+B2+B3."""
 
 from .conversion import convert_bytes, convert_file
 from .errors import (
@@ -11,49 +11,86 @@ from .evaluation import evaluate_document, print_report
 from .integrity import build_integrity_report, verify_integrity
 from .lexicon import LEXICON, REV, TYPES, rule_header
 from .models import (
+    AlternativePrediction,
     AssignmentStatus,
+    BlockClassification,
+    BoundarySignal,
+    BoilerplateLine,
+    CandidateBlock,
+    ClassificationResult,
     ConvertedDocument,
+    DisplayLine,
     EvaluationReport,
     IntegrityReport,
     LineKind,
     LineRecord,
     NormalizedDocument,
+    SectionLabel,
+    SemanticSpan,
+    SegmentationResult,
 )
 from .normalization import normalize_document
 from .segmentation import (
     BoilerplateLine,
-    ContentBlock,
+    BoundarySignal,
+    CandidateBlock,
     DisplayLine,
     SegmentationResult,
     segment_document,
 )
+from .classification import (
+    SectionClassifier,
+    TrainingDataset,
+    LabelledDocument,
+    LabelledBlock,
+    classify_blocks,
+    train_section_classifier,
+    create_bootstrap_training_dataset,
+    create_labelled_dataset_from_csv,
+    BOOTSTRAP_TRAINING_DATA,
+)
 
 __all__ = [
+    "AlternativePrediction",
     "AssignmentStatus",
+    "BlockClassification",
+    "BOOTSTRAP_TRAINING_DATA",
+    "BoundarySignal",
     "BoilerplateLine",
+    "CandidateBlock",
+    "ClassificationResult",
     "ConversionError",
     "ConversionWarning",
     "ConvertedDocument",
-    "ContentBlock",
     "DisplayLine",
     "EvaluationReport",
-    "IntegrityReport",
     "IntegrityError",
+    "IntegrityReport",
+    "LabelledBlock",
+    "LabelledDocument",
     "LEXICON",
     "LineKind",
     "LineRecord",
     "NormalizedDocument",
     "REV",
+    "SectionClassifier",
+    "SectionLabel",
+    "SemanticSpan",
     "SegmentationResult",
     "TYPES",
+    "TrainingDataset",
     "UnsupportedFormatError",
     "build_integrity_report",
+    "classify_blocks",
     "convert_bytes",
     "convert_file",
+    "create_bootstrap_training_dataset",
+    "create_labelled_dataset_from_csv",
     "evaluate_document",
     "normalize_document",
     "print_report",
     "rule_header",
     "segment_document",
+    "train_section_classifier",
     "verify_integrity",
 ]
