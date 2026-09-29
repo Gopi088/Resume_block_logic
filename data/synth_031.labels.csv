@@ -1,0 +1,31 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,EMPLOYMENT HISTORY,experience
+4,QA Lead | TCS,
+5,Jan 2017 - Present,
+6,"- Built pipelines using Python, reducing cost by 60%",
+7,"- Automated pipelines using Python, reducing cost by 45%",
+8,- Education platform serving 10k students,
+9,Backend Developer | SKILLS ACADEMY,
+10,Nov 2016 - Present,
+11,"- Migrated pipelines using Python, reducing cost by 15%",
+12,"- Led pipelines using Python, reducing cost by 35%",
+13,ML Engineer | SKILLS ACADEMY,
+14,Jun 2021 - Jan 2023,
+15,"- Built pipelines using Python, reducing cost by 29%",
+16,"- Migrated pipelines using Python, reducing cost by 32%",
+17,- Experience with Kubernetes and AWS,
+19,LICENSES & CERTIFICATIONS,certifications
+20,"AWS Certified Cloud Practitioner, 2021",
+21,Coursera ML Specialization,
+23,Professional Summary:,summary_objective
+24,Results-driven engineer with 5 years of experience building data products.,
+26,## Qualifications,education
+27,"B.Tech Computer Science, VTU",
+28,2014 - 2018 | CGPA 7.0,
+30,## Languages,languages
+31,"English, Hindi, Kannada",
+33,Honors & Awards,awards
+34,"Employee of the Year, 2020",
+35,"Hackathon winner, 2019",

@@ -1,0 +1,28 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+## Where I Studied
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 9.0
+
+Professional Experience:
+Data Analyst | STARTUP LABS
+Sep 2017 - Jan 2019
+- Designed pipelines using Python, reducing cost by 29%
+- Designed pipelines using Python, reducing cost by 57%
+Backend Developer | SKILLS ACADEMY
+Mar 2019 - Jan 2021
+- Automated pipelines using Python, reducing cost by 45%
+- Automated pipelines using Python, reducing cost by 17%
+- Led projects across 3 teams
+
+## Summary
+Results-driven engineer with 5 years of experience building data products.
+
+Things I've Built
+-----
+Project 0: resume parser (Python)
+
+**Licenses & Certifications**
+AWS Certified Cloud Practitioner, 2021
+Coursera ML Specialization

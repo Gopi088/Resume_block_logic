@@ -1,0 +1,18 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,Academic Background,education
+4,-----,
+5,"B.Tech Computer Science, VTU",
+6,2014 - 2018 | CGPA 8.8,
+8,Certifications,certifications
+9,"AWS Certified Cloud Practitioner, 2021",
+10,Coursera ML Specialization,
+12,Languages,languages
+13,"English, Hindi, Kannada",
+15,**Tech Stack**,skills
+16,"Python, SQL, Docker, Git, Airflow",
+17,"Communication, Leadership",
+19,Achievements,awards
+20,"Employee of the Year, 2020",
+21,"Hackathon winner, 2019",

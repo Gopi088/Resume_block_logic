@@ -1,0 +1,21 @@
+line_id,text,gold_section,is_header
+1,John Mathew,contact,0
+2,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,contact,0
+3,,,0
+4,Experience,experience,1
+5,ML Engineer | Acme Corp,experience,0
+6,March 2020 to Dec 2021,experience,0
+7,"- Built pipelines using Python, cut cost by 47%",experience,0
+8,- Led standups and shipped 8 releases,experience,0
+9,QA Lead | TCS,experience,0
+10,Jun 2021 - Present,experience,0
+11,"- Built pipelines using Python, cut cost by 34%",experience,0
+12,- Led standups and shipped 8 releases,experience,0
+13,,,0
+14,OPEN SOURCE,projects,1
+15,"maintainer.nvim: Neovim plugin, 2k stars",projects,0
+16,- Merged PRs in pandas and requests,projects,0
+17,,,0
+18,PATENTS,publications,1
+19,"US1234567: fast resume parser, 2023",publications,0
+20,,,0

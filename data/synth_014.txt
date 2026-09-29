@@ -1,0 +1,32 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+**Personal Projects**
+Project 0: resume parser (Python)
+Project 1: resume parser (Python)
+
+**Summary**
+Results-driven engineer with 5 years of experience building data products.
+
+**Core Competencies**
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership
+
+**Where I've Worked**
+ML Engineer | Infosys Ltd
+Jun 2015 - Present
+- Built pipelines using Python, reducing cost by 31%
+- Automated pipelines using Python, reducing cost by 15%
+- Skills: Python, SQL, Docker
+Data Analyst | Acme Corp
+Jan 2018 - Present
+- Designed pipelines using Python, reducing cost by 15%
+- Led pipelines using Python, reducing cost by 35%
+- Education platform serving 10k students
+
+**Languages**
+English, Hindi, Kannada
+
+LICENSES & CERTIFICATIONS
+AWS Certified Cloud Practitioner, 2021
+Coursera ML Specialization

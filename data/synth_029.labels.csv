@@ -1,0 +1,26 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,EDUCATION,education
+4,"B.Tech Computer Science, VTU",
+5,2014 - 2018 | CGPA 8.3,
+7,TECH STACK,skills
+8,"Python, SQL, Docker, Git, Airflow",
+9,"Communication, Leadership",
+11,## Licenses & Certifications,certifications
+12,"AWS Certified Cloud Practitioner, 2021",
+13,Coursera ML Specialization,
+15,## WORK EXPERIENCE,experience
+16,QA Lead | SKILLS ACADEMY,
+17,Mar 2022 - Present,
+18,"- Designed pipelines using Python, reducing cost by 28%",
+19,"- Designed pipelines using Python, reducing cost by 46%",
+20,- Won the Awards of Excellence 2021,
+21,Data Analyst | STARTUP LABS,
+22,Mar 2019 - Present,
+23,"- Led pipelines using Python, reducing cost by 25%",
+24,"- Led pipelines using Python, reducing cost by 28%",
+25,ML Engineer | GOOGLE INDIA,
+26,Sep 2018 - Jan 2020,
+27,"- Led pipelines using Python, reducing cost by 42%",
+28,"- Migrated pipelines using Python, reducing cost by 24%",

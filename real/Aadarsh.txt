@@ -1,0 +1,114 @@
+Personal Information
+Full Name: Aadarsh Barnwal
+Phone: +91 9113127326
+Email: aadarshbarnwal098@gmail.com
+LinkedIn: https://www.linkedin.com/in/aadarsh-barnwal-665031264/
+Place: Bengaluru
+
+Professional Experience
+
+April 2023 – Present: ICT Infracon LLP – Bangalore| Associate Software Engineer, India
+
+Full Stack Software Engineer with strong experience in developing web applications using Angular,
+Javascript, Java 17, Spring Boot, Spring JPA and SQL. Proficient in building secure RESTful APIs,
+responsive user interfaces, and scalable backend systems. Adept at collaborating with cross-
+functional teams in Agile environments. Proven ability to improve system performance and deliver
+production-ready code for government and enterprise-level platforms.
+
+•  Developed core modules using Java 17, Spring boot, Spring data JPA, Spring Cloud
+
+framework.
+
+•  Assisted in full-stack feature development, focusing on clean architecture and reusable
+
+components.
+
+•  Developed RESTful APIs using Spring REST.
+
+•  Build and developed frontend components using Angular and TypeScript.
+
+•  Built Angular-based UIs and managed backend logic with MS SQL Server.
+
+•  Optimized frontend modules using Angular and TypeScript, enhancing the user experience of
+
+a government portal by 30%.
+
+•  Contributed to internal documentation, project setup, and configuration of local
+
+development environments to support project onboarding.
+
+•  Contributed to requirement analysis, architecture, coding, testing, and deployment.
+
+•  Collaborated with QA, DevOps, and product teams in Agile sprints.
+
+•  Established clean, modular code practices and optimized performance.
+
+•
+
+Integrated third-party APIs for the Coffee Board web app, boosting functionality and user
+satisfaction.
+
+Projects
+
+KPTCL – Meeting Management System
+Frontend: Angular, JavaScript, TypeScript, HTML5, CSS3, ES6
+Backend: Java17, Spring Boot, Spring JPA, SQL
+
+•  Designed and developed a comprehensive full-stack application to facilitate efficient
+
+scheduling, documentation, and management of meetings for Karnataka Power Transmission
+Corporation Limited (KPTCL).
+
+•  Developed robust backend services with Java 17, Spring Boot and integration with existing
+
+enterprise systems.
+
+•  Ensured application scalability and maintainability by adhering to clean code principles and
+
+modular architecture.
+
+•  Conducted rigorous dev testing to guarantee system reliability and user satisfaction.
+
+Coffee Board of India – E-Commerce Platform
+Frontend: Angular, JavaScript, TypeScript, HTML5, CSS3, ES6
+Backend: Java17, Spring Boot, Spring JPA, SQL
+
+•  Developed a government-certified e-commerce site under the Ministry of Commerce.
+
+•  Contributed to internal documentation, project setup, and configuration of local
+
+development environments to support project onboarding.
+
+•  Assisted in full-stack feature development, focusing on clean architecture and reusable
+
+components.
+
+•  Contributed to frontend development using Angular and managed backend data via MS SQL
+
+Server.
+
+Technical Skills
+
+•
+
+•
+
+Languages: Java17, SQL
+
+Frameworks & Technologies:  Spring Boot, Spring Security, JPA, Hibernate, Microservices
+
+•  Tools: Git, GitHub, SVN, Maven, Design Pattern
+
+•  Other: RESTful APIs, Log4j, Collections framework, Data Structures & Algorithms
+
+Education
+
+Bachelor of Technology – Information Technology
+Chandigarh Group of Colleges (CGC)
+Aug 2017 – Aug 2021
+
+ Signature
+Aadarsh Barnwal
+
+Date
+Bangalore, 20th Oct 2025

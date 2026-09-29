@@ -1,0 +1,29 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+**Where I've Worked**
+ML Engineer | Acme Corp
+Jan 2019 - Jan 2021
+- Designed pipelines using Python, reducing cost by 27%
+- Designed pipelines using Python, reducing cost by 10%
+Software Engineer | PROJECTS UNLIMITED
+Mar 2016 - Present
+- Automated pipelines using Python, reducing cost by 55%
+- Automated pipelines using Python, reducing cost by 59%
+- Won the Awards of Excellence 2021
+Backend Developer | Infosys Ltd
+Sep 2021 - Present
+- Built pipelines using Python, reducing cost by 57%
+- Designed pipelines using Python, reducing cost by 54%
+
+## What I Know
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership
+
+**Academic Background**
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 8.4
+
+Languages
+-----
+English, Hindi, Kannada

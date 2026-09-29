@@ -1,0 +1,27 @@
+John Mathew
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+Snapshot:
+Results-driven engineer with 5 years of experience building data products.
+
+WHERE I'VE WORKED
+Backend Developer | Startup Labs
+2015-2017
+- Built pipelines using Python, cut cost by 12%
+- Led standups and shipped 9 releases
+Data Analyst | Startup Labs
+2015-2017
+- Built pipelines using Python, cut cost by 56%
+- Led standups and shipped 9 releases
+
+Schooling
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 8.4
+
+Tech Stack:
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership
+
+Selected Work
+Project Atlas: resume parser (Python)
+- Cut manual screening time by 30%

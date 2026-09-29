@@ -1,0 +1,41 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+## Profile
+Results-driven engineer with 5 years of experience building data products.
+
+Languages
+English, Hindi, Kannada
+
+Licenses & Certifications:
+AWS Certified Cloud Practitioner, 2021
+Coursera ML Specialization
+
+**EDUCATION**
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 7.4
+
+Awards:
+Employee of the Year, 2020
+Hackathon winner, 2019
+
+Selected Work
+Project 0: resume parser (Python)
+Project 1: resume parser (Python)
+Project 2: resume parser (Python)
+
+Tech Stack
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership
+
+Career Journey
+-----
+QA Lead | STARTUP LABS
+Nov 2018 - Present
+- Automated pipelines using Python, reducing cost by 21%
+- Migrated pipelines using Python, reducing cost by 23%
+- Skills: Python, SQL, Docker
+Backend Developer | TCS
+Jan 2017 - Present
+- Led pipelines using Python, reducing cost by 56%
+- Led pipelines using Python, reducing cost by 12%

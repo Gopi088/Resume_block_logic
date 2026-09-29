@@ -1,0 +1,191 @@
+ madhavi.aradhyula03@gmail.com
+
+ +91-9494916311
+
+A MADHAVI
+
+linkedin.com/in/madhavi-av-a3ba34b0
+
+Role: Business Analyst
+
+Professional Summary
+Results-driven professional with 8 years of experience in business analysis, product ownership, and quality assurance
+within the digital payments industry. Hands-on exposure to requirement gathering, writing user stories, acceptance
+criteria, and functional documentation (BRD/FSD). Experienced in collaborating with stakeholders and technical teams
+to support gap analysis, process flows, and payment system implementations. Currently enhancing BA expertise while
+leveraging strong payments domain knowledge and Agile/Scrum experience to bridge business and technology needs
+effectively. Experienced in digital payments systems, including cards (ATM & POS),Tokenization, IMPS, UPI, AEPS, NEFT,
+RTGS, SWIFT, and cross-border payment solutions, with hands-on knowledge of transaction flows, clearing and
+Settlement.
+
+Key Competencies
+-  Business Analysis & Requirement Gathering
+
+-  BRD/FSD Documentation and Writing User Stories
+
+-  Stakeholder & Vendor Management
+
+-  Process Modelling (AS-IS / TO-BE)
+
+-  Agile & Scrum (CSPO Certified)
+
+-  Payment Switch Migration
+
+-  Regulatory & Compliance Requirements
+
+-  Product Ownership & Backlog Management
+
+Technical Skills
+-  Operating Systems: Linux, Windows
+
+-  Testing Tools: FINSIM, BOSS, MSGSIM, T3, Postman
+
+-  Databases: Oracle, Postgres, Redis,Cassandra
+
+-  Messaging Queues: Kafka
+
+-  Payment Switches: IST Switch, Bharat Switch, Nexus
+
+-  Defect Tracking Tools: JIRA, ALM, Excel
+
+-  Web Servers : Apache Tomcat9, Nginx
+
+-  Collabration Tools : Confluence, Teams
+
+-  BPMN Tools : Draw.io, MS Visio
+
+Professional Experience
+
+Company : Tech Mahindra | Business Analyst cum UAT Tester
+Duration: Aug 2022 – Present | Location: Hyderabad| Client: Mastercard | Project: SMT-Validator
+
+and Mastercard Nexus Switch Migration
+
+Key Responsibilities:
+
+-  Gathered, analyzed, and documented business requirements.
+
+-  Converted requirements into user stories, Prepared functional workflows.
+
+-  Executed test plans and validated transaction processing across payment systems for Authorization flows which
+includes ATM,POS,MDES transactions.
+
+-  Supported QA and Regression team for testing after each build deployment.
+
+-  Facilitated defect triage sessions with development teams.
+
+-  Provided daily test execution status updates to senior management.
+
+-  Participate in Scrum meetings and backlog grooming.
+
+-  Worked on Cross Border Payments for Cards and Non-Card based Payments.
+
+-  Trained new hires on Payment Switch Migration Flows.
+
+-  Worked on Payment Rails like Cards, SWIFT (MT103,MT202,MT202COV).
+
+Company : Pine Labs | Sr QA Cum Product Owner
+Duration: Jan 2022 – June 2022 | Location: Hyderabad | Project: PayLater Mastercard Installments (BNPL)
+
+Key Responsibilities:
+
+-  Owned product backlog and prioritized features based on business needs.
+
+-  Collaborated with development teams to define functional specifications.
+
+-  Led end-to-end integration testing for BNPL solutions.
+
+-  Managed stakeholder expectations and communication.
+
+-  Oversaw UAT and production deployment.
+
+-  Conducted root cause analysis on production issues.
+
+Company : Capgemini | Consultant
+Duration: May 2021 – Dec 2021 | Location: Hyderabad | Project: Core Banking & Retail Processing System
+
+Key Responsibilities:
+
+-  Gathered and analyzed business requirements, translating them into BRDs, FSDs, user stories, and acceptance
+criteria for core banking modules and retail payment workflows.
+
+-  Conducted gap analysis, impact assessments, and process mapping to support system modernization and
+compliance initiatives.
+
+-  Collaborated with technical teams, business stakeholders, and third-party vendors to ensure accurate requirement
+translation and solution alignment.
+
+-  Assisted in UAT, functional testing, and validation of transactions across SWIFT MT103,MT202,MT202COV, NEFT,
+and RTGS payment systems.
+
+-  Created process diagrams, flowcharts, and documentation to communicate workflows, system changes, and
+technical designs effectively.
+
+Company : National Payments Corporation of India | Senior Associate
+Duration: Jan 2017 – May 2021 | Location: Hyderabad
+
+Key Projects:
+
+-  Upgradation of AEPS Services from V2.0 to V2.5
+
+-  IMPS Service Migration from IST to Bharat Switch(UPI Common Code)
+
+-  Integration of FRM Module
+
+-  Migration of Payment Switch from ITM to IST
+
+-  Implementation of LM Service for ATM, IMPS, and AEPS
+
+-  Implementation of Fraud Detection system
+
+-  Certification Testing with member banks
+
+-  Worked on Tag Mapping to Element level mapping for IMPS.
+
+Key Responsibilities:
+
+-  Gathered, analyzed, and documented business, functional, and technical requirements for payment switch
+migration projects.
+
+-  Performed gap analysis between legacy and new payment switch systems to identify discrepancies.
+
+-  Designed AS-IS and TO-BE process flows for transaction authorization, routing, clearing, settlement, and
+reconciliation.
+
+-  Defined business rules for transaction life-cycles, authorization, clearing, and settlement workflows.
+
+-  Supported payment gateway integration's, API-based solutions, and fraud detection mechanisms.
+
+-  Conducted load and stress testing to validate switch performance under peak transaction volumes.
+
+-  Coordinated production environment setup and facilitated handover sessions with production teams during switch
+migration.
+
+-  Collaborated with vendors to clarify requirements, ensuring on-time delivery of system integration's.
+
+-  Designed and executed functional and integration test cases, validating ISO8583 message formats and end-to-end
+flows.
+
+-  Managed defects using JIRA and Excel, ensuring timely resolution and retesting.
+
+-  Provided post-migration support by monitoring transaction success rates, system performance, and error handling.
+
+-  Conducted root cause analysis (RCA) on production issues, implementing corrective actions.
+
+-  Worked on IMPS migration from ISO8583 protocol to ISO20022 XML protocol(similar).
+
+-  Acted as a liaison with banks, resolving technical queries and suggesting improvements for product efficiency.
+
+Certifications
+-  Certified Scrum Product Owner (CSPO), 2025
+
+-  Fundamentals of SWIFT MT & ISO20022 – MVLCO, 2020
+
+-  Trained in Embedded Systems – Vector India, 2016
+
+Education
+Bachelor of Engineering in ECE – Gayatri Vidya Parishad, Andhra University, Visakhapatnam, India (2015)
+
+Hobbies
+
+Reading Books, Writing blogs

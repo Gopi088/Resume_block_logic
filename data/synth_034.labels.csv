@@ -1,0 +1,28 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,About Me,summary_objective
+4,-----,
+5,Results-driven engineer with 5 years of experience building data products.,
+7,**Career Journey**,experience
+8,QA Lead | Infosys Ltd,
+9,Sep 2019 - Jan 2021,
+10,"- Designed pipelines using Python, reducing cost by 38%",
+11,"- Migrated pipelines using Python, reducing cost by 38%",
+12,- Experience with Kubernetes and AWS,
+13,Backend Developer | Infosys Ltd,
+14,Sep 2022 - Jan 2024,
+15,"- Led pipelines using Python, reducing cost by 40%",
+16,"- Automated pipelines using Python, reducing cost by 16%",
+17,- Won the Awards of Excellence 2021,
+18,ML Engineer | GOOGLE INDIA,
+19,Sep 2021 - Present,
+20,"- Built pipelines using Python, reducing cost by 50%",
+21,"- Led pipelines using Python, reducing cost by 15%",
+23,SELECTED WORK,projects
+24,Project 0: resume parser (Python),
+25,Project 1: resume parser (Python),
+26,Project 2: resume parser (Python),
+28,Certifications,certifications
+29,"AWS Certified Cloud Practitioner, 2021",
+30,Coursera ML Specialization,

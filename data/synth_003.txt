@@ -1,0 +1,35 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+Academic Background
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 8.4
+
+## Professional Experience
+Software Engineer | Infosys Ltd
+Jun 2022 - Present
+- Led pipelines using Python, reducing cost by 35%
+- Automated pipelines using Python, reducing cost by 41%
+- Education platform serving 10k students
+QA Lead | TCS
+Mar 2021 - Jan 2023
+- Migrated pipelines using Python, reducing cost by 27%
+- Automated pipelines using Python, reducing cost by 32%
+
+## About Me
+Results-driven engineer with 5 years of experience building data products.
+
+TECHNICAL SKILLS
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership
+
+## Personal Projects
+Project 0: resume parser (Python)
+
+Languages
+English, Hindi, Kannada
+
+Licenses & Certifications
+-----
+AWS Certified Cloud Practitioner, 2021
+Coursera ML Specialization
