@@ -20,3 +20,20 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     return true;
   }
 });
+
+// Follow the recruiter: when they switch tabs, offer the open resume to the
+// side panel (it auto-analyzes only while no real resume has been parsed).
+function notifyOpenTab() {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    try {
+      if (tabs && tabs[0] && tabs[0].url) {
+        chrome.runtime.sendMessage({ type: "OPEN_RESUME_TAB", url: tabs[0].url }).catch(function () {});
+      }
+    } catch (e) { /* side panel not open */ }
+  });
+}
+
+chrome.tabs.onActivated.addListener(function () { notifyOpenTab(); });
+chrome.tabs.onUpdated.addListener(function (tabId, info) {
+  if (info && info.status === "complete") notifyOpenTab();
+});

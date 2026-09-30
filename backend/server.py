@@ -12,6 +12,7 @@ Run:
 from __future__ import annotations
 
 import os
+import re
 import tempfile
 
 from fastapi import FastAPI, File, UploadFile
@@ -110,18 +111,114 @@ async def parse_resume(file: UploadFile = File(...)) -> dict:
         tmp.write(await file.read())
         tmp_path = tmp.name
     try:
-        out = build_output(
-            tmp_path,
-            include_eval=False,
-            include_text=False,  # lines[] still carry display_text + char spans
-            blocks_only=False,  # lines[] needed for exact evidence
-            model_path=MODEL_PATH if os.path.exists(MODEL_PATH) else None,
-        )
+        return _parse_local_path(tmp_path, file.filename or "resume")
     finally:
         try:
             os.unlink(tmp_path)
         except OSError:
             pass
+
+
+def _resolve_file_url(url: str) -> str:
+    """Map a file:// URL to a local path the backend can read.
+
+    Handles POSIX paths and Windows drive paths (C:/... or /C:/...), including
+    the WSL layout where C: is mounted at /mnt/c. Raises ValueError when the
+    file cannot be reached from this machine.
+    """
+    import re
+    from urllib.parse import unquote, urlparse
+
+    parsed = urlparse(url)
+    if parsed.scheme != "file":
+        raise ValueError("not a file URL")
+    path = unquote(parsed.path or "")
+    candidates = [path]
+    m = re.match(r"^/([A-Za-z]:/.*)$", path)  # /C:/resumes/x.pdf
+    if m:
+        candidates.append(m.group(1))  # C:/resumes/x.pdf (native Windows)
+        candidates.append(f"/mnt/{m.group(1)[0].lower()}{m.group(1)[2:]}")
+    m2 = re.match(r"^([A-Za-z]:/.*)$", path)  # C:/resumes/x.pdf
+    if m2:
+        candidates.append(f"/mnt/{m2.group(1)[0].lower()}{m2.group(1)[2:]}")
+    for cand in candidates:
+        if os.path.isfile(cand):
+            return cand
+    raise ValueError(f"file not reachable from the backend: {url}")
+
+
+def _download_url(url: str) -> tuple[bytes, str]:
+    """Download an http(s) URL with timeout + size cap. Returns (bytes, suffix)."""
+    import os as _os
+    from urllib.parse import urlparse as _up
+    from urllib.request import Request as _Req
+    from urllib.request import urlopen as _open
+
+    req = _Req(url, headers={"User-Agent": "ResumeReview/1.0"})
+    with _open(req, timeout=60) as resp:
+        data = resp.read(30 * 1024 * 1024 + 1)
+    if len(data) > 30 * 1024 * 1024:
+        raise ValueError("file larger than 30 MB")
+    suffix = _os.path.splitext(_up(url).path)[1].lower() or ".pdf"
+    return data, suffix
+
+
+@app.post("/api/parse-url")
+async def parse_url(payload: dict) -> dict:
+    """Parse the resume at a URL (the open tab) without a file upload.
+
+    file:// URLs are read from local disk (incl. Windows↔WSL drive mapping);
+    http(s) URLs are downloaded server-side. Same B0–B9 output shape as
+    /api/parse, so the panel consumes it identically.
+    """
+    from urllib.parse import unquote, urlparse
+
+    url = ((payload or {}).get("url") or "").strip()
+    if not url:
+        return {"ok": False, "error": "url is required"}
+    scheme = urlparse(url).scheme.lower()
+    if scheme not in ("http", "https", "file"):
+        return {"ok": False, "error": f"unsupported URL scheme: {scheme or '(none)'}"}
+    suffix = os.path.splitext(urlparse(url).path)[1].lower() or ".pdf"
+    if scheme == "file":
+        try:
+            return _parse_local_path(_resolve_file_url(url), _display_name(url))
+        except ValueError as e:
+            return {"ok": False, "error": str(e)}
+        except Exception as e:  # parser failures stay JSON, never tracebacks
+            return {"ok": False, "error": f"{type(e).__name__}: {str(e)[:300]}"}
+    try:
+        data, suffix = _download_url(url)
+    except Exception as e:
+        return {"ok": False, "error": f"download failed: {str(e)[:300]}"}
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(data)
+        tmp_path = tmp.name
+    try:
+        return _parse_local_path(tmp_path, _display_name(url))
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+
+def _display_name(url: str) -> str:
+    from urllib.parse import unquote, urlparse
+
+    name = unquote(urlparse(url).path.rsplit("/", 1)[-1])
+    return name or "resume"
+
+
+def _parse_local_path(path: str, display_name: str) -> dict:
+    out = build_output(
+        path,
+        include_eval=False,
+        include_text=False,
+        blocks_only=False,
+        model_path=MODEL_PATH if os.path.exists(MODEL_PATH) else None,
+    )
+    out["filename"] = display_name
     out["review"] = build_review_projection(out)
     return {"ok": True, **out}
 
@@ -154,11 +251,16 @@ def build_review_projection(out: dict) -> dict:
         entry = entries.get(ev["entry_id"], {})
         ed = entry_dates.get(ev["entry_id"], {})
         fsec = sections.get(ev.get("block_id", ""), {})
-        title, org = _resolve_header(entry, ordered_entries)
-        if org is None:
-            org = _entry_org(entry.get("text", ""))
-        if title is None:
-            title = _entry_title(entry.get("text", ""), org, ev.get("raw_range"))
+        if ev.get("section") in HEADER_SECTIONS:
+            title, org = _resolve_header(entry, ordered_entries)
+            if org is None:
+                org = _entry_org(entry.get("text", ""))
+            if title is None:
+                title = _entry_title(entry.get("text", ""), org, ev.get("raw_range"))
+        else:
+            title = _section_header_title(entry.get("text", "")) or _entry_title(
+                entry.get("text", ""), None, ev.get("raw_range"))
+            org = None
         items.append(
             {
                 "kind": "event",
@@ -201,15 +303,23 @@ def build_review_projection(out: dict) -> dict:
         entry = entries.get(eid, {})
         if not entry:
             continue
+        # Table-separator artifacts carry no words — not review work.
+        if not re.search(r"[A-Za-z]{3,}", entry.get("text", "")):
+            continue
         fsec = sections.get(entry.get("block_id", ""), {})
         # Contact boilerplate is identity, not review work — keep review list focused.
         if entry.get("section") == "contact":
             continue
-        title, org = _resolve_header(entry, ordered_entries)
-        if org is None:
-            org = _entry_org(entry.get("text", ""))
-        if title is None:
-            title = _entry_title(entry.get("text", ""), org, None)
+        if entry.get("section") in HEADER_SECTIONS:
+            title, org = _resolve_header(entry, ordered_entries)
+            if org is None:
+                org = _entry_org(entry.get("text", ""))
+            if title is None:
+                title = _entry_title(entry.get("text", ""), org, None)
+        else:
+            title = _section_header_title(entry.get("text", "")) or _entry_title(
+                entry.get("text", ""), None, None)
+            org = None
         undated.append(
             {
                 "kind": "undated",
@@ -418,6 +528,18 @@ def _has_company(text: str) -> bool:
 
 
 HEADER_SECTIONS = frozenset({"experience", "education", "projects"})
+
+
+def _section_header_title(text: str) -> str | None:
+    """The entry's own section header line (e.g. 'PROFESSIONAL SUMMARY',
+    'CORE COMPETENCIES') as its title — the resume's words, verbatim.
+
+    Used for non-job sections where role/org extraction is meaningless.
+    """
+    first = (_entry_lines(text) or [None])[0]
+    if first and 3 <= len(first) <= 60:
+        return first
+    return None
 
 
 def _resolve_header(entry: dict, ordered_entries: list) -> tuple[str | None, str | None]:

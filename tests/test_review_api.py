@@ -148,3 +148,45 @@ def test_pipe_header_borrowed_from_same_block():
     other["block_id"] = "B000009"
     assert _resolve_header(other, ordered) == (None, None)
     assert _last_pipe("a\nLead | DevOps\nmulti | pipe | list") == ("Lead", "DevOps")
+
+
+def test_parse_url_file_scheme():
+    import os as _os
+
+    from fastapi.testclient import TestClient
+
+    from backend.server import app
+
+    client = TestClient(app)
+    path = _os.path.abspath("my_resumes/_Jayesh Yadav-CV.pdf")
+    body = client.post("/api/parse-url", json={"url": "file://" + path}).json()
+    assert body["ok"] is True
+    assert "JAYESH" in (body["review"]["candidate"]["name"] or "").upper()
+    assert body["filename"] == "_Jayesh Yadav-CV.pdf"
+    assert body["timeline"]["n_events"] >= 1
+
+    assert client.post("/api/parse-url", json={"url": ""}).json()["ok"] is False
+    assert client.post("/api/parse-url", json={"url": "ftp://x/y.pdf"}).json()["ok"] is False
+    assert client.post(
+        "/api/parse-url", json={"url": "file:///does/not/exist.pdf"}
+    ).json()["ok"] is False
+
+
+def test_resolve_file_url_windows_mapping(tmp_path, monkeypatch):
+    import os as _os
+
+    from backend.server import _resolve_file_url
+
+    real = tmp_path / "r.pdf"
+    real.write_bytes(b"%PDF")
+    monkeypatch.setattr(
+        _os.path, "isfile", lambda p: p in (str(real), "/mnt/c/r/x.pdf")
+    )
+    assert _resolve_file_url("file://" + str(real)) == str(real)
+    assert _resolve_file_url("file:///C:/r/x.pdf") == "/mnt/c/r/x.pdf"
+    try:
+        _resolve_file_url("file:///nope/x.pdf")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError for unreachable file")

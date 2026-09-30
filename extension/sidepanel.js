@@ -7,6 +7,7 @@
 
   var BACKEND = "http://localhost:8000";
   var RESUME_NOTE_ID = "resume"; // the single review note for the whole resume
+  var RESUME_URL_RE = /\.(pdf|txt|html?|md)([#?]|$)/i;
   var store = storage();
 
   var state = {
@@ -15,6 +16,8 @@
     note: null,     // {note, by, at} — the one resume-level review, shared
     reviewerId: "",
     backendUp: false,
+    isFixture: true,  // true until the recruiter parses a real file/tab
+    lastAutoUrl: "",
   };
 
   var el = {
@@ -69,8 +72,53 @@
     state.reviewerId = v || ("R-" + Math.random().toString(36).slice(2, 6));
     store.set("reviewerId", state.reviewerId);
   });
+  // The extension works on the open resume: analyze the active tab when the
+  // panel opens, and follow the recruiter when they switch to another resume.
+  if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener(function (msg) {
+      if (msg && msg.type === "OPEN_RESUME_TAB" && msg.url) onOpenTabUrl(msg.url);
+    });
+  }
   loadFixture();
+  maybeAutoAnalyze();
   pingBackend();
+
+  function onOpenTabUrl(url) {
+    // Only auto-switch while nothing real has been parsed yet — never yank
+    // a review in progress out from under the recruiter.
+    if (!state.isFixture || url === state.lastAutoUrl) return;
+    if (RESUME_URL_RE.test(url)) analyzeTabUrl(url);
+  }
+
+  function maybeAutoAnalyze() {
+    try {
+      if (typeof chrome === "undefined" || !chrome.tabs) return;
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        var url = tabs && tabs[0] && tabs[0].url;
+        if (url && RESUME_URL_RE.test(url)) analyzeTabUrl(url);
+      });
+    } catch (e) { /* stay on fixture */ }
+  }
+
+  function analyzeTabUrl(url) {
+    state.lastAutoUrl = url;
+    showLoading(true);
+    el.source.textContent = "Analyzing open resume…";
+    fetch(BACKEND + "/api/parse-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: url }),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (doc) {
+        if (!doc || doc.ok !== true) throw new Error((doc && doc.error) || "parse failed");
+        state.backendUp = true;
+        state.isFixture = false;
+        el.source.textContent = (doc.filename || "Resume") + " (open tab)";
+        setDocument(doc);
+      })
+      .catch(function () { loadFixture(); });
+  }
 
   function toggleSection(body, toggle, chev) {
     var open = body.hidden;
@@ -87,6 +135,7 @@
       .then(function (r) { if (!r.ok) throw new Error("fixture missing"); return r.json(); })
       .then(function (doc) {
         el.source.textContent = "Sample resume (real parser output)";
+        state.isFixture = true;
         setDocument(doc);
       })
       .catch(function (err) { showError("Sample data could not be loaded: " + err.message); });
@@ -107,6 +156,7 @@
       .then(function (r) { if (!r.ok) throw new Error("backend " + r.status); return r.json(); })
       .then(function (doc) {
         state.backendUp = true;
+        state.isFixture = false;
         el.source.textContent = f.name;
         setDocument(doc);
       })
@@ -392,6 +442,12 @@
     status.hidden = true;
 
     btn.addEventListener("click", function () {
+      // Copy the search phrase synchronously (user gesture) so Ctrl+F works
+      // even where the viewer ignores the text fragment.
+      try {
+        var phrase = fragmentPhrase(it);
+        if (phrase && navigator.clipboard) navigator.clipboard.writeText(phrase).catch(function () {});
+      } catch (e) { /* clipboard unavailable */ }
       btn.disabled = true;
       btn.textContent = "Finding…";
       highlightInOpenTab(it, function (res) {
@@ -464,16 +520,30 @@
     } catch (e) { cb({ ok: false, reason: "error" }); }
   }
 
+  function wordsOf(s, n) {
+    return (s || "").split(/[^A-Za-z0-9]+/)
+      .filter(function (w) { return /[A-Za-z0-9]/.test(w); }).slice(0, n);
+  }
+
   function fragmentPhrase(it) {
-    // First ~8 alphanumeric words of the evidence's first line — stable
-    // anchor text. Pure-punctuation tokens (dashes) are dropped because
-    // hyphen/en-dash variants differ between the PDF layer and parsed text.
+    // Most reliable anchor first: the date range as written ("Feb 2025 –
+    // Present" → "Feb 2025 Present") appears verbatim in the resume. Then the
+    // item title, then the excerpt's first line.
     var ev = it.evidence || {};
+    var dateWords = wordsOf(ev.raw_range || "", 8);
+    if (dateWords.length >= 2 && /[a-zA-Z]{3,}/.test(dateWords.join(" "))) {
+      return dateWords.join(" ");
+    }
+    var titleWords = wordsOf(it.title || "", 6);
+    if (titleWords.length >= 3 && /[a-zA-Z]{3,}/.test(titleWords.join(" "))) {
+      return titleWords.join(" ");
+    }
     var firstLine = ((ev.excerpt || "").split("\n").filter(function (l) { return l.trim(); })[0] || "");
-    var words = firstLine.replace(/[*_|#>`]/g, " ").split(/\s+/)
-      .filter(function (w) { return /[A-Za-z0-9]/.test(w); }).slice(0, 8);
-    if (words.length < 3 || !/[a-zA-Z]{3,}/.test(words.join(" "))) return null;
-    return words.join(" ");
+    var lineWords = wordsOf(firstLine, 8);
+    if (lineWords.length >= 3 && /[a-zA-Z]{3,}/.test(lineWords.join(" "))) {
+      return lineWords.join(" ");
+    }
+    return null;
   }
 
   function fragmentNavigate(tab, it, cb) {

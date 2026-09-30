@@ -15,8 +15,14 @@ changed: the panel consumes real backend output only.
 
 Without the backend running, the panel boots from
 `extension/sample_data.json` — real parser output for `my_resumes/A.Bhargava.docx`
-(7 events, 1 gap, 11 undated), so every state is inspectable offline. Uploading
-a file (`Parse resume`) POSTs it to `/api/parse` when the backend is up.
+(7 events, 1 gap, 10 undated), so every state is inspectable offline.
+
+With the backend up, opening the side panel on a resume tab analyzes that tab
+automatically via `POST /api/parse-url {url}` — no upload click needed
+(`file://` URLs are read from local disk incl. Windows↔WSL drive mapping,
+`http(s)` URLs are downloaded server-side). Uploading via `Parse resume`
+remains for DOCX and other files that can't render in a tab. Auto-analysis
+only ever replaces the sample view — never a review in progress.
 
 Regenerate the fixture after parser changes:
 
@@ -57,6 +63,10 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
   Notes POST to `/api/notes/{sha}` (item `resume`, kept in
   `backend/notes_store.json`) so every recruiter sees them; offline they stay
   on-device with an honest notice.
+- Titles come from `Role | Org` headers (borrowed within the same block when
+  B7 splits them), `Company -` patterns, or the entry's own section header
+  for non-job sections (org is then omitted); table-separator artifacts are
+  filtered out of review.
 - View in Resume highlights the exact passage and nothing else: no panel
   excerpt, no backend page, no new tabs. Scriptable tabs get an in-place
   highlight (verbatim span, then dash/whitespace-normalized block match);
