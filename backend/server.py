@@ -232,6 +232,17 @@ def build_review_projection(out: dict) -> dict:
     states.
     """
     lines = {ln["line_id"]: ln for ln in out.get("lines", [])}
+    
+    def _raw_entry_text(entry: dict) -> str:
+        """Reconstruct raw text from original lines (with pipe separators intact)."""
+        line_ids = entry.get("line_ids", [])
+        parts = []
+        for lid in line_ids:
+            ln = lines.get(lid)
+            if ln and ln.get("raw_text"):
+                parts.append(ln["raw_text"])
+        return "\n".join(parts)
+    
     entries = {e["entry_id"]: e for e in out.get("entries", {}).get("entries", [])}
     ordered_entries = sorted(
         out.get("entries", {}).get("entries", []), key=lambda e: e.get("index", 0)
@@ -251,15 +262,17 @@ def build_review_projection(out: dict) -> dict:
         entry = entries.get(ev["entry_id"], {})
         ed = entry_dates.get(ev["entry_id"], {})
         fsec = sections.get(ev.get("block_id", ""), {})
+        raw_text = _raw_entry_text(entry)
         if ev.get("section") in HEADER_SECTIONS:
             title, org = _resolve_header(entry, ordered_entries)
             if org is None:
                 org = _entry_org(entry.get("text", ""))
             if title is None:
-                title = _entry_title(entry.get("text", ""), org, ev.get("raw_range"))
+                # Use raw text (with pipes) for title extraction
+                title = _entry_title(entry.get("text", ""), org, ev.get("raw_range"), raw_text)
         else:
             title = _section_header_title(entry.get("text", "")) or _entry_title(
-                entry.get("text", ""), None, ev.get("raw_range"))
+                entry.get("text", ""), None, ev.get("raw_range"), raw_text)
             org = None
         items.append(
             {
@@ -568,7 +581,7 @@ def _resolve_header(entry: dict, ordered_entries: list) -> tuple[str | None, str
     return None, None
 
 
-def _entry_title(text: str, org: str | None = None, raw_range: str | None = None) -> str | None:
+def _entry_title(text: str, org: str | None = None, raw_range: str | None = None, raw_text: str | None = None) -> str | None:
     import re
 
     role, pipe_org = _pipe_header(text)
@@ -593,6 +606,132 @@ def _entry_title(text: str, org: str | None = None, raw_range: str | None = None
         )
         if len(parts) > 1:
             seg = parts[1]
+    # Also keep raw_text with pipes for pipe-part extraction
+    raw_seg = raw_text
+    if raw_range and raw_text:
+        anchor = _clean_md(raw_range).strip()
+        idx = raw_text.find(anchor)
+        if idx >= 0:
+            raw_seg = raw_text[idx + len(anchor):]
+    elif raw_text:
+        parts = re.split(
+            r"(?:19|20)\d{2}\s*[–—\-/]\s*(?:(?:19|20)\d{2}|present|current)",
+            raw_text,
+            maxsplit=1,
+            flags=re.I,
+        )
+        if len(parts) > 1:
+            raw_seg = parts[1]
+
+    # Table-aware extraction FIRST using raw text with pipes
+    # 1. After the LAST "|" separator (common in table-based resumes: metadata | title)
+    # 2. After "Company - X" / "Client - X" patterns — the next meaningful text
+    # 3. First non-bullet line in raw_seg that looks like a role title
+    title = None
+    
+    # Pattern 1: Text after a "|" separator that contains a job title (often the part before Project Description)
+    # In table-based resumes: metadata | title | Project Description
+    if raw_seg:
+        pipe_parts = raw_seg.split("|")
+        if len(pipe_parts) >= 2:
+            # Check each part (from the end) for a job title pattern
+            # The title is often in the last non-empty part before "Project" markers
+            for part in reversed(pipe_parts):
+                part = part.strip()
+                if not part or len(part) < 3 or len(part) >= 120:
+                    continue
+                # Remove "Project Description", "Project Overview", etc.
+                cleaned_part = re.sub(r"\b(?:Project|Description|Overview|Summary)\b.*$", "", part, flags=re.I).strip()
+                cleaned_part = re.sub(r"^[^A-Za-z]+|[^A-Za-z]+$", "", cleaned_part)
+                cleaned_part = re.sub(r"\s+", " ", cleaned_part)
+                if len(cleaned_part) < 3 or len(cleaned_part) >= 120:
+                    continue
+                # Check if it looks like a title
+                if re.search(
+                    r"(?:\b(?:Project|Sr\.?|Senior|Junior|Lead|Principal|Staff)\s+(?:Planning\s+)?Consultant"
+                    r"|\b(?:Sr\.?|Senior|Junior|Lead|Principal|Staff)\s+(?:Data|Business|Systems?|Software)\s+(?:Analyst|Engineer|Scientist|Developer|Architect)"
+                    r"|\b(?:Data|Business|Systems?|Software)\s+(?:Analyst|Engineer|Scientist|Developer|Architect)"
+                    r"|\b(?:Programmer|Developer|Engineer|Analyst|Consultant|Manager|Director|Lead|Coordinator|Specialist|Administrator|Officer|Executive|Associate|Intern|Trainee)"
+                    r"|\b(?:Project|Product|Program|Technical)\s+(?:Manager|Lead|Coordinator|Owner)"
+                    r"|\b(?:Assistant|Associate|Deputy|Vice)\s+(?:Manager|Director|President|Chair)"
+                    r")",
+                    cleaned_part,
+                    re.I,
+                ):
+                    title = cleaned_part.strip()
+                    break
+    
+    # Pattern 2: After "Company - X" or "Client - X" — the next role-like text
+    if not title and raw_seg:
+        for m in re.finditer(r"(?:company|client)\s*-\s*[^|]*?\|", raw_seg, re.I):
+            after = raw_seg[m.end():]
+            snippet = after[:200]
+            snippet = re.sub(r"^[\s\|]*", "", snippet)
+            role_match = re.match(
+                r"(?:\b(?:Project|Sr\.?|Senior|Junior|Lead|Principal|Staff)\s+(?:Planning\s+)?Consultant"
+                r"|\b(?:Sr\.?|Senior|Junior|Lead|Principal|Staff)\s+(?:Data|Business|Systems?|Software)\s+(?:Analyst|Engineer|Scientist|Developer|Architect)"
+                r"|\b(?:Data|Business|Systems?|Software)\s+(?:Analyst|Engineer|Scientist|Developer|Architect)"
+                r"|\b(?:Programmer|Developer|Engineer|Analyst|Consultant|Manager|Director|Lead|Coordinator|Specialist|Administrator|Officer|Executive|Associate|Intern|Trainee)"
+                r"|\b(?:Project|Product|Program|Technical)\s+(?:Manager|Lead|Coordinator|Owner)"
+                r"|\b(?:Assistant|Associate|Deputy|Vice)\s+(?:Manager|Director|President|Chair)"
+                r")",
+                snippet,
+                re.I,
+            )
+            if role_match:
+                title = role_match.group(0)
+                break
+    
+    # Pattern 3: First non-bullet line in raw_seg that looks like a title
+    if not title and raw_seg:
+        lines = [ln.strip() for ln in raw_seg.splitlines() if ln.strip()]
+        for ln in lines:
+            if re.match(r"^[\s\*\-\u2022\-\u25cf\u2023\u25e6]", ln):
+                continue
+            if re.match(r"^(developed|managed|led|created|designed|implemented|analyzed|built|maintained|responsible|assisted|collaborated|coordinated|executed|delivered|improved|optimized|reduced|increased|achieved)\b", ln, re.I):
+                continue
+            if ln.count("|") > 2 or ln.count(",") > 4:
+                continue
+            if len(ln) > 120:
+                continue
+            if re.search(
+                r"\b(?:Project|Sr\.?|Senior|Junior|Lead|Principal|Staff)\s+(?:Planning\s+)?Consultant"
+                r"|\b(?:Sr\.?|Senior|Junior|Lead|Principal|Staff)\s+(?:Data|Business|Systems?|Software)\s+(?:Analyst|Engineer|Scientist|Developer|Architect)"
+                r"|\b(?:Data|Business|Systems?|Software)\s+(?:Analyst|Engineer|Scientist|Developer|Architect)"
+                r"|\b(?:Programmer|Developer|Engineer|Analyst|Consultant|Manager|Director|Lead|Coordinator|Specialist|Administrator|Officer|Executive|Associate|Intern|Trainee)"
+                r"|\b(?:Project|Product|Program|Technical)\s+(?:Manager|Lead|Coordinator|Owner)"
+                r"|\b(?:Assistant|Associate|Deputy|Vice)\s+(?:Manager|Director|President|Chair)",
+                ln,
+                re.I,
+            ):
+                title = ln.strip()
+                break
+    
+    if title:
+        return _word_truncate(title, 140)
+
+    # Fallback: original line-by-line check on cleaned text
+    # Split into candidate lines and pick the first that looks like a job title.
+    # A job title: not a bullet, not a date line, not an action-verb sentence fragment.
+    lines = [ln.strip() for ln in seg.splitlines() if ln.strip()]
+    for ln in lines:
+        # Skip bullet points
+        if re.match(r"^[\s\*\-\u2022\-\u25cf\u2023\u25e6]", ln):
+            continue
+        # Skip common action-verb starts (resume bullet style)
+        if re.match(r"^(developed|managed|led|created|designed|implemented|analyzed|built|maintained|responsible|assisted|collaborated|coordinated|executed|delivered|improved|optimized|reduced|increased|achieved)\b", ln, re.I):
+            continue
+        # Skip very long lines (these are descriptions)
+        if len(ln) > 120:
+            continue
+        # Skip pure skill/keyword lists (many | or ,)
+        if ln.count("|") > 2 or ln.count(",") > 4:
+            continue
+        # This looks like a title
+        if len(ln) >= 3:
+            return _word_truncate(ln, 140)
+    
+    # Fallback: original seg logic
     seg = re.split(
         r"\b(Technology|Client|Location|Duration|Project|Skills?)\b\s*[-:]?",
         seg,
@@ -604,8 +743,6 @@ def _entry_title(text: str, org: str | None = None, raw_range: str | None = None
     seg = re.sub(r"^[^A-Za-z]+", "", seg).strip()
     seg = re.sub(r"\s+", " ", seg)
     if org and len(seg) < len(org):
-        # A fragment shorter than the org line (e.g. "Bachelor of") hides the
-        # real content — the org line is the more complete label.
         return _word_truncate(org, 80)
     if len(seg) >= 3:
         return _word_truncate(seg, 140)
@@ -613,8 +750,6 @@ def _entry_title(text: str, org: str | None = None, raw_range: str | None = None
         return _word_truncate(org, 80)
     fallback = re.sub(r"^[^A-Za-z]+", "", cleaned).strip()
     return _word_truncate(fallback, 140) if fallback else None
-
-
 def _word_truncate(text: str, limit: int) -> str:
     text = (text or "").strip()
     if len(text) <= limit:
