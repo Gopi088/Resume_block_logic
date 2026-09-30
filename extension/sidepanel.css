@@ -1,5 +1,5 @@
 /* Recruiter review panel: narrow side panel, calm neutrals, no gradients,
-   no animation. Color carries meaning only: neutral / gap alert. */
+   no animation. Color carries meaning only: neutral / needs-review / reviewed. */
 
 :root {
   --ink: #1a1d21;
@@ -8,9 +8,8 @@
   --bg: #ffffff;
   --wash: #f6f7f8;
   --accent: #2f4b7c;        /* single primary action color */
-  --warn-bg: #fdf6e9;       /* career gap */
-  --warn-line: #e3c98f;
-  --ok-ink: #2e7d32;        /* reviewed state */
+  --warn-ink: #8a5a00;      /* needs review */
+  --ok-ink: #2e7d32;        /* reviewed */
   --ok-bg: #eef6ee;
   --radius: 6px;
 }
@@ -24,7 +23,7 @@ body {
   font: 13px/1.45 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.app { max-width: 420px; margin: 0 auto; padding: 10px 12px 24px; }
+.app { max-width: 420px; margin: 0 auto; padding: 8px 12px 20px; }
 
 .muted { color: var(--muted); }
 .small { font-size: 12px; }
@@ -32,71 +31,77 @@ body {
 /* ---- source bar: exactly one action ---- */
 .sourcebar {
   display: flex; align-items: center; gap: 8px;
-  padding-bottom: 10px; border-bottom: 1px solid var(--line);
-  margin-bottom: 10px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
 }
 .upload-btn {
   display: inline-block; background: var(--accent); color: #fff;
-  font-size: 12px; font-weight: 600; padding: 6px 10px;
+  font-size: 12px; font-weight: 600; padding: 5px 10px;
   border-radius: var(--radius); cursor: pointer; white-space: nowrap;
 }
 .source-label { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ---- candidate header ---- */
+/* ---- compact header ---- */
 .candidate-row { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
-.candidate-id h1 { font-size: 16px; margin: 0; line-height: 1.25; overflow-wrap: anywhere; }
-.candidate-id p { margin: 2px 0 0; overflow-wrap: anywhere; }
-.accuracy { text-align: right; flex-shrink: 0; }
-.accuracy-pct { display: block; font-size: 16px; font-weight: 700; }
-.accuracy-label { display: block; font-size: 11px; color: var(--muted); }
-.accuracy-hint { margin: 4px 0 0; }
-.review-state { margin: 6px 0 0; font-weight: 600; }
-.review-state.done { color: var(--ok-ink); }
-.review-state.todo { color: var(--muted); font-weight: 400; }
+.candidate-id { min-width: 0; }
+.candidate-id h1 { font-size: 15px; margin: 0; line-height: 1.25; overflow-wrap: anywhere; }
+.candidate-id p { margin: 1px 0 0; font-size: 12px; overflow-wrap: anywhere; }
+.accuracy { text-align: right; flex-shrink: 0; font-size: 12px; }
+.accuracy-line { display: block; white-space: nowrap; }
+.accuracy-note { display: block; font-size: 11px; }
+.action-note { display: block; font-size: 11px; font-weight: 600; margin-top: 1px; }
+.action-note.todo { color: var(--warn-ink); }
+.action-note.done { color: var(--ok-ink); }
 
 /* ---- sections ---- */
-.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 14px 0 6px; }
+.section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 12px 0 2px; font-weight: 600; }
 .section-toggle {
   width: 100%; display: flex; justify-content: space-between; align-items: center;
   background: none; border: 0; padding: 0; cursor: pointer; font: inherit;
 }
-.section-toggle .section-title { margin: 14px 0 6px; }
+.section-toggle .section-title { margin: 12px 0 2px; }
 
-/* ---- timeline: one compact row per item ---- */
+/* ---- timeline: light chronological rows, separators not cards ---- */
 .timeline { list-style: none; margin: 0; padding: 0; }
-.item {
-  border: 1px solid var(--line);
-  border-radius: var(--radius); margin-bottom: 6px; background: var(--bg);
+.trow {
+  display: flex; gap: 8px; align-items: flex-start;
+  width: 100%; background: none; border: 0; border-bottom: 1px solid var(--line);
+  padding: 7px 2px; cursor: pointer; text-align: left; font: inherit; color: inherit;
 }
-.item.gap { border-style: dashed; background: var(--warn-bg); border-color: var(--warn-line); }
-
-.item-head {
-  width: 100%; display: flex; gap: 8px; align-items: baseline;
-  background: none; border: 0; padding: 7px 10px; cursor: pointer; text-align: left; font: inherit; color: inherit;
+.timeline > li:last-child > .trow,
+.rowlist > div:last-child > .trow { border-bottom: 0; }
+.tdates { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; padding-top: 2px; min-width: 86px; }
+.tmain { flex: 1; min-width: 0; }
+.ttitle { font-weight: 600; overflow-wrap: anywhere; }
+.ttitle .dot { font-weight: 400; margin-right: 2px; }
+.tsub { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.tkind {
+  display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--muted); border: 1px solid var(--line); border-radius: 3px;
+  padding: 0 4px; margin-right: 4px; vertical-align: 1px;
 }
-.item-dates { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
-.item-title { font-weight: 600; flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.chev { color: var(--muted); flex-shrink: 0; }
+.tstatus { font-size: 11px; margin-top: 1px; }
+.tstatus.review { color: var(--warn-ink); }
+.tstatus.done { color: var(--ok-ink); }
+.chev { color: var(--muted); flex-shrink: 0; font-size: 12px; }
 
-.item-body { display: none; border-top: 1px solid var(--line); padding: 8px 10px 10px; }
-.item.open .item-body { display: block; }
+.gap { background: var(--wash); border-radius: var(--radius); }
+.gap .trow { border-bottom: 0; }
+
+.tbody { display: none; padding: 2px 2px 10px 94px; }
+.open > .tbody { display: block; }
 .detail-row { margin: 2px 0; font-size: 12px; }
 .detail-row .k { color: var(--muted); }
 
-/* fallback status line only — resume text is never rendered in the panel */
-
-/* ---- the single resume review note (mandatory) ---- */
-#resumeReview {
-  margin-top: 14px; padding-top: 4px; border-top: 1px solid var(--line);
-}
+/* ---- review note (mandatory, per item) ---- */
 .note-label { display: block; font-size: 12px; font-weight: 600; margin: 8px 0 4px; }
 .note {
-  width: 100%; min-height: 56px; resize: vertical;
+  width: 100%; min-height: 40px; resize: vertical;
   border: 1px solid var(--line); border-radius: var(--radius);
   padding: 6px 8px; font: inherit; font-size: 12px;
 }
 .note:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
-.note-error { color: #92600a; font-size: 12px; margin: 4px 0 0; }
+.note-error { color: var(--warn-ink); font-size: 12px; margin: 4px 0 0; }
 
 .actions { display: flex; gap: 8px; margin-top: 8px; }
 .btn {
@@ -107,7 +112,7 @@ body {
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn.done { background: var(--ok-bg); border-color: var(--ok-ink); color: var(--ok-ink); font-weight: 600; }
 
-/* ---- saved note: timestamped, visible to every recruiter ---- */
+/* ---- saved notes stay with their item ---- */
 .saved-notes { list-style: none; margin: 8px 0 0; padding: 0; }
 .saved-notes li {
   background: var(--wash); border: 1px solid var(--line);
@@ -117,14 +122,15 @@ body {
 .sync-hint { font-size: 11px; color: var(--muted); margin: 4px 0 0; }
 
 /* ---- states ---- */
-.state { padding: 24px 8px; text-align: center; }
+.state { padding: 20px 8px; text-align: center; }
 .state-title { font-weight: 600; margin: 0 0 4px; }
-.state-error .state-title { color: #92600a; }
+.state-error .state-title { color: var(--warn-ink); }
 
-.footnote { margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--line); }
+.footnote { margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 11px; }
 
 @media (max-width: 320px) {
-  .item-dates { white-space: normal; }
+  .tdates { min-width: 0; white-space: normal; }
+  .tbody { padding-left: 2px; }
   .candidate-row { flex-direction: column; }
   .accuracy { text-align: left; }
 }

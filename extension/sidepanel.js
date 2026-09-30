@@ -6,19 +6,39 @@
   "use strict";
 
   var BACKEND = "http://localhost:8000";
-  var RESUME_NOTE_ID = "resume"; // the single review note for the whole resume
   var RESUME_URL_RE = /\.(pdf|txt|html?|md)([#?]|$)/i;
   var store = storage();
+
+  // Backend `section` values, mapped to recruiter-facing kind labels.
+  // Experience entries are roles (no label needed); everything else is named
+  // for what it is so dated blocks are never mislabeled as career roles.
+  var KIND_LABELS = {
+    education: "Education",
+    certifications: "Certification",
+    awards: "Award",
+    projects: "Project",
+    publications: "Publication",
+    languages: "Languages",
+    volunteering: "Volunteering",
+    interests: "Interests",
+    references: "References",
+    skills: "Skills",
+    summary: "Summary",
+    other: "Other",
+    unknown: "Other",
+    contact: "Contact",
+    boilerplate: "Other"
+  };
 
   var state = {
     doc: null,      // full parser payload (fixture or backend response)
     review: null,   // review projection
-    note: null,     // {note, by, at} — the one resume-level review, shared
+    notes: {},      // itemId -> [{note, by, at}] shared across recruiters
     reviewerId: "",
     backendUp: false,
-    isFixture: true,  // true until the recruiter parses a real file/tab
+    isFixture: true,
     lastAutoUrl: "",
-    activeTab: null,  // {id, url} — refreshed on every tab switch
+    activeTab: null,
   };
 
   var el = {
@@ -31,11 +51,10 @@
     file: document.getElementById("fileInput"),
     source: document.getElementById("sourceLabel"),
     name: document.getElementById("candName"),
-    meta: document.getElementById("candMeta"),
+    role: document.getElementById("candRole"),
     accPct: document.getElementById("accPct"),
-    accLabel: document.getElementById("accLabel"),
-    accHint: document.getElementById("accHint"),
-    reviewState: document.getElementById("reviewState"),
+    accNote: document.getElementById("accNote"),
+    actionNote: document.getElementById("actionNote"),
     timelineToggle: document.getElementById("timelineToggle"),
     timelineChev: document.getElementById("timelineChev"),
     timeline: document.getElementById("timeline"),
@@ -48,11 +67,6 @@
     undatedChev: document.getElementById("undatedChev"),
     undated: document.getElementById("undated"),
     undatedCount: document.getElementById("undatedCount"),
-    savedNotes: document.getElementById("savedNotes"),
-    resumeNote: document.getElementById("resumeNote"),
-    resumeNoteError: document.getElementById("resumeNoteError"),
-    markReviewedBtn: document.getElementById("markReviewedBtn"),
-    syncHint: document.getElementById("syncHint"),
   };
 
   el.retry.addEventListener("click", function () { loadFixture(); });
@@ -63,18 +77,11 @@
   el.undatedToggle.addEventListener("click", function () {
     toggleSection(el.undated, el.undatedToggle, el.undatedChev);
   });
-  el.markReviewedBtn.addEventListener("click", onMarkReviewed);
-  el.resumeNote.addEventListener("input", function () {
-    if (el.resumeNote.value.trim()) el.resumeNoteError.hidden = true;
-  });
 
-  // Stable anonymous identity, generated once — the recruiter never types a name.
   store.get("reviewerId", function (v) {
     state.reviewerId = v || ("R-" + Math.random().toString(36).slice(2, 6));
     store.set("reviewerId", state.reviewerId);
   });
-  // The extension works on the open resume: analyze the active tab when the
-  // panel opens, and follow the recruiter when they switch to another resume.
   if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
     chrome.runtime.onMessage.addListener(function (msg) {
       if (msg && msg.type === "OPEN_RESUME_TAB" && msg.url) {
@@ -87,9 +94,32 @@
   maybeAutoAnalyze();
   pingBackend();
 
+  function toggleSection(body, toggle, chev) {
+    var open = body.hidden;
+    body.hidden = !open;
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    chev.textContent = open ? "▾" : "▸";
+  }
+
+  /* ---------------- data loading ---------------- */
+
+  function loadFixture() {
+    showLoading(true);
+    fetch("sample_data.json")
+      .then(function (r) { if (!r.ok) throw new Error("fixture missing"); return r.json(); })
+      .then(function (doc) {
+        el.source.textContent = "Sample resume (real parser output)";
+        state.isFixture = true;
+        setDocument(doc);
+      })
+      .catch(function (err) { showError("Sample data could not be loaded: " + err.message); });
+  }
+
+  function pingBackend() {
+    fetch(BACKEND + "/health").then(function () { state.backendUp = true; }).catch(function () {});
+  }
+
   function onOpenTabUrl(url) {
-    // Only auto-switch while nothing real has been parsed yet — never yank
-    // a review in progress out from under the recruiter.
     if (!state.isFixture || url === state.lastAutoUrl) return;
     if (RESUME_URL_RE.test(url)) analyzeTabUrl(url);
   }
@@ -126,31 +156,6 @@
       .catch(function () { loadFixture(); });
   }
 
-  function toggleSection(body, toggle, chev) {
-    var open = body.hidden;
-    body.hidden = !open;
-    toggle.setAttribute("aria-expanded", open ? "true" : "false");
-    chev.textContent = open ? "▾" : "▸";
-  }
-
-  /* ---------------- data loading ---------------- */
-
-  function loadFixture() {
-    showLoading(true);
-    fetch("sample_data.json")
-      .then(function (r) { if (!r.ok) throw new Error("fixture missing"); return r.json(); })
-      .then(function (doc) {
-        el.source.textContent = "Sample resume (real parser output)";
-        state.isFixture = true;
-        setDocument(doc);
-      })
-      .catch(function (err) { showError("Sample data could not be loaded: " + err.message); });
-  }
-
-  function pingBackend() {
-    fetch(BACKEND + "/health").then(function () { state.backendUp = true; }).catch(function () {});
-  }
-
   function onFile(e) {
     var f = e.target.files && e.target.files[0];
     if (!f) return;
@@ -177,13 +182,13 @@
     state.doc = doc;
     state.review = doc.review || null;
     if (!state.review) { showError("This payload has no review projection."); return; }
-    loadNote(function () {
+    loadNotes(function () {
       render();
       showLoading(false);
     });
   }
 
-  /* ---------------- the single shared resume note ---------------- */
+  /* ---------------- shared per-item notes ---------------- */
 
   function storageKey() {
     var sha = (state.doc && state.doc.sha256) || (state.review.candidate.sha256) || "unknown";
@@ -208,66 +213,71 @@
     };
   }
 
-  function docSha() {
-    return (state.doc && state.doc.sha256) || (state.review.candidate.sha256) || "unknown";
+  function normalizeNotes(raw) {
+    var out = {};
+    Object.keys(raw || {}).forEach(function (id) {
+      var v = raw[id];
+      if (Array.isArray(v)) out[id] = v.filter(function (n) { return n && n.note; });
+      else if (v && v.note) out[id] = [{ note: v.note, by: v.by || "auto", at: v.at || null }];
+    });
+    return out;
   }
 
-  function pickNote(entries) {
-    // One note per resume: the latest shared entry wins.
-    if (!entries) return null;
-    if (Array.isArray(entries)) {
-      var valid = entries.filter(function (n) { return n && n.note; });
-      return valid.length ? valid[valid.length - 1] : null;
-    }
-    return entries.note ? entries : null;
+  function mergeNotes(a, b) {
+    var out = {};
+    Object.keys(a || {}).concat(Object.keys(b || {})).forEach(function (id) {
+      var seen = {};
+      out[id] = (a[id] || []).concat(b[id] || []).filter(function (n) {
+        var k = (n.note || "") + "|" + (n.by || "") + "|" + (n.at || "");
+        if (seen[k]) return false;
+        seen[k] = true;
+        return !!n.note;
+      });
+    });
+    return out;
   }
 
-  function loadNote(cb) {
+  function loadNotes(cb) {
     store.get(storageKey(), function (local) {
-      var localNote = pickNote(local && local[RESUME_NOTE_ID]);
+      var merged = normalizeNotes(local);
       fetch(BACKEND + "/api/notes/" + docSha())
         .then(function (r) { if (!r.ok) throw new Error("no backend"); return r.json(); })
         .then(function (body) {
           state.backendUp = true;
-          var shared = pickNote(body && body.notes && body.notes[RESUME_NOTE_ID]);
-          // Latest timestamp wins so no recruiter's review is silently lost.
-          state.note = latest(localNote, shared);
+          state.notes = mergeNotes(merged, normalizeNotes((body || {}).notes));
           cb();
         })
-        .catch(function () { state.note = localNote; cb(); });
+        .catch(function () { state.notes = merged; cb(); });
     });
   }
 
-  function latest(a, b) {
-    if (!a) return b;
-    if (!b) return a;
-    return (b.at || "") >= (a.at || "") ? b : a;
+  function docSha() {
+    return (state.doc && state.doc.sha256) || (state.review.candidate.sha256) || "unknown";
   }
 
-  function onMarkReviewed() {
-    var text = el.resumeNote.value.trim();
-    if (!text) {
-      el.resumeNoteError.hidden = false;
-      el.resumeNote.focus();
-      return;
-    }
-    el.resumeNoteError.hidden = true;
-    el.markReviewedBtn.disabled = true;
-    var entry = { note: text, by: state.reviewerId, at: new Date().toISOString() };
-    state.note = entry;
-    store.set(storageKey(), { resume: entry });
+  function saveNotes() { store.set(storageKey(), state.notes); }
+
+  function pushNote(it, noteText, cb) {
+    var entry = { note: noteText, by: state.reviewerId, at: new Date().toISOString() };
+    var id = itemId(it);
+    state.notes[id] = (state.notes[id] || []).concat([entry]);
+    saveNotes();
     fetch(BACKEND + "/api/notes/" + docSha(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ item_id: RESUME_NOTE_ID, note: text, by: state.reviewerId }),
-    }).then(function () { state.backendUp = true; finishSave(true); })
-      .catch(function () { finishSave(false); });
+      body: JSON.stringify({ item_id: id, note: noteText, by: state.reviewerId }),
+    }).then(function () { state.backendUp = true; cb(true); })
+      .catch(function () { cb(false); });
   }
 
-  function finishSave(shared) {
-    el.markReviewedBtn.disabled = false;
-    el.resumeNote.value = "";
-    renderReviewSection(shared);
+  function itemId(it) {
+    return it.kind === "gap" ? it.gap_id : it.entry_id;
+  }
+  function itemNotes(it) {
+    return state.notes[itemId(it)] || [];
+  }
+  function isReviewed(it) {
+    return itemNotes(it).length > 0;
   }
 
   /* ---------------- rendering ---------------- */
@@ -277,23 +287,25 @@
     el.error.hidden = true;
     el.review.hidden = false;
 
-    // Candidate header: name + career span only. No role/org description.
+    // Compact header: name + most recent role + confidence + action.
     el.name.textContent = r.candidate.name || "Unnamed candidate";
-    el.meta.textContent = r.candidate.years_experience != null
-      ? r.candidate.years_experience + " yrs span" : "";
+    var recentRole = mostRecentRole(r);
+    el.role.textContent = recentRole || "";
+    el.role.hidden = !recentRole;
 
     el.accPct.textContent = r.accuracy.percent + "%";
-    el.accLabel.textContent = r.accuracy.label;
     if (r.accuracy.percent < 45) {
-      el.accHint.hidden = false;
-      el.accHint.textContent = "Low extraction confidence — verify each item against the resume.";
-    } else { el.accHint.hidden = true; }
+      el.accNote.textContent = "⚠ Low — some items need review";
+    } else {
+      el.accNote.textContent = "";
+    }
+    updateActionNote();
 
     // Gaps first (the alert), shown only when found.
     el.gaps.innerHTML = "";
     var gaps = r.gaps || [];
     el.gapSection.hidden = gaps.length === 0;
-    el.gapCount.textContent = gaps.length ? "· " + gaps.length + " to check" : "";
+    el.gapCount.textContent = gaps.length ? "· " + gaps.length : "";
     gaps.forEach(function (g) { el.gaps.appendChild(renderGap(g)); });
 
     // Timeline: most-recent-first, collapsed until wanted.
@@ -302,10 +314,10 @@
       return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
     });
     el.timeline.innerHTML = "";
-    el.timelineCount.textContent = events.length ? "· " + events.length + " roles" : "";
+    el.timelineCount.textContent = events.length ? "· " + events.length : "";
     events.forEach(function (ev) { el.timeline.appendChild(renderEvent(ev)); });
 
-    // Undated: collapsed until wanted.
+    // Other information: recruiter wording, collapsed until wanted.
     el.undated.innerHTML = "";
     var und = r.undated || [];
     el.undatedSection.hidden = und.length === 0;
@@ -313,105 +325,149 @@
     und.forEach(function (u) { el.undated.appendChild(renderUndated(u)); });
 
     el.empty.hidden = events.length > 0 || gaps.length > 0;
-    renderReviewSection(state.backendUp);
   }
 
-  function renderReviewSection(shared) {
-    el.savedNotes.innerHTML = "";
-    if (state.note) {
-      var li = document.createElement("li");
-      li.innerHTML = esc(state.note.note) +
-        '<div class="by">Reviewed · ' + esc(fmtTime(state.note.at)) + "</div>";
-      el.savedNotes.appendChild(li);
-      el.reviewState.textContent = "✓ Reviewed · " + fmtTime(state.note.at);
-      el.reviewState.className = "review-state small done";
-      el.markReviewedBtn.className = "btn done";
-      el.markReviewedBtn.textContent = "✓ Update review";
+  function mostRecentRole(r) {
+    var exp = (r.events || []).filter(function (e) { return e.section === "experience"; });
+    if (!exp.length) return null;
+    exp.sort(function (a, b) {
+      if (a.start_date === b.start_date) return 0;
+      return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
+    });
+    return exp[0].title || null;
+  }
+
+  function reviewableItems() {
+    var r = state.review;
+    return (r.events || []).concat(r.gaps || [], r.undated || []);
+  }
+
+  function updateActionNote() {
+    var all = reviewableItems();
+    var done = all.filter(isReviewed).length;
+    var left = all.length - done;
+    if (!all.length) {
+      el.actionNote.textContent = "";
+      el.actionNote.className = "action-note";
+    } else if (left === 0) {
+      el.actionNote.textContent = "✓ All reviewed";
+      el.actionNote.className = "action-note done";
     } else {
-      el.reviewState.textContent = "Not reviewed yet";
-      el.reviewState.className = "review-state small todo";
-      el.markReviewedBtn.className = "btn primary";
-      el.markReviewedBtn.textContent = "Mark Reviewed";
+      el.actionNote.textContent = "⚠ " + left + " item" + (left === 1 ? "" : "s") + " need review";
+      el.actionNote.className = "action-note todo";
     }
-    el.syncHint.textContent = shared
-      ? "Saved — visible to other recruiters."
-      : "Stored on this device only (backend offline) — other recruiters can’t see it yet.";
   }
 
-  /* ---------------- compact rows: dates + title only ---------------- */
+  function kindLabel(section) {
+    if (!section || section === "experience") return null;
+    return KIND_LABELS[section] || (section.charAt(0).toUpperCase() + section.slice(1));
+  }
 
-  function rowHead(datesLabel, titleText) {
+  /* ---------------- compact rows: date / title / org / status / expand ---------------- */
+
+  function rowHead(datesLabel, titleHtml, subText, it) {
     var head = document.createElement("button");
-    head.className = "item-head";
+    head.className = "trow";
     head.setAttribute("aria-expanded", "false");
-    head.title = titleText || "";
-    head.innerHTML =
-      '<span class="item-dates">' + esc(datesLabel) + "</span>" +
-      '<span class="item-title">' + esc(titleText || "—") + "</span>" +
-      '<span class="chev">▸</span>';
-    return head;
+    var main = document.createElement("span");
+    main.className = "tmain";
+    main.innerHTML = '<span class="ttitle">' + titleHtml + "</span>" +
+      (subText ? '<br/><span class="tsub">' + esc(subText) + "</span>" : "") +
+      '<br/><span class="tstatus ' + (isReviewed(it) ? "done" : "review") + '">' +
+      (isReviewed(it) ? "✓ Reviewed" : "⚠ Needs review") + "</span>";
+    head.innerHTML = '<span class="tdates">' + esc(datesLabel) + "</span>";
+    head.appendChild(main);
+    var chev = document.createElement("span");
+    chev.className = "chev";
+    chev.textContent = "▸";
+    head.appendChild(chev);
+    return { head: head, chev: chev };
   }
 
-  function bindExpand(container, head) {
-    var chev = head.querySelector(".chev");
+  function bindExpand(item, head, chev) {
     head.addEventListener("click", function () {
-      var open = container.classList.toggle("open");
+      var open = item.classList.toggle("open");
       head.setAttribute("aria-expanded", open ? "true" : "false");
       chev.textContent = open ? "▾" : "▸";
     });
   }
 
+  function titleFor(ev) {
+    var label = kindLabel(ev.section);
+    var title = ev.title || "Untitled";
+    if (ev.section === "experience") {
+      return '<span class="dot muted">●</span> ' + esc(title);
+    }
+    if (label) {
+      return '<span class="tkind">' + esc(label) + "</span>" + esc(title);
+    }
+    return esc(title);
+  }
+
   function renderEvent(ev) {
     var li = document.createElement("li");
-    li.className = "item";
-    var head = rowHead(fmtRange(ev.start_date, ev.end_date, ev.is_ongoing), ev.title);
-    bindExpand(li, head);
+    li.className = "titem";
+    var sub = (ev.organization && !sameText(ev.organization, ev.title)) ? ev.organization : "";
+    if (ev.location) sub = sub ? sub + " · " + ev.location : ev.location;
+    var parts = rowHead(fmtRange(ev.start_date, ev.end_date, ev.is_ongoing), titleFor(ev), sub, ev);
+    bindExpand(li, parts.head, parts.chev);
 
-    // Expanded: only what doesn't fit in the row + the evidence action.
     var body = document.createElement("div");
-    body.className = "item-body";
-    if (ev.organization && !sameText(ev.organization, ev.title)) {
-      body.appendChild(detail("Organization", ev.organization));
-    }
-    body.appendChild(detail("Confidence", ev.confidence_band + (ev.trusted ? "" : " — verify against resume")));
+    body.className = "tbody";
+    body.appendChild(detail("Organization", ev.organization));
+    if (ev.location) body.appendChild(detail("Location", ev.location));
+    if (ev.raw_range) body.appendChild(detail("Dates as written", ev.raw_range));
+    body.appendChild(detail("Confidence", ev.confidence_band + (ev.trusted ? "" : " — check against resume")));
     body.appendChild(viewResumeBlock(ev));
+    body.appendChild(reviewBlock(ev, li, parts.head));
 
-    li.appendChild(head);
+    li.appendChild(parts.head);
     li.appendChild(body);
     return li;
   }
 
   function renderGap(g) {
     var div = document.createElement("div");
-    div.className = "item gap";
+    div.className = "titem gap";
     var months = g.gap_months_approx != null ? " (" + g.gap_months_approx + " months)" : "";
-    var head = rowHead(fmtRange(g.start_date, g.end_date, false), "Potential career gap" + months);
-    head.title = "No employment stated here — your call.";
-    bindExpand(div, head);
+    var parts = rowHead(fmtRange(g.start_date, g.end_date, false),
+      esc("Potential gap"), "No employment stated" + months, g);
+    parts.head.title = "Expand for details";
+    bindExpand(div, parts.head, parts.chev);
 
     var body = document.createElement("div");
-    body.className = "item-body";
-    body.appendChild(detail("Why flagged", "No employment covers this stretch (breaks under 90 days are ignored)."));
-    div.appendChild(head);
+    body.className = "tbody";
+    body.appendChild(detail("Why flagged", "No employment covers this stretch (breaks under 90 days are ignored). Only you can judge what it means."));
+    body.appendChild(reviewBlock(g, div, parts.head));
+
+    div.appendChild(parts.head);
     div.appendChild(body);
     return div;
   }
 
   function renderUndated(u) {
     var div = document.createElement("div");
-    div.className = "item";
-    var head = rowHead("No dates", u.title || "Entry");
-    bindExpand(div, head);
+    div.className = "titem";
+    var label = kindLabel(u.section);
+    var title = (u.title || "Entry");
+    var titleHtml = label
+      ? '<span class="tkind">' + esc(label) + "</span>" + esc(title)
+      : esc(title);
+    var sub = (u.organization && !sameText(u.organization, u.title)) ? u.organization : "";
+    var parts = rowHead("Undated", titleHtml, sub, u);
+    bindExpand(div, parts.head, parts.chev);
 
     var body = document.createElement("div");
-    body.className = "item-body";
+    body.className = "tbody";
+    body.appendChild(detail("Note", "This could not be placed on the timeline — no dates were found for it."));
     if (u.organization && !sameText(u.organization, u.title)) {
       body.appendChild(detail("Organization", u.organization));
     }
-    body.appendChild(detail("Confidence", u.confidence_band + " — verify against resume"));
+    body.appendChild(detail("Confidence", u.confidence_band + " — check against resume"));
     body.appendChild(viewResumeBlock(u));
+    body.appendChild(reviewBlock(u, div, parts.head));
 
-    div.appendChild(head);
+    div.appendChild(parts.head);
     div.appendChild(body);
     return div;
   }
@@ -423,6 +479,7 @@
   }
 
   function detail(k, v) {
+    if (v == null || v === "") return document.createTextNode("");
     var p = document.createElement("p");
     p.className = "detail-row";
     p.innerHTML = '<span class="k">' + esc(k) + ":</span> " + esc(v);
@@ -448,16 +505,12 @@
     status.hidden = true;
 
     btn.addEventListener("click", function () {
-      // Copy the search phrases synchronously (user gesture) so Ctrl+F works
-      // even where the viewer ignores the text fragment.
       var phrases = fragmentPhrases(it);
       try {
         if (phrases.length && navigator.clipboard) {
           navigator.clipboard.writeText(phrases[0]).catch(function () {});
         }
       } catch (e) { /* clipboard unavailable */ }
-      // Navigate SYNCHRONOUSLY in the click: the text fragment survives only
-      // on navigations tied to the user gesture; any async hop strips it.
       var cached = state.activeTab;
       if (cached && cached.url && /^https?:|^file:/i.test(cached.url) && cached.id != null) {
         btn.disabled = true;
@@ -486,6 +539,20 @@
     return wrap;
   }
 
+  function jumpStatus(status, res) {
+    status.hidden = false;
+    if (res.ok && res.via === "fragment") {
+      status.textContent = res.page
+        ? "Jumped to page " + res.page + " in the resume tab."
+        : "Jumped to the passage in the resume tab.";
+    } else if (res.ok) {
+      status.textContent = "Highlighted in the open resume tab.";
+    } else {
+      status.textContent = "That passage isn’t in the active tab. " +
+        "Click Parse resume and upload the file that’s open, then try again.";
+    }
+  }
+
   function sendToTab(tabId, texts, cb) {
     function send(afterInject) {
       try {
@@ -499,7 +566,7 @@
       if (!chrome.scripting) return cb(false);
       try {
         chrome.scripting.executeScript({ target: { tabId: tabId }, files: ["content.js"] }, function () {
-          if (chrome.runtime.lastError) return cb(false); // e.g. PDF viewer: not scriptable
+          if (chrome.runtime.lastError) return cb(false);
           send(true);
         });
       } catch (e) { cb(false); }
@@ -521,8 +588,6 @@
         var tab = tabs[0];
         sendToTab(tab.id, texts, function (ok) {
           if (ok) return cb({ ok: true });
-          // Scripting failed (PDF viewer blocks all extensions) or the text
-          // isn't in this tab: jump via a text fragment in the same tab.
           fragmentNavigate(tab, it, cb);
         });
       });
@@ -544,10 +609,6 @@
   }
 
   function fragmentPhrases(it) {
-    // Up to three independent anchors — the viewer highlights the first one
-    // that matches, so a single mismatched phrase can't sink the jump.
-    // Title/org header words first (one contiguous header line in the PDF),
-    // then the date range as written, then the excerpt's first line.
     var ev = it.evidence || {};
     var out = [];
     function take(words) {
@@ -568,11 +629,6 @@
   }
 
   function evidenceUrl(tabUrl, page, phrases) {
-    // Force a real (re)load: same-document hash edits are ignored by the PDF
-    // viewer, so a cache-busting query makes it process the fragment fresh.
-    // #page=N lands the viewer on the evidence page; every :~:text= anchor
-    // is tried and the first match highlights. Existing query strings
-    // (signed URLs) are kept.
     var base = tabUrl.split("#")[0];
     var url = base + (base.indexOf("?") === -1 ? "?" : "&") + "evjump=" + Date.now() +
       (page ? "#page=" + page : "#");
@@ -588,8 +644,6 @@
   }
 
   function syncJump(cached, it, phrases, cb) {
-    // Called synchronously inside the click: the text fragment survives only
-    // on navigations tied to the user gesture.
     try {
       chrome.tabs.update(cached.id,
         { url: evidenceUrl(cached.url, evidencePage(it), phrases) }, function () {
@@ -597,20 +651,6 @@
           cb({ ok: true, via: "fragment", page: evidencePage(it) });
         });
     } catch (e) { cb({ ok: false, reason: "not-found" }); }
-  }
-
-  function jumpStatus(status, res) {
-    status.hidden = false;
-    if (res.ok && res.via === "fragment") {
-      status.textContent = res.page
-        ? "Jumped to page " + res.page + " in the resume tab."
-        : "Jumped to the passage in the resume tab.";
-    } else if (res.ok) {
-      status.textContent = "Highlighted in the open resume tab.";
-    } else {
-      status.textContent = "That passage isn’t in the active tab. " +
-        "Click Parse resume and upload the file that’s open, then try again.";
-    }
   }
 
   function fragmentNavigate(tab, it, cb) {
@@ -625,6 +665,106 @@
         cb({ ok: true, via: "fragment", page: page });
       });
     } catch (e) { cb({ ok: false, reason: "not-found" }); }
+  }
+
+  /* ---------------- per-item review: mandatory note, stays with the item ---------------- */
+
+  function reviewBlock(it, item, head) {
+    var wrap = document.createElement("div");
+
+    var list = document.createElement("ul");
+    list.className = "saved-notes";
+    renderSavedNotes(list, it);
+
+    var label = document.createElement("label");
+    label.className = "note-label";
+    label.textContent = "Review note";
+    label.htmlFor = "note-" + itemId(it);
+
+    var ta = document.createElement("textarea");
+    ta.className = "note";
+    ta.id = "note-" + itemId(it);
+
+    var err = document.createElement("p");
+    err.className = "note-error";
+    err.hidden = true;
+
+    var actions = document.createElement("div");
+    actions.className = "actions";
+    var btn = document.createElement("button");
+    syncReviewBtn(btn, it);
+    btn.addEventListener("click", function () {
+      var note = ta.value.trim();
+      if (!note) {
+        err.hidden = false;
+        err.textContent = "Add a review note before marking this item as reviewed.";
+        ta.focus();
+        return;
+      }
+      err.hidden = true;
+      btn.disabled = true;
+      pushNote(it, note, function (shared) {
+        btn.disabled = false;
+        ta.value = "";
+        renderSavedNotes(list, it);
+        syncReviewBtn(btn, it);
+        refreshStatus(item, head, it);
+        updateActionNote();
+        syncHint(syncEl, shared);
+      });
+    });
+
+    ta.addEventListener("input", function () {
+      if (ta.value.trim()) err.hidden = true;
+    });
+
+    var syncEl = document.createElement("p");
+    syncEl.className = "sync-hint";
+    syncHint(syncEl, state.backendUp);
+
+    actions.appendChild(btn);
+    wrap.appendChild(list);
+    wrap.appendChild(label);
+    wrap.appendChild(ta);
+    wrap.appendChild(err);
+    wrap.appendChild(actions);
+    wrap.appendChild(syncEl);
+    return wrap;
+  }
+
+  function renderSavedNotes(list, it) {
+    list.innerHTML = "";
+    itemNotes(it).forEach(function (n) {
+      var li = document.createElement("li");
+      var when = n.at ? fmtTime(n.at) : "";
+      li.innerHTML = esc(n.note) +
+        '<div class="by">Reviewed' + (when ? " · " + esc(when) : "") + "</div>";
+      list.appendChild(li);
+    });
+  }
+
+  function syncHint(p, shared) {
+    p.textContent = shared
+      ? "Saved — visible to other recruiters."
+      : "Stored on this device only (backend offline) — other recruiters can’t see it yet.";
+  }
+
+  function syncReviewBtn(btn, it) {
+    if (isReviewed(it)) {
+      btn.className = "btn done";
+      btn.textContent = "✓ Add note";
+    } else {
+      btn.className = "btn primary";
+      btn.textContent = "Mark Reviewed";
+    }
+  }
+
+  function refreshStatus(item, head, it) {
+    var st = head.querySelector(".tstatus");
+    if (st) {
+      st.className = "tstatus " + (isReviewed(it) ? "done" : "review");
+      st.textContent = isReviewed(it) ? "✓ Reviewed" : "⚠ Needs review";
+    }
   }
 
   /* ---------------- helpers ---------------- */

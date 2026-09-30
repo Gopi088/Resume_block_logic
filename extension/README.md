@@ -50,23 +50,19 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
 ## Design (per UI research)
 
 - One viewport, ≤420px, single column; career gaps surface first, timeline and
-  undated sections stay collapsed until the recruiter expands them.
-- Header shows name + career span only (no role/org description); accuracy is a
-  compact `28% · Low — verify`.
-- Timeline rows are one line each (`dates + title`); org appears only on expand,
-  and only when it differs from the title. No per-item statuses or buttons
-  beyond Expand and View in Resume.
-- Confidence shown as High/Medium/Low only — no ML/LLM internals.
-- Gaps are dashed, framed as "needs your review", never a verdict on the candidate.
-- One review note per resume ("Your review" section): empty notes are blocked;
-  saving stamps the time automatically (anonymous device id, nothing to type).
-  Notes POST to `/api/notes/{sha}` (item `resume`, kept in
-  `backend/notes_store.json`) so every recruiter sees them; offline they stay
-  on-device with an honest notice.
-- Titles come from `Role | Org` headers (borrowed within the same block when
-  B7 splits them), `Company -` patterns, or the entry's own section header
-  for non-job sections (org is then omitted); table-separator artifacts are
-  filtered out of review.
+  other-information sections stay collapsed until the recruiter expands them.
+- Compact header: name, most recent role, `Extraction confidence N%`, and
+  `⚠ N items need review` / `✓ All reviewed`. No blanket verify orders.
+- Light chronological rows (date column, strong title, secondary org,
+  chevron = expand only) with separators instead of cards. Experience rows
+  read as roles; every other section carries a kind tag (Education,
+  Certification, Skills, Summary, …) so dated blocks are never mislabeled.
+- Expanded rows show org/location/dates-as-written/confidence, the
+  View-in-Resume jump, and the item's own review note (mandatory before
+  Mark Reviewed; saved notes stay visible with their item).
+- Review notes POST to `/api/notes/{sha}` keyed by timeline entry/gap id, so
+  every recruiter sees them; offline they stay on-device with an honest notice.
+  The author identity is auto-stamped (anonymous device id, nothing to type).
 - View in Resume highlights the exact passage and nothing else: no panel
   excerpt, no backend page, no new tabs. Scriptable tabs get an in-place
   highlight (verbatim span, then dash/whitespace-normalized block match);
