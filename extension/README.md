@@ -47,18 +47,19 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
   undated sections stay collapsed until the recruiter expands them.
 - Header shows name + career span only (no role/org description); accuracy is a
   compact `28% · Low — verify`.
-- Timeline rows are one line each (`dates + title + status icon`); `!` needs
-  review, `✓` reviewed — no text badges. Org appears only on expand, and only
-  when it differs from the title.
-- Hick's law: expand, View in Resume, Mark Reviewed — nothing else per item.
+- Timeline rows are one line each (`dates + title`); org appears only on expand,
+  and only when it differs from the title. No per-item statuses or buttons
+  beyond Expand and View in Resume.
 - Confidence shown as High/Medium/Low only — no ML/LLM internals.
 - Gaps are dashed, framed as "needs your review", never a verdict on the candidate.
-- Review: "Reviewing as" name + note are both mandatory. Notes are saved as
-  `{note, by, at}` and listed under each item. They POST to
-  `/api/notes/{sha}` (stored in `backend/notes_store.json`) so every recruiter
-  sees them; offline they stay on-device with an honest notice.
-- View in Resume opens an evidence view: the full resume text with the item's
-  exact source lines highlighted and scrolled into view, plus a best-effort
-  highlight in the open tab.
+- One review note per resume ("Your review" section): empty notes are blocked;
+  saving stamps the time automatically (anonymous device id, nothing to type).
+  Notes POST to `/api/notes/{sha}` (item `resume`, kept in
+  `backend/notes_store.json`) so every recruiter sees them; offline they stay
+  on-device with an honest notice.
+- View in Resume highlights the exact passage in the open resume tab (content
+  script injected on demand — never page top). Only if the tab can't be reached
+  (e.g. PDF viewer, file URLs without permission) does a small exact-source
+  excerpt appear inline; the whole resume is never dumped into the panel.
 - States: loading, empty, error/offline-backend, low-confidence hint,
   evidence-unavailable (gaps are derived absences — stated explicitly).

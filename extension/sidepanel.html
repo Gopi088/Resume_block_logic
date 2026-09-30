@@ -41,17 +41,8 @@
           </div>
         </div>
         <p id="accHint" class="accuracy-hint muted small" hidden></p>
-        <div class="progress" aria-label="Review progress">
-          <div id="progressBar" class="progress-bar"></div>
-        </div>
-        <p id="progressText" class="muted small"></p>
+        <p id="reviewState" class="review-state small"></p>
       </header>
-
-      <!-- Reviewer identity: notes are saved under this name -->
-      <div class="reviewer">
-        <label for="reviewerName">Reviewing as</label>
-        <input id="reviewerName" type="text" placeholder="Your name" autocomplete="off" maxlength="60" />
-      </div>
 
       <!-- Career gaps first: the alert, shown only when gaps exist -->
       <section aria-label="Potential career gaps" id="gapSection" hidden>
@@ -82,17 +73,22 @@
         <p class="muted">The parser could not place any dated entries. Check the resume file and try again.</p>
       </div>
 
+      <!-- The single review note for the whole resume -->
+      <section aria-label="Resume review" id="resumeReview">
+        <h2 class="section-title">Your review</h2>
+        <ul id="savedNotes" class="saved-notes"></ul>
+        <label class="note-label" for="resumeNote">Review note</label>
+        <textarea id="resumeNote" class="note" placeholder="e.g. 17-month gap Mar 2023 – Jul 2024 unverified; roles otherwise consistent."></textarea>
+        <p id="resumeNoteError" class="note-error" hidden>Add a review note before marking this resume as reviewed.</p>
+        <div class="actions">
+          <button id="markReviewedBtn" class="btn primary">Mark Reviewed</button>
+        </div>
+        <p id="syncHint" class="sync-hint"></p>
+      </section>
+
       <footer class="footnote muted small">
         Extraction assists your review — you make the hiring decision.
       </footer>
-    </div>
-
-    <!-- Evidence view: the exact resume passage, highlighted -->
-    <div id="evidenceView" hidden>
-      <button id="evidenceBack" class="btn">← Back to timeline</button>
-      <h2 id="evidenceTitle" class="evidence-title"></h2>
-      <p id="evidenceSub" class="muted small"></p>
-      <div id="evidenceDoc" class="evidence-doc"></div>
     </div>
   </div>
   <script src="sidepanel.js"></script>

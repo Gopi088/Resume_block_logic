@@ -1,5 +1,5 @@
 /* Recruiter review panel: narrow side panel, calm neutrals, no gradients,
-   no animation. Color carries meaning only: neutral / needs-review / reviewed. */
+   no animation. Color carries meaning only: neutral / gap alert. */
 
 :root {
   --ink: #1a1d21;
@@ -8,10 +8,10 @@
   --bg: #ffffff;
   --wash: #f6f7f8;
   --accent: #2f4b7c;        /* single primary action color */
-  --warn-bg: #fdf6e9;       /* needs review */
+  --warn-bg: #fdf6e9;       /* career gap */
   --warn-line: #e3c98f;
-  --ok-bg: #eef6ee;         /* reviewed */
-  --ok-ink: #2e7d32;
+  --ok-ink: #2e7d32;        /* reviewed state */
+  --ok-bg: #eef6ee;
   --radius: 6px;
 }
 
@@ -50,19 +50,9 @@ body {
 .accuracy-pct { display: block; font-size: 16px; font-weight: 700; }
 .accuracy-label { display: block; font-size: 11px; color: var(--muted); }
 .accuracy-hint { margin: 4px 0 0; }
-.progress { height: 4px; background: var(--line); border-radius: 2px; margin-top: 8px; }
-.progress-bar { height: 100%; width: 0; background: var(--accent); border-radius: 2px; }
-
-/* ---- reviewer identity ---- */
-.reviewer {
-  display: flex; align-items: center; gap: 6px;
-  padding-bottom: 10px; border-bottom: 1px solid var(--line);
-  margin-bottom: 4px; font-size: 12px; color: var(--muted);
-}
-.reviewer input {
-  flex: 1; min-width: 0; border: 1px solid var(--line);
-  border-radius: var(--radius); padding: 4px 8px; font: inherit; font-size: 12px;
-}
+.review-state { margin: 6px 0 0; font-weight: 600; }
+.review-state.done { color: var(--ok-ink); }
+.review-state.todo { color: var(--muted); font-weight: 400; }
 
 /* ---- sections ---- */
 .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 14px 0 6px; }
@@ -75,12 +65,10 @@ body {
 /* ---- timeline: one compact row per item ---- */
 .timeline { list-style: none; margin: 0; padding: 0; }
 .item {
-  border: 1px solid var(--line); border-left: 3px solid #c9ced6;
+  border: 1px solid var(--line);
   border-radius: var(--radius); margin-bottom: 6px; background: var(--bg);
 }
-.item.needs-review { border-left-color: var(--warn-line); }
-.item.reviewed { border-left-color: var(--ok-ink); }
-.item.gap { border-style: dashed; background: var(--warn-bg); border-left-color: var(--warn-line); }
+.item.gap { border-style: dashed; background: var(--warn-bg); border-color: var(--warn-line); }
 
 .item-head {
   width: 100%; display: flex; gap: 8px; align-items: baseline;
@@ -91,10 +79,6 @@ body {
   font-weight: 600; flex: 1; min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* status icons only — no text badges */
-.item-status { flex-shrink: 0; font-size: 12px; font-weight: 700; width: 16px; text-align: center; }
-.status-review { color: #92600a; }
-.status-done { color: var(--ok-ink); }
 .chev { color: var(--muted); flex-shrink: 0; }
 
 .item-body { display: none; border-top: 1px solid var(--line); padding: 8px 10px 10px; }
@@ -102,6 +86,7 @@ body {
 .detail-row { margin: 2px 0; font-size: 12px; }
 .detail-row .k { color: var(--muted); }
 
+/* fallback excerpt: only shown when the open tab can't be highlighted */
 .evidence {
   background: var(--wash); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 6px 8px; margin: 6px 0;
@@ -110,10 +95,13 @@ body {
 .evidence mark { background: #fff3c4; padding: 0 1px; }
 .evidence-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-/* ---- review note (mandatory) + actions ---- */
+/* ---- the single resume review note (mandatory) ---- */
+#resumeReview {
+  margin-top: 14px; padding-top: 4px; border-top: 1px solid var(--line);
+}
 .note-label { display: block; font-size: 12px; font-weight: 600; margin: 8px 0 4px; }
 .note {
-  width: 100%; min-height: 44px; resize: vertical;
+  width: 100%; min-height: 56px; resize: vertical;
   border: 1px solid var(--line); border-radius: var(--radius);
   padding: 6px 8px; font: inherit; font-size: 12px;
 }
@@ -129,7 +117,7 @@ body {
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn.done { background: var(--ok-bg); border-color: var(--ok-ink); color: var(--ok-ink); font-weight: 600; }
 
-/* ---- saved notes: who + when, visible to every recruiter ---- */
+/* ---- saved note: timestamped, visible to every recruiter ---- */
 .saved-notes { list-style: none; margin: 8px 0 0; padding: 0; }
 .saved-notes li {
   background: var(--wash); border: 1px solid var(--line);
@@ -138,15 +126,6 @@ body {
 .saved-notes .by { color: var(--muted); font-size: 11px; margin-top: 2px; }
 .sync-hint { font-size: 11px; color: var(--muted); margin: 4px 0 0; }
 
-/* ---- evidence view: full resume, exact lines highlighted ---- */
-.evidence-title { font-size: 14px; margin: 8px 0 2px; overflow-wrap: anywhere; }
-.evidence-doc {
-  border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 8px 10px; margin-top: 8px; font-size: 12px;
-}
-.evidence-doc .eline { padding: 1px 4px; overflow-wrap: anywhere; }
-.evidence-doc .eline.hit { background: #fff3c4; outline: 1px solid #b98a1d; }
-.evidence-doc .epage { font-size: 11px; color: var(--muted); margin: 8px 0 2px; }
 /* ---- states ---- */
 .state { padding: 24px 8px; text-align: center; }
 .state-title { font-weight: 600; margin: 0 0 4px; }

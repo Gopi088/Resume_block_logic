@@ -80,9 +80,9 @@ async def post_note(sha: str, payload: dict) -> dict:
 
     item_id = (payload.get("item_id") or "").strip()
     note = (payload.get("note") or "").strip()
-    by = (payload.get("by") or "").strip()
-    if not item_id or not note or not by:
-        return {"ok": False, "error": "item_id, note and by are all required"}
+    by = (payload.get("by") or "").strip() or "auto"
+    if not item_id or not note:
+        return {"ok": False, "error": "item_id and note are required"}
     store = _read_notes()
     doc_notes = store.get(sha, {})
     if not isinstance(doc_notes, dict):

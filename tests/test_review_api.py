@@ -101,8 +101,8 @@ def test_shared_notes_roundtrip(tmp_path, monkeypatch):
 
     assert client.get("/api/notes/abc123").json() == {"ok": True, "notes": {}}
 
-    # Missing fields are rejected — a note always carries author + text.
-    bad = client.post("/api/notes/abc123", json={"item_id": "E000001", "note": "x"})
+    # Only the note text is mandatory — author is auto-stamped, never typed.
+    bad = client.post("/api/notes/abc123", json={"item_id": "E000001", "note": "  "})
     assert bad.json()["ok"] is False
 
     good = client.post(
