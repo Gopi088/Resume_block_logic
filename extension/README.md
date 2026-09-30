@@ -71,10 +71,12 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
 
 ## Design (per UI research)
 
-- One viewport, ≤420px, single column; career gaps surface first, timeline and
-  other-information sections stay collapsed until the recruiter expands them.
+- One viewport, ≤420px, single column; timeline starts collapsed, gaps render
+  inline between roles, dated education lives in a collapsed Education group.
+  Only timeline-bearing entries are shown — undated blocks and non-career
+  fragments are excluded from the panel entirely.
 - Compact header: name, most recent role, `Extraction confidence N%`, and
-  `⚠ N items need review` / `✓ All reviewed`. No blanket verify orders.
+  `⚠ Resume needs review` / `✓ Reviewed`. No blanket verify orders.
 - Light chronological rows (date column, strong title, secondary org,
   chevron = expand only) with separators instead of cards. Experience rows
   read as roles; every other section carries a kind tag (Education,

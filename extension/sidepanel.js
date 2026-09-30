@@ -54,9 +54,6 @@
     eduToggle: document.getElementById("eduToggle"),
     eduCount: document.getElementById("eduCount"),
     eduList: document.getElementById("eduList"),
-    otherToggle: document.getElementById("otherToggle"),
-    otherCount: document.getElementById("otherCount"),
-    otherList: document.getElementById("otherList"),
     savedNotes: document.getElementById("savedNotes"),
     resumeNote: document.getElementById("resumeNote"),
     resumeNoteError: document.getElementById("resumeNoteError"),
@@ -77,9 +74,6 @@
   });
   el.eduToggle.addEventListener("click", function () {
     toggleSublist(el.eduList, el.eduToggle);
-  });
-  el.otherToggle.addEventListener("click", function () {
-    toggleSublist(el.otherList, el.otherToggle);
   });
   el.markReviewedBtn.addEventListener("click", onMarkReviewed);
   el.resumeNote.addEventListener("input", function () {
@@ -576,7 +570,6 @@
   function renderTimeline(r, jobs) {
     el.timeline.innerHTML = "";
     el.eduList.innerHTML = "";
-    el.otherList.innerHTML = "";
     state.flaggedIds = [];
 
     var desc = jobs.slice().sort(function (a, b) {
@@ -659,21 +652,15 @@
       el.timeline.appendChild(gEl);
     });
 
-    // Education group (dated education events + undated education entries).
-    var eduItems = (r.events || []).filter(function (e) { return T.entryType(e.section) === "education"; })
-      .concat((r.undated || []).filter(function (u) { return u.section === "education"; }));
+    // Education group: only dated education entries (timeline-bearing).
+    var eduItems = (r.events || []).filter(function (e) {
+      return T.entryType(e.section) === "education" && e.start_date;
+    });
     el.eduToggle.hidden = !eduItems.length;
     el.eduCount.textContent = eduItems.length ? "· " + eduItems.length : "";
     eduItems.forEach(function (it) { el.eduList.appendChild(renderSimpleRow(it)); });
 
-    // Other text found: dated unclassified events + undated non-education, non-contact.
-    var otherItems = (r.events || []).filter(function (e) { return T.entryType(e.section) === "unclassified"; })
-      .concat((r.undated || []).filter(function (u) { return u.section !== "education" && u.section !== "contact"; }));
-    el.otherToggle.hidden = !otherItems.length;
-    el.otherCount.textContent = otherItems.length ? "· " + otherItems.length : "";
-    otherItems.forEach(function (it) { el.otherList.appendChild(renderSimpleRow(it)); });
-
-    var hasContent = mainJobs.length || amberJobs.length || eduItems.length || otherItems.length;
+    var hasContent = mainJobs.length || amberJobs.length || eduItems.length;
     el.empty.hidden = !!hasContent;
     if (!hasContent) {
       el.snapshot.hidden = true;
@@ -715,7 +702,7 @@
   }
 
   function markShowing(li) {
-    var prev = document.querySelector("#timeline li.showing, #eduList li.showing, #otherList li.showing");
+    var prev = document.querySelector("#timeline li.showing, #eduList li.showing");
     if (prev) prev.classList.remove("showing");
     if (li) li.classList.add("showing");
   }
@@ -956,17 +943,33 @@
   }
 
   function renderSimpleRow(it) {
-    // Education + Other-text rows: title, optional context, Show control always.
+    // Dated education rows: title, dates, Show control always.
+    // Amber only when genuinely uncertain (low confidence, missing title,
+    // estimated dates) — never by default.
     var li = document.createElement("li");
     li.id = rowIdFor(it);
-    li.className = "titem uncertain";
-    state.flaggedIds.push(li.id);
+    li.className = "titem";
+    var reasons = [];
+    if (Number(it.confidence) < T.CONF_MEDIUM) reasons.push("Low confidence");
+    if (!it.title) reasons.push("Title not found");
+    if (precFor(it).inferred) reasons.push("Dates estimated");
+    if (reasons.length) {
+      li.className += " uncertain";
+      state.flaggedIds.push(li.id);
+    }
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "trowmain";
     var title = document.createElement("span");
     title.className = "ttitle";
-    title.textContent = it.title || "Untitled";
+    if (it.title) {
+      title.textContent = it.title;
+    } else {
+      var miss = document.createElement("em");
+      miss.className = "reason";
+      miss.textContent = "Title not found";
+      title.appendChild(miss);
+    }
     btn.appendChild(title);
     if (it.start_date || it.raw_range) {
       var prec = precFor(it);
@@ -977,8 +980,14 @@
     }
     var foot = document.createElement("span");
     foot.className = "trowfoot";
+    reasons.forEach(function (rsn) {
+      var rEl = document.createElement("span");
+      rEl.className = "reason";
+      rEl.textContent = rsn;
+      foot.appendChild(rEl);
+    });
     var ak = anchorInfo(it);
-    if (ak.kind !== "none") foot.appendChild(showButton(it, ak, true));
+    if (ak.kind !== "none") foot.appendChild(showButton(it, ak, reasons.length > 0));
     btn.appendChild(foot);
     btn.setAttribute("aria-label", (it.title || "Untitled") + ". Activate to show in resume.");
     btn.addEventListener("click", function () { navigateToAnchor(it, ak); });
