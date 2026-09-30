@@ -19,6 +19,11 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       .catch(function () { sendResponse({ ok: false }); });
     return true;
   }
+  if (msg && msg.type === "OPEN_SIDE_PANEL" && sender.tab && sender.tab.id != null) {
+    chrome.sidePanel.open({ tabId: sender.tab.id }).catch(function () {});
+    sendResponse({ ok: true });
+    return true;
+  }
 });
 
 // Follow the recruiter: when they switch tabs, offer the open resume to the

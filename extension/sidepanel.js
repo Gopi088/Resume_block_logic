@@ -586,15 +586,14 @@
   }
 
   function fragmentPhrases(it) {
-    // Every anchor rides along; the viewer highlights the first match, so a
-    // single mismatched phrase can't sink the jump. Header words first (one
-    // contiguous line in the PDF), then dates, excerpt line, and finally the
-    // longest rare word alone ("AACHIEVEMENTS", "EEDUCATION") — single words
-    // survive any punctuation the parser normalized away.
+    // Plain anchors; the viewer highlights the first match. Header words
+    // first (one contiguous line in the PDF), then dates, excerpt line, and
+    // finally the longest rare word alone ("AACHIEVEMENTS", "EEDUCATION") —
+    // single words survive any punctuation the parser normalized away.
     var ev = it.evidence || {};
     var out = [];
     function take(words, min) {
-      if (words.length >= (min || 2) && /[a-zA-Z]{3,}/.test(words.join(" ")) && out.length < 4) {
+      if (words.length >= (min || 2) && /[a-zA-Z]{3,}/.test(words.join(" ")) && out.length < 5) {
         var p = words.join(" ");
         if (out.indexOf(p) === -1) out.push(p);
       }
@@ -609,6 +608,44 @@
     });
     if (rare) take([rare], 1);
     return out;
+  }
+
+  function neighborLines(ev) {
+    // Display lines immediately around the evidence span, in document order.
+    var lines = ((state.doc && state.doc.lines) || []).slice().sort(function (a, b) {
+      return (a.index || 0) - (b.index || 0);
+    });
+    var pos = {};
+    lines.forEach(function (ln, i) { pos[ln.line_id] = i; });
+    var ids = ev.line_ids || [];
+    if (!ids.length) return { prev: "", next: "" };
+    var first = pos[ids[0]], last = pos[ids[ids.length - 1]];
+    function textAt(i) {
+      return (i != null && i >= 0 && i < lines.length) ? (lines[i].display_text || "") : "";
+    }
+    var prev = "", next = "";
+    for (var p = first - 1; p >= 0 && !prev.trim(); p--) prev = textAt(p);
+    for (var n = last + 1; n < lines.length && !next.trim(); n++) next = textAt(n);
+    return { prev: prev, next: next };
+  }
+
+  function pinnedPhrase(it) {
+    // prefix-,PHRASE,-suffix pins the highlight to the exact line: bare
+    // phrases match the first occurrence anywhere, which may be a different
+    // line containing the same words.
+    var ev = it.evidence || {};
+    var around = neighborLines(ev);
+    var pre = wordsOf(around.prev, 20).slice(-5);
+    var suf = wordsOf(around.next, 5);
+    var core = uniqueWords(
+      wordsOf(it.title || "", 10).concat(wordsOf(it.organization || "", 10)), 10);
+    if (core.length < 3) {
+      var firstLine = ((ev.excerpt || "").split("\n").filter(function (l) { return l.trim(); })[0] || "");
+      core = wordsOf(firstLine, 10);
+    }
+    if (core.length < 3 || pre.length < 2 || suf.length < 2) return null;
+    if (!/[a-zA-Z]{3,}/.test(core.join(" "))) return null;
+    return { pre: pre.join(" "), phrase: core.join(" "), suf: suf.join(" ") };
   }
 
   function fragmentPhrase(it) {
