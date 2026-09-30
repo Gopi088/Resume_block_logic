@@ -131,19 +131,19 @@
       :host { all: initial; display: block; }
 
       :root {
-        /* Gradient: lighter upper-left → deeper lower-right */
-        --ct-grad-start: #3B82F6;
-        --ct-grad-mid: #2563EB;
-        --ct-grad-end: #1D4ED8;
+        /* Gradient: darker blue theme */
+        --ct-grad-start: #1E3A8A;
+        --ct-grad-mid: #1E40AF;
+        --ct-grad-end: #1E3A8A;
         --ct-white: #FFFFFF;
         --ct-icon: #FFFFFF;
-        --ct-ring: rgba(255, 255, 255, 0.25);
-        --ct-shadow: rgba(0, 0, 0, 0.3);
-        --ct-glow: rgba(59, 130, 246, 0.35);
-        --ct-glow-hover: rgba(59, 130, 246, 0.5);
+        --ct-ring: rgba(255, 255, 255, 0.2);
+        --ct-shadow: rgba(0, 0, 0, 0.35);
+        --ct-glow: rgba(30, 64, 175, 0.25);
+        --ct-glow-hover: rgba(59, 130, 246, 0.4);
         --ct-badge-red: #EF4444;
-        --ct-size: 160px;
-        --ct-icon-size: 72px;
+        --ct-size: 78px;
+        --ct-icon-size: 36px;
         --ct-radius: 50%;
         --ct-transition: 180ms;
       }
@@ -226,9 +226,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 26px;
-        height: 26px;
-        color: var(--ct-icon);
+        width: 36px;
+        height: 36px;
+        color: #FFFFFF;
         filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
       }
       .ct-icon svg { width: 100%; height: 100%; }
@@ -284,8 +284,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 36px;
+        height: 36px;
         color: #FFFFFF;
         filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
       }
@@ -305,12 +305,12 @@
     btn.setAttribute("aria-expanded", "false");
 
     // Inline style fallback - guarantees size even if CSS variables fail
-    btn.style.width = "160px";
-    btn.style.height = "160px";
+    btn.style.width = "78px";
+    btn.style.height = "78px";
     btn.style.borderRadius = "50%";
-    btn.style.background = "linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)";
-    btn.style.boxShadow = "0 4px 16px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 24px rgba(59,130,246,0.35)";
-    btn.style.border = "2px solid rgba(255,255,255,0.25)";
+    btn.style.background = "linear-gradient(135deg, #1E3A8A 0%, #1E40AF 50%, #1E3A8A 100%)";
+    btn.style.boxShadow = "0 4px 16px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 24px rgba(30,64,175,0.25)";
+    btn.style.border = "2px solid rgba(255,255,255,0.2)";
     btn.style.cursor = "pointer";
     btn.style.display = "flex";
     btn.style.alignItems = "center";
