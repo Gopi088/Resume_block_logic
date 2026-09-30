@@ -53,6 +53,9 @@
     eduToggle: document.getElementById("eduToggle"),
     eduCount: document.getElementById("eduCount"),
     eduList: document.getElementById("eduList"),
+    otherToggle: document.getElementById("otherToggle"),
+    otherCount: document.getElementById("otherCount"),
+    otherList: document.getElementById("otherList"),
     savedNotes: document.getElementById("savedNotes"),
     resumeNote: document.getElementById("resumeNote"),
     resumeNoteError: document.getElementById("resumeNoteError"),
@@ -73,6 +76,9 @@
   });
   el.eduToggle.addEventListener("click", function () {
     toggleSublist(el.eduList, el.eduToggle);
+  });
+  el.otherToggle.addEventListener("click", function () {
+    toggleSublist(el.otherList, el.otherToggle);
   });
   el.markReviewedBtn.addEventListener("click", onMarkReviewed);
   el.resumeNote.addEventListener("input", function () {
@@ -108,7 +114,7 @@
 
   function fixtureParam() {
     try {
-      var m = /[?&]fixture=([1-6])\b/.exec(window.location.search || "");
+      var m = /[?&]fixture=([1-7])\b/.exec(window.location.search || "");
       return m ? m[1] : null;
     } catch (e) { return null; }
   }
@@ -568,56 +574,117 @@
   function renderTimeline(r, jobs) {
     el.timeline.innerHTML = "";
     el.eduList.innerHTML = "";
+    el.otherList.innerHTML = "";
     state.flaggedIds = [];
 
-    var desc = jobs.slice().sort(function (a, b) {
+    // Partition dated jobs through the sanity gate. Double-invalid rows
+    // and dated non-job blocks move to "Other text found".
+    var kept = [], other = [];
+    (jobs || []).forEach(function (ev) {
+      var g = T.sanitizeRow(ev);
+      if (!g) { other.push({ ev: ev }); return; }
+      kept.push({ ev: ev, title: g.title, employer: g.employer,
+                  uncertain: g.uncertain, reasons: g.reasons });
+    });
+    (r.events || []).forEach(function (ev) {
+      if (T.entryType(ev.section) === "unclassified") other.push({ ev: ev });
+    });
+    kept.sort(function (a, b) {
+      return (a.ev.start_date || "") < (b.ev.start_date || "") ? 1 : -1;
+    });
+
+    // Dated education rows (invalid titles move to Other as well).
+    var eduItems = [];
+    (r.events || []).forEach(function (e) {
+      if (T.entryType(e.section) !== "education" || !e.start_date) return;
+      if (T.isValidTitle(e.title)) eduItems.push(e);
+      else other.push({ ev: e });
+    });
+    eduItems.sort(function (a, b) {
       return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
     });
-    var mainJobs = desc.filter(function (j) { return Number(j.confidence) >= T.CONF_MEDIUM; });
-    var amberJobs = desc.filter(function (j) { return Number(j.confidence) < T.CONF_MEDIUM; });
 
-    // Inline gaps between consecutive trusted jobs.
-    var withTl = mainJobs.map(function (j) {
+    // Uncertainty: one signal. Dots below 30%, a single notice line at/above.
+    var rowCount = kept.length + eduItems.length;
+    var uncertainCount = kept.filter(function (k) { return k.uncertain; }).length +
+      eduItems.filter(function (e) {
+        return Number(e.confidence) < T.CONF_MEDIUM || precFor(e).inferred;
+      }).length;
+    var showDots = uncertainCount > 0 && uncertainCount / Math.max(1, rowCount) < 0.3;
+    var oldNotice = document.getElementById("timelineNotice");
+    if (oldNotice) oldNotice.parentNode.removeChild(oldNotice);
+    if (uncertainCount > 0 && !showDots) {
+      var notice = document.createElement("p");
+      notice.id = "timelineNotice";
+      notice.className = "muted";
+      notice.textContent = "Some details couldn't be read clearly. Check against the resume.";
+      el.timeline.parentNode.insertBefore(notice, el.timeline);
+    }
+    kept.forEach(function (k) {
+      if (k.uncertain) state.flaggedIds.push("row-" + k.ev.entry_id);
+    });
+    eduItems.forEach(function (e) {
+      if (Number(e.confidence) < T.CONF_MEDIUM || precFor(e).inferred) {
+        state.flaggedIds.push("row-" + e.entry_id);
+      }
+    });
+
+    // Inline gaps between consecutive trusted rows in display order.
+    var trustedIds = {};
+    kept.forEach(function (k) {
+      if (Number(k.ev.confidence) >= T.CONF_MEDIUM) trustedIds[k.ev.entry_id] = true;
+    });
+    var withTl = kept.filter(function (k) { return trustedIds[k.ev.entry_id]; }).map(function (k) {
       var c = {};
-      for (var k in j) c[k] = j[k];
-      c._timeline = state.tlByEntry[j.entry_id];
+      for (var key in k.ev) c[key] = k.ev[key];
+      c._timeline = state.tlByEntry[k.ev.entry_id];
       return c;
-    }).sort(function (a, b) { return (a.start_date || "") < (b.start_date || "") ? 1 : -1; });
-    var gaps = T.computeGaps(withTl.slice().sort(function (a, b) {
-      return (a.start_date || "") < (b.start_date || "") ? -1 : 1;
-    }));
-    function gapBetween(newerId, olderId) {
+    }).sort(function (a, b) { return (a.start_date || "") < (b.start_date || "") ? -1 : 1; });
+    var gaps = T.computeGaps(withTl);
+    function gapAfter(newerId, olderId) {
+      if (!trustedIds[newerId] || !trustedIds[olderId]) return null;
       for (var i = 0; i < gaps.length; i++) {
         if (gaps[i].beforeEntryId === newerId && gaps[i].afterEntryId === olderId) return gaps[i];
       }
       return null;
     }
 
-    // Group consecutive roles by employer, newest employer first.
-    var groups = T.groupByEmployer(mainJobs.concat(amberJobs).sort(function (a, b) {
-      return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
-    }));
-    // groupByEmployer sorts internally; rebuild in timeline (newest-first) order:
-    groups = T.groupByEmployer(mainJobs.concat(amberJobs));
-    var prevRole = null; // newer role seen so far (desc order)
-    groups.forEach(function (g) {
+    // Group by employer only with valid employers and a real multi-role employer.
+    var empCount = {};
+    kept.forEach(function (k) {
+      if (k.employer) empCount[k.employer.toLowerCase()] = (empCount[k.employer.toLowerCase()] || 0) + 1;
+    });
+    var grouped = Object.keys(empCount).some(function (k) { return empCount[k] >= 2; });
+    var groups = {}, groupOrder = [];
+    if (grouped) {
+      kept.forEach(function (k) {
+        if (!k.employer) return;
+        var key = k.employer.toLowerCase();
+        if (!groups[key]) { groups[key] = { name: k.employer, roles: [] }; groupOrder.push(key); }
+        groups[key].roles.push(k);
+      });
+    }
+    var prevEv = null;
+    function emitGap(container, newerEv, olderEv) {
+      var gp = newerEv && olderEv ? gapAfter(newerEv.entry_id, olderEv.entry_id) : null;
+      if (gp) container.appendChild(renderGapRow(gp));
+    }
+    groupOrder.forEach(function (key) {
+      var g = groups[key];
       var gEl = document.createElement("li");
       gEl.className = "emp";
       var head = document.createElement("div");
       head.className = "emp-head";
-      var empMonths = T.unionMonths(g.roles
-        .filter(function (x) { return Number(x.confidence) >= T.CONF_MEDIUM && x.start_date; })
-        .map(function (x) {
-          return { start: x.start_date, end: x.is_ongoing ? state.referenceDate : (x.end_date || x.start_date) };
-        }));
       var nameSpan = document.createElement("span");
       nameSpan.className = "emp-name";
-      if (g.name) {
-        nameSpan.textContent = g.name;
-      } else {
-        nameSpan.innerHTML = '<em class="reason">Employer not found</em>';
-      }
+      nameSpan.textContent = g.name;
       head.appendChild(nameSpan);
+      var empMonths = T.unionMonths(g.roles
+        .filter(function (x) { return Number(x.ev.confidence) >= T.CONF_MEDIUM && x.ev.start_date; })
+        .map(function (x) {
+          return { start: x.ev.start_date,
+                   end: x.ev.is_ongoing ? state.referenceDate : (x.ev.end_date || x.ev.start_date) };
+        }));
       if (empMonths > 0) {
         var t = document.createElement("span");
         t.className = "emp-tenure";
@@ -627,38 +694,43 @@
       gEl.appendChild(head);
       var list = document.createElement("ol");
       list.className = "roles";
-      // roles newest-first; tag progression older->newer
-      var asc = g.roles.slice().sort(function (a, b) {
-        return (a.start_date || "") < (b.start_date || "") ? -1 : 1;
-      });
-      var tags = {};
-      for (var i = 1; i < asc.length; i++) {
-        var tag = T.progressionTag(asc[i - 1].title, asc[i].title);
-        if (tag) tags[asc[i].entry_id] = tag;
-      }
-      g.roles.slice().sort(function (a, b) {
-        return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
-      }).forEach(function (role) {
-        var gp = prevRole ? gapBetween(role.entry_id, prevRole.entry_id) : null;
-        // gapBetween(newer, older): current role is older than prevRole
-        gp = prevRole ? gapBetween(prevRole.entry_id, role.entry_id) : null;
-        if (gp) list.appendChild(renderGapRow(gp));
-        list.appendChild(renderRole(role, tags[role.entry_id] || null));
-        prevRole = role;
+      g.roles.forEach(function (k) {
+        emitGap(list, prevEv, k.ev);
+        list.appendChild(renderJobRow(k, showDots));
+        prevEv = k.ev;
       });
       gEl.appendChild(list);
       el.timeline.appendChild(gEl);
     });
-
-    // Education group: only dated education entries (timeline-bearing).
-    var eduItems = (r.events || []).filter(function (e) {
-      return T.entryType(e.section) === "education" && e.start_date;
+    // Ungrouped rows (flat mode, or valid singletons/invalid employers in grouped mode).
+    var groupedIds = {};
+    groupOrder.forEach(function (key) {
+      groups[key].roles.forEach(function (k) { groupedIds[k.ev.entry_id] = true; });
     });
+    kept.forEach(function (k) {
+      if (groupedIds[k.ev.entry_id]) return;
+      emitGap(el.timeline, prevEv, k.ev);
+      var li = renderJobRow(k, showDots);
+      el.timeline.appendChild(li);
+      prevEv = k.ev;
+    });
+
+    // Education group (dated only).
     el.eduToggle.hidden = !eduItems.length;
     el.eduCount.textContent = eduItems.length ? "· " + eduItems.length : "";
-    eduItems.forEach(function (it) { el.eduList.appendChild(renderSimpleRow(it)); });
+    eduItems.forEach(function (it) {
+      if (Number(it.confidence) < T.CONF_MEDIUM || precFor(it).inferred) {
+        state.flaggedIds.push("row-" + it.entry_id);
+      }
+      el.eduList.appendChild(renderEduRow(it, showDots));
+    });
 
-    var hasContent = mainJobs.length || amberJobs.length || eduItems.length;
+    // Other text found (collapsed).
+    el.otherToggle.hidden = !other.length;
+    el.otherCount.textContent = other.length ? "· " + other.length : "";
+    other.forEach(function (o) { el.otherList.appendChild(renderOtherRow(o)); });
+
+    var hasContent = kept.length || eduItems.length || other.length;
     el.empty.hidden = !!hasContent;
     if (!hasContent) {
       el.snapshot.hidden = true;
@@ -685,9 +757,18 @@
       '<span aria-hidden="true">Show in resume</span>';
     b.addEventListener("click", function (ev) {
       ev.stopPropagation();
-      navigateToAnchor(it, ak);
+      jumpNow(it, ak);
     });
     return b;
+  }
+
+  function magIcon() {
+    var s = document.createElement("span");
+    s.className = "mag";
+    s.setAttribute("aria-hidden", "true");
+    s.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+      '<circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>';
+    return s;
   }
 
   function inlineMessage(li, text) {
@@ -700,7 +781,7 @@
   }
 
   function markShowing(li) {
-    var prev = document.querySelector("#timeline li.showing, #eduList li.showing");
+    var prev = document.querySelector("#timeline li.showing, #eduList li.showing, #otherList li.showing");
     if (prev) prev.classList.remove("showing");
     if (li) li.classList.add("showing");
   }
@@ -732,7 +813,7 @@
             if (li) inlineMessage(li, "Couldn't locate this in the resume");
             announce("Couldn't locate this in the resume.");
           }
-        }, anchorQuote(it));
+        }, pagePhrases(it));
       } else {
         if (li) inlineMessage(li, "Couldn't locate this in the resume");
         announce("Couldn't locate this in the resume.");
@@ -741,10 +822,48 @@
     if (ak.kind === "text" && texts.length) {
       sendToTab(texts, done);
     } else if (ak.pages && ak.pages.length) {
-      pageJump(ak.pages[0], function (ok) { done(ok, true); }, anchorQuote(it));
+      pageJump(ak.pages[0], function (ok) { done(ok, true); }, pagePhrases(it));
     } else {
       done(false);
     }
+  }
+
+  /* All fragment phrases for a page jump: exact source-line quote first,
+     then header/date/excerpt anchors. The viewer tries each in order. */
+  function pagePhrases(it) {
+    var out = [];
+    var q = anchorQuote(it);
+    if (q) out.push(q);
+    fragmentPhrases(it).forEach(function (p) {
+      if (out.indexOf(p) === -1) out.push(p);
+    });
+    return out;
+  }
+
+  /* Gesture-preserving jump: runs synchronously inside the click handler so
+     the browser keeps the text fragment. Falls back to the async path. */
+  function jumpNow(it, ak) {
+    ak = ak || anchorInfo(it);
+    var cached = state.activeTab;
+    if (cached && cached.url && /^https?:|^file:/i.test(cached.url) && cached.id != null &&
+        ak.kind !== "none") {
+      var page = (ak.pages && ak.pages.length) ? ak.pages[0] : null;
+      var base = cached.url.split("#")[0];
+      var frag = page != null ? "#page=" + (page + 1) : "#";
+      pagePhrases(it).forEach(function (p, i) {
+        frag += (i === 0 ? ":~:text=" : "&text=") + encodeURIComponent(p);
+      });
+      try {
+        chrome.tabs.update(cached.id, { url: base + frag }, function () {
+          var li = document.getElementById(rowIdFor(it));
+          if (chrome.runtime.lastError) { navigateToAnchor(it, ak); return; }
+          if (li) markShowing(li);
+          announce("Resume opened at the matching passage.");
+        });
+        return;
+      } catch (e) { /* fall through to async path */ }
+    }
+    navigateToAnchor(it, ak);
   }
 
   /* Best exact-portion quote for a text fragment: cleaned words from the
@@ -808,7 +927,7 @@
     send(false);
   }
 
-  function pageJump(pageIndex, cb, quote) {
+  function pageJump(pageIndex, cb, quotes) {
     try {
       if (typeof chrome === "undefined" || !chrome.tabs) return cb(false);
       var tabId = (state.activeTab && state.activeTab.id != null) ? state.activeTab.id : null;
@@ -816,7 +935,9 @@
         if (url == null || !/^https?:|^file:/i.test(url)) return cb(false);
         var base = url.split("#")[0];
         var frag = "#page=" + (pageIndex + 1);
-        if (quote) frag += ":~:text=" + encodeURIComponent(quote);
+        (quotes || []).forEach(function (q, i) {
+          frag += (i === 0 ? ":~:text=" : "&text=") + encodeURIComponent(q);
+        });
         chrome.tabs.update(id, { url: base + frag }, function () {
           cb(!(chrome.runtime.lastError));
         });
@@ -835,161 +956,150 @@
     } catch (e) { cb(false); }
   }
 
-  function renderRole(role, tag) {
+  function normEq(a, b) {
+    function norm(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+    var na = norm(a), nb = norm(b);
+    return !!na && !!nb && (na === nb || na.indexOf(nb) === 0 || nb.indexOf(na) === 0);
+  }
+
+  function datesDuration(ev) {
+    var prec = precFor(ev);
+    var fr = T.fmtRange(ev, prec);
+    var endIso = ev.is_ongoing ? state.referenceDate : (ev.end_date || ev.start_date);
+    var dur = ev.start_date ? T.durationWords(T.monthsBetween(
+      ev.start_date.slice(0, 7) + "-01", (endIso || ev.start_date).slice(0, 7) + "-01")) : "";
+    return fr.text + (dur ? " · " + dur : "");
+  }
+
+  /* Two-line job row. Line 1: employer if valid, else title. Line 2: title
+     (only if valid and different) · city · dates · duration. Whole row
+     clickable; magnifier icon on hover/focus only; static when no anchor. */
+  function renderJobRow(k, showDots) {
+    var ev = k.ev;
     var li = document.createElement("li");
-    li.id = rowIdFor(role);
-    var reasons = reasonsForJob(role);
-    if (reasons.length) {
-      li.className = "uncertain";
-      state.flaggedIds.push(li.id);
+    li.id = rowIdFor(ev);
+    li.className = "titem";
+    var line1 = k.employer || k.title;
+    var line2 = [];
+    if (k.title && k.title !== line1) line2.push(k.title);
+    var city = ev.location ? String(ev.location).trim() : "";
+    if (city && !normEq(city, line1) && !normEq(city, k.title)) line2.push(city);
+    line2.push(datesDuration(ev));
+    var ak = anchorInfo(ev);
+    var clickable = ak.kind !== "none";
+    var row = clickable ? document.createElement("button") : document.createElement("div");
+    if (clickable) row.type = "button";
+    row.className = "trowmain" + (clickable ? "" : " trowstatic");
+    var text = document.createElement("span");
+    text.className = "trowtext";
+    var l1 = document.createElement("span");
+    l1.className = "ttitle";
+    l1.textContent = line1;
+    text.appendChild(l1);
+    var l2 = document.createElement("span");
+    l2.className = "tsub";
+    l2.textContent = line2.join(" · ");
+    text.appendChild(l2);
+    row.appendChild(text);
+    if (k.uncertain && showDots) {
+      var dot = document.createElement("span");
+      dot.className = "amberdot";
+      dot.title = k.reasons.join("; ");
+      dot.setAttribute("aria-label", k.reasons.join("; "));
+      row.appendChild(dot);
     }
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "trowmain";
-    btn.setAttribute("aria-label", (role.title || "Untitled role") + ", " +
-      T.fmtRange(role, precFor(role)).text + ". Activate to show in resume.");
-
-    var title = document.createElement("span");
-    title.className = "ttitle";
-    title.textContent = role.title || "";
-    if (!role.title) {
-      title.innerHTML = "";
-      var miss = document.createElement("em");
-      miss.className = "reason";
-      miss.textContent = "Title not found";
-      title.appendChild(miss);
+    if (clickable) {
+      row.appendChild(magIcon());
+      row.setAttribute("aria-label", line1 + ", " + line2.join(" · ") + ". Activate to show in resume.");
+      row.addEventListener("click", function () { jumpNow(ev, ak); });
     }
-    btn.appendChild(title);
-
-    var sub = document.createElement("span");
-    sub.className = "tsub";
-    if (role.organization) {
-      sub.textContent = role.organization + (role.location ? " · " + role.location : "");
-    } else {
-      var eo = document.createElement("em");
-      eo.className = "reason";
-      eo.textContent = "Employer not found";
-      sub.appendChild(eo);
-      if (role.location) sub.appendChild(document.createTextNode(" · " + role.location));
-    }
-    // Client/project is a separate muted line when the parser provides it.
-    if (role.clientOrProject) {
-      var cl = document.createElement("span");
-      cl.className = "tsub muted";
-      cl.textContent = "Client: " + role.clientOrProject;
-      sub.appendChild(document.createElement("br"));
-      sub.appendChild(cl);
-    }
-    btn.appendChild(sub);
-
-    var prec = precFor(role);
-    var fr = T.fmtRange(role, prec);
-    var endIso = role.is_ongoing ? state.referenceDate : (role.end_date || role.start_date);
-    var dur = role.start_date ? T.durationWords(T.monthsBetween(
-      role.start_date.slice(0, 7) + "-01", (endIso || role.start_date).slice(0, 7) + "-01")) : "";
-    var dates = document.createElement("span");
-    dates.className = "tdates";
-    dates.textContent = fr.text + (dur ? " · " + dur : "");
-    if (fr.approx || prec.inferred) {
-      dates.title = prec.inferred ? "Dates estimated from surrounding text" : "";
-    }
-    btn.appendChild(dates);
-
-    var foot = document.createElement("span");
-    foot.className = "trowfoot";
-    if (tag) {
-      var tagEl = document.createElement("span");
-      tagEl.className = "tag";
-      tagEl.textContent = tag;
-      foot.appendChild(tagEl);
-    }
-    reasons.forEach(function (rsn) {
-      var rEl = document.createElement("span");
-      rEl.className = "reason";
-      rEl.textContent = rsn;
-      foot.appendChild(rEl);
-    });
-    var ak = anchorInfo(role);
-    if (ak.kind !== "none") foot.appendChild(showButton(role, ak, reasons.length > 0));
-    btn.appendChild(foot);
-
-    btn.addEventListener("click", function () { navigateToAnchor(role, ak); });
-    li.appendChild(btn);
+    li.appendChild(row);
     return li;
   }
 
-  function reasonsForJob(ev) {
-    var reasons = [];
-    if (Number(ev.confidence) < T.CONF_MEDIUM) reasons.push("Low confidence");
-    if (!ev.title) reasons.push("Title not found");
-    if (!ev.organization) reasons.push("Employer not found");
-    if (precFor(ev).inferred) reasons.push("Dates estimated");
-    return reasons;
-  }
-
-  function renderGapRow(gap) {
-    var li = document.createElement("li");
-    li.className = "gaprow";
-    li.textContent = "Gap · " + T.durationWords(gap.months) + " (" +
-      fmtYm(gap.startYm) + " – " + fmtYm(gap.endYm) + ")";
-    return li;
-  }
-
-  function fmtYm(yyyymm) {
-    var m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return m[parseInt(yyyymm.slice(5, 7), 10) - 1] + " " + yyyymm.slice(0, 4);
-  }
-
-  function renderSimpleRow(it) {
-    // Dated education rows: title, dates, Show control always.
-    // Amber only when genuinely uncertain (low confidence, missing title,
-    // estimated dates) — never by default.
+  /* Dated education rows use the same two-line pattern. */
+  function renderEduRow(it, showDots) {
     var li = document.createElement("li");
     li.id = rowIdFor(it);
     li.className = "titem";
     var reasons = [];
     if (Number(it.confidence) < T.CONF_MEDIUM) reasons.push("Low confidence");
-    if (!it.title) reasons.push("Title not found");
     if (precFor(it).inferred) reasons.push("Dates estimated");
-    if (reasons.length) {
-      li.className += " uncertain";
-      state.flaggedIds.push(li.id);
-    }
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "trowmain";
-    var title = document.createElement("span");
-    title.className = "ttitle";
-    if (it.title) {
-      title.textContent = it.title;
-    } else {
-      var miss = document.createElement("em");
-      miss.className = "reason";
-      miss.textContent = "Title not found";
-      title.appendChild(miss);
-    }
-    btn.appendChild(title);
-    if (it.start_date || it.raw_range) {
-      var prec = precFor(it);
-      var dates = document.createElement("span");
-      dates.className = "tdates";
-      dates.textContent = it.raw_range || T.fmtRange(it, prec).text;
-      btn.appendChild(dates);
-    }
-    var foot = document.createElement("span");
-    foot.className = "trowfoot";
-    reasons.forEach(function (rsn) {
-      var rEl = document.createElement("span");
-      rEl.className = "reason";
-      rEl.textContent = rsn;
-      foot.appendChild(rEl);
-    });
+    var org = (it.organization && T.isValidEmployer(it.organization, it.location))
+      ? String(it.organization).trim() : null;
+    var line2 = [];
+    if (org) line2.push(org);
+    line2.push(datesDuration(it));
     var ak = anchorInfo(it);
-    if (ak.kind !== "none") foot.appendChild(showButton(it, ak, reasons.length > 0));
-    btn.appendChild(foot);
-    btn.setAttribute("aria-label", (it.title || "Untitled") + ". Activate to show in resume.");
-    btn.addEventListener("click", function () { navigateToAnchor(it, ak); });
-    li.appendChild(btn);
+    var clickable = ak.kind !== "none";
+    var row = clickable ? document.createElement("button") : document.createElement("div");
+    if (clickable) row.type = "button";
+    row.className = "trowmain" + (clickable ? "" : " trowstatic");
+    var text = document.createElement("span");
+    text.className = "trowtext";
+    var l1 = document.createElement("span");
+    l1.className = "ttitle";
+    l1.textContent = it.title;
+    text.appendChild(l1);
+    var l2 = document.createElement("span");
+    l2.className = "tsub";
+    l2.textContent = line2.join(" · ");
+    text.appendChild(l2);
+    row.appendChild(text);
+    if (reasons.length && showDots) {
+      var dot = document.createElement("span");
+      dot.className = "amberdot";
+      dot.title = reasons.join("; ");
+      dot.setAttribute("aria-label", reasons.join("; "));
+      row.appendChild(dot);
+    }
+    if (reasons.length) state.flaggedIds.push(li.id);
+    if (clickable) {
+      row.appendChild(magIcon());
+      row.setAttribute("aria-label", it.title + ". Activate to show in resume.");
+      row.addEventListener("click", function () { jumpNow(it, ak); });
+    }
+    li.appendChild(row);
+    return li;
+  }
+
+  /* "Other text found" rows: dates plus a muted label only. Invalid fields
+     are never displayed. Clickable when an anchor exists. */
+  function renderOtherRow(o) {
+    var ev = o.ev;
+    var li = document.createElement("li");
+    li.id = rowIdFor(ev);
+    li.className = "titem";
+    var label = ev.raw_range || T.fmtRange(ev, precFor(ev)).text;
+    var ak = anchorInfo(ev);
+    var clickable = ak.kind !== "none";
+    var row = clickable ? document.createElement("button") : document.createElement("div");
+    if (clickable) row.type = "button";
+    row.className = "trowmain" + (clickable ? "" : " trowstatic");
+    var text = document.createElement("span");
+    text.className = "trowtext";
+    var l1 = document.createElement("span");
+    l1.className = "ttitle muted";
+    l1.textContent = label;
+    text.appendChild(l1);
+    var l2 = document.createElement("span");
+    l2.className = "tsub muted";
+    l2.textContent = "Unclear entry";
+    text.appendChild(l2);
+    row.appendChild(text);
+    if (clickable) {
+      row.appendChild(magIcon());
+      row.setAttribute("aria-label", label + ", unclear entry. Activate to show in resume.");
+      row.addEventListener("click", function () { jumpNow(ev, ak); });
+    }
+    li.appendChild(row);
+    return li;
+  }
+
+  function renderGapRow(gap) {
+    var li = document.createElement("li");
+    li.className = "gapline";
+    li.textContent = "Gap · " + T.durationWords(gap.months);
     return li;
   }
 

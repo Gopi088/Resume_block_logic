@@ -94,7 +94,8 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
   anything else (e.g. Chrome's PDF viewer, which blocks all extensions) gets
   a same-tab jump to `#page=N:~:text=<exact quote>`, where the quote is built
   from the evidence's own cleaned source-line words (multi-word, so it pins
-  the exact portion rather than a loose word). Parse the file that's actually
-  open — the button matches against the panel's current resume.
+  the exact portion rather than a loose word). Row clicks navigate
+  synchronously inside the click gesture so the viewer keeps the fragment.
+  Parse the file that's actually open — evidence matches the panel's resume.
 - States: loading, empty, error/offline-backend, low-confidence hint,
   evidence-unavailable (gaps are derived absences — stated explicitly).
