@@ -168,12 +168,6 @@ body {
 }
 .chev { color: var(--ct-muted); flex-shrink: 0; font-size: 12px; }
 
-.banner {
-  border: 1px solid var(--ct-line); border-left: 3px solid var(--ct-muted);
-  background: var(--ct-wash); border-radius: var(--ct-radius);
-  padding: 8px 10px; font-size: var(--ct-font-body); margin: 4px 0 6px;
-}
-
 /* ---- sections ---- */
 .section-title {
   font-size: var(--ct-font-section); color: var(--ct-ink);

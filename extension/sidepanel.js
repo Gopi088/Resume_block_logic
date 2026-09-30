@@ -45,7 +45,6 @@
     tenureBar: document.getElementById("tenureBar"),
     trustChip: document.getElementById("trustChip"),
     flaggedLink: document.getElementById("flaggedLink"),
-    manualBanner: document.getElementById("manualBanner"),
     timelineToggle: document.getElementById("timelineToggle"),
     timelineToggleLabel: document.getElementById("timelineToggleLabel"),
     timelineChev: document.getElementById("timelineChev"),
@@ -448,7 +447,6 @@
 
   function renderSnapshot(r, jobs, trust, manual) {
     el.snapshot.hidden = false;
-    el.manualBanner.hidden = !manual;
     el.name.textContent = (r.candidate && r.candidate.name) || "Unnamed candidate";
 
     // Current / latest role: most recent qualifying job.
