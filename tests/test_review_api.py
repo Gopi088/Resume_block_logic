@@ -89,3 +89,31 @@ def test_api_endpoints():
     assert body["ok"] is True
     assert body["timeline"]["n_events"] >= 1
     assert "review" in body and body["review"]["candidate"]["name"]
+
+
+def test_shared_notes_roundtrip(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import backend.server as srv
+
+    monkeypatch.setattr(srv, "NOTES_PATH", str(tmp_path / "notes.json"))
+    client = TestClient(srv.app)
+
+    assert client.get("/api/notes/abc123").json() == {"ok": True, "notes": {}}
+
+    # Missing fields are rejected — a note always carries author + text.
+    bad = client.post("/api/notes/abc123", json={"item_id": "E000001", "note": "x"})
+    assert bad.json()["ok"] is False
+
+    good = client.post(
+        "/api/notes/abc123",
+        json={"item_id": "E000001", "note": "Dates match p.1", "by": "Zoya"},
+    )
+    entries = good.json()["notes"]["E000001"]
+    assert len(entries) == 1
+    assert entries[0]["note"] == "Dates match p.1"
+    assert entries[0]["by"] == "Zoya"
+    assert entries[0]["at"]
+
+    again = client.get("/api/notes/abc123").json()["notes"]
+    assert len(again["E000001"]) == 1

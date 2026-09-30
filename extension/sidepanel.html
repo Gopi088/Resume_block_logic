@@ -28,13 +28,12 @@
     </div>
 
     <div id="review" hidden>
-      <!-- Candidate header -->
+      <!-- Candidate header: name + career span only -->
       <header class="candidate">
         <div class="candidate-row">
           <div class="candidate-id">
             <h1 id="candName">—</h1>
-            <p id="candRole" class="muted"></p>
-            <p id="candMeta" class="muted small"></p>
+            <p id="candMeta" class="muted"></p>
           </div>
           <div class="accuracy" title="Share of timeline blocks the parser trusted, blended with extraction confidence. It guides how carefully to verify — it never rates the candidate.">
             <span id="accPct" class="accuracy-pct">—</span>
@@ -48,22 +47,34 @@
         <p id="progressText" class="muted small"></p>
       </header>
 
-      <!-- Timeline -->
-      <section aria-label="Career timeline">
-        <h2 class="section-title">Timeline <span id="timelineCount" class="muted"></span></h2>
-        <ol id="timeline" class="timeline"></ol>
-      </section>
+      <!-- Reviewer identity: notes are saved under this name -->
+      <div class="reviewer">
+        <label for="reviewerName">Reviewing as</label>
+        <input id="reviewerName" type="text" placeholder="Your name" autocomplete="off" maxlength="60" />
+      </div>
 
-      <!-- Gaps -->
+      <!-- Career gaps first: the alert, shown only when gaps exist -->
       <section aria-label="Potential career gaps" id="gapSection" hidden>
-        <h2 class="section-title">Needs your review <span id="gapCount" class="muted"></span></h2>
+        <h2 class="section-title">Career gaps <span id="gapCount" class="muted"></span></h2>
         <div id="gaps"></div>
       </section>
 
-      <!-- Undated -->
+      <!-- Timeline: collapsed until the recruiter wants it -->
+      <section aria-label="Career timeline">
+        <button id="timelineToggle" class="section-toggle" aria-expanded="false">
+          <span class="section-title">Timeline <span id="timelineCount" class="muted"></span></span>
+          <span class="chev" id="timelineChev">▸</span>
+        </button>
+        <ol id="timeline" class="timeline" hidden></ol>
+      </section>
+
+      <!-- Undated: collapsed until wanted -->
       <section aria-label="Entries without dates" id="undatedSection" hidden>
-        <h2 class="section-title">No dates found <span id="undatedCount" class="muted"></span></h2>
-        <div id="undated"></div>
+        <button id="undatedToggle" class="section-toggle" aria-expanded="false">
+          <span class="section-title">No dates found <span id="undatedCount" class="muted"></span></span>
+          <span class="chev" id="undatedChev">▸</span>
+        </button>
+        <div id="undated" hidden></div>
       </section>
 
       <div id="stateEmpty" class="state" hidden>
@@ -74,6 +85,14 @@
       <footer class="footnote muted small">
         Extraction assists your review — you make the hiring decision.
       </footer>
+    </div>
+
+    <!-- Evidence view: the exact resume passage, highlighted -->
+    <div id="evidenceView" hidden>
+      <button id="evidenceBack" class="btn">← Back to timeline</button>
+      <h2 id="evidenceTitle" class="evidence-title"></h2>
+      <p id="evidenceSub" class="muted small"></p>
+      <div id="evidenceDoc" class="evidence-doc"></div>
     </div>
   </div>
   <script src="sidepanel.js"></script>

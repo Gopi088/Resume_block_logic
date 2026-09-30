@@ -43,16 +43,22 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
 
 ## Design (per UI research)
 
-- One viewport, ≤420px, single column; secondary info behind expandable items.
-- Header → accuracy (compact `28% · Low — verify`) → timeline (most-recent-first,
-  `DATE → ROLE → ORG`) → gaps → undated → evidence/review inside each item.
-- Hick's law: 3 buttons max per item (expand, View in Resume, Mark Reviewed).
+- One viewport, ≤420px, single column; career gaps surface first, timeline and
+  undated sections stay collapsed until the recruiter expands them.
+- Header shows name + career span only (no role/org description); accuracy is a
+  compact `28% · Low — verify`.
+- Timeline rows are one line each (`dates + title + status icon`); `!` needs
+  review, `✓` reviewed — no text badges. Org appears only on expand, and only
+  when it differs from the title.
+- Hick's law: expand, View in Resume, Mark Reviewed — nothing else per item.
 - Confidence shown as High/Medium/Low only — no ML/LLM internals.
 - Gaps are dashed, framed as "needs your review", never a verdict on the candidate.
-- Review gate: Mark Reviewed is blocked until a non-empty note exists; the note
-  is stored with the review. Clearing the note re-opens the item.
-- View in Resume: shows the exact source excerpt (date span highlighted, page +
-  line IDs) and best-effort scroll/highlight in the open tab; honest fallback
-  text when the tab doesn't contain the passage (e.g. PDF viewer).
+- Review: "Reviewing as" name + note are both mandatory. Notes are saved as
+  `{note, by, at}` and listed under each item. They POST to
+  `/api/notes/{sha}` (stored in `backend/notes_store.json`) so every recruiter
+  sees them; offline they stay on-device with an honest notice.
+- View in Resume opens an evidence view: the full resume text with the item's
+  exact source lines highlighted and scrolled into view, plus a best-effort
+  highlight in the open tab.
 - States: loading, empty, error/offline-backend, low-confidence hint,
   evidence-unavailable (gaps are derived absences — stated explicitly).

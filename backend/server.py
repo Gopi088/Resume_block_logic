@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from parse_resume import build_output
 
 MODEL_PATH = os.environ.get("RESUME_MODEL", "model_real_v2.pkl")
+NOTES_PATH = os.environ.get("RESUME_NOTES", "backend/notes_store.json")
 
 app = FastAPI(title="Resume Timeline Review API", version="1.0.0")
 app.add_middleware(
@@ -33,6 +34,67 @@ app.add_middleware(
 @app.get("/health")
 def health() -> dict:
     return {"ok": True, "model": MODEL_PATH, "model_exists": os.path.exists(MODEL_PATH)}
+
+
+# ---- Shared review notes (visible to every recruiter via the backend) ----
+
+def _read_notes() -> dict:
+    import json as _json
+
+    if not os.path.exists(NOTES_PATH):
+        return {}
+    try:
+        with open(NOTES_PATH, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _write_notes(store: dict) -> None:
+    import json as _json
+
+    tmp = NOTES_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        _json.dump(store, f, ensure_ascii=False)
+    os.replace(tmp, NOTES_PATH)
+
+
+@app.get("/api/notes/{sha}")
+def get_notes(sha: str) -> dict:
+    """All shared notes for one resume, keyed by item id.
+
+    Response: {"ok": true, "notes": {itemId: [{note, by, at}]}}.
+    """
+    doc_notes = _read_notes().get(sha, {})
+    return {"ok": True, "notes": doc_notes if isinstance(doc_notes, dict) else {}}
+
+
+@app.post("/api/notes/{sha}")
+async def post_note(sha: str, payload: dict) -> dict:
+    """Append one shared note. Requires non-empty note + author name.
+
+    Body: {"item_id": "E000001", "note": "...", "by": "Recruiter name"}.
+    """
+    from datetime import datetime as _dt
+
+    item_id = (payload.get("item_id") or "").strip()
+    note = (payload.get("note") or "").strip()
+    by = (payload.get("by") or "").strip()
+    if not item_id or not note or not by:
+        return {"ok": False, "error": "item_id, note and by are all required"}
+    store = _read_notes()
+    doc_notes = store.get(sha, {})
+    if not isinstance(doc_notes, dict):
+        doc_notes = {}
+    entries = doc_notes.get(item_id, [])
+    if not isinstance(entries, list):
+        entries = []
+    entries.append({"note": note, "by": by, "at": _dt.now().isoformat(timespec="seconds")})
+    doc_notes[item_id] = entries
+    store[sha] = doc_notes
+    _write_notes(store)
+    return {"ok": True, "notes": {item_id: entries}}
 
 
 @app.post("/api/parse")

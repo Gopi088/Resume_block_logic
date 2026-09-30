@@ -11,7 +11,9 @@
   var state = {
     doc: null,      // full parser payload (fixture or backend response)
     review: null,   // review projection
-    notes: {},      // itemId -> {note, at}
+    notes: {},      // itemId -> [{note, by, at}] (shared across recruiters)
+    reviewer: "",
+    backendUp: false,
   };
 
   var el = {
@@ -24,28 +26,59 @@
     file: document.getElementById("fileInput"),
     source: document.getElementById("sourceLabel"),
     name: document.getElementById("candName"),
-    role: document.getElementById("candRole"),
     meta: document.getElementById("candMeta"),
     accPct: document.getElementById("accPct"),
     accLabel: document.getElementById("accLabel"),
     accHint: document.getElementById("accHint"),
     progressBar: document.getElementById("progressBar"),
     progressText: document.getElementById("progressText"),
+    reviewerName: document.getElementById("reviewerName"),
+    timelineToggle: document.getElementById("timelineToggle"),
+    timelineChev: document.getElementById("timelineChev"),
     timeline: document.getElementById("timeline"),
     timelineCount: document.getElementById("timelineCount"),
     gapSection: document.getElementById("gapSection"),
     gaps: document.getElementById("gaps"),
     gapCount: document.getElementById("gapCount"),
     undatedSection: document.getElementById("undatedSection"),
+    undatedToggle: document.getElementById("undatedToggle"),
+    undatedChev: document.getElementById("undatedChev"),
     undated: document.getElementById("undated"),
     undatedCount: document.getElementById("undatedCount"),
+    evidenceView: document.getElementById("evidenceView"),
+    evidenceBack: document.getElementById("evidenceBack"),
+    evidenceTitle: document.getElementById("evidenceTitle"),
+    evidenceSub: document.getElementById("evidenceSub"),
+    evidenceDoc: document.getElementById("evidenceDoc"),
   };
 
   el.retry.addEventListener("click", function () { loadFixture(); });
   el.file.addEventListener("change", onFile);
+  el.reviewerName.addEventListener("input", function () {
+    state.reviewer = el.reviewerName.value.trim();
+    store.set("reviewerName", state.reviewer);
+  });
+  el.timelineToggle.addEventListener("click", function () {
+    toggleSection(el.timeline, el.timelineToggle, el.timelineChev);
+  });
+  el.undatedToggle.addEventListener("click", function () {
+    toggleSection(el.undated, el.undatedToggle, el.undatedChev);
+  });
+  el.evidenceBack.addEventListener("click", closeEvidenceView);
 
+  store.get("reviewerName", function (v) {
+    state.reviewer = v || "";
+    el.reviewerName.value = state.reviewer;
+  });
   loadFixture();
   pingBackend();
+
+  function toggleSection(body, toggle, chev) {
+    var open = body.hidden;
+    body.hidden = !open;
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    chev.textContent = open ? "▾" : "▸";
+  }
 
   /* ---------------- data loading ---------------- */
 
@@ -61,7 +94,7 @@
   }
 
   function pingBackend() {
-    fetch(BACKEND + "/health").catch(function () { /* offline: fixture stays */ });
+    fetch(BACKEND + "/health").then(function () { state.backendUp = true; }).catch(function () {});
   }
 
   function onFile(e) {
@@ -74,6 +107,7 @@
     fetch(BACKEND + "/api/parse", { method: "POST", body: fd })
       .then(function (r) { if (!r.ok) throw new Error("backend " + r.status); return r.json(); })
       .then(function (doc) {
+        state.backendUp = true;
         el.source.textContent = f.name;
         setDocument(doc);
       })
@@ -94,7 +128,7 @@
     });
   }
 
-  /* ---------------- review state (notes persist) ---------------- */
+  /* ---------------- shared review notes ---------------- */
 
   function storageKey() {
     var sha = (state.doc && state.doc.sha256) || (state.review.candidate.sha256) || "unknown";
@@ -119,17 +153,74 @@
     };
   }
 
-  function loadNotes(cb) {
-    store.get(storageKey(), function (v) { state.notes = v || {}; cb(); });
+  function normalizeNotes(raw) {
+    // Migrate the old single-note shape {note, at} to the shared list shape.
+    var out = {};
+    Object.keys(raw || {}).forEach(function (id) {
+      var v = raw[id];
+      if (Array.isArray(v)) out[id] = v.filter(function (n) { return n && n.note; });
+      else if (v && v.note) out[id] = [{ note: v.note, by: v.by || "Recruiter", at: v.at || null }];
+    });
+    return out;
   }
+
+  function mergeNotes(a, b) {
+    var out = {};
+    Object.keys(a || {}).concat(Object.keys(b || {})).forEach(function (id) {
+      var seen = {};
+      out[id] = (a[id] || []).concat(b[id] || []).filter(function (n) {
+        var k = (n.note || "") + "|" + (n.by || "") + "|" + (n.at || "");
+        if (seen[k]) return false;
+        seen[k] = true;
+        return !!n.note;
+      });
+    });
+    return out;
+  }
+
+  function loadNotes(cb) {
+    store.get(storageKey(), function (local) {
+      var merged = normalizeNotes(local);
+      fetch(BACKEND + "/api/notes/" + docSha())
+        .then(function (r) { if (!r.ok) throw new Error("no backend"); return r.json(); })
+        .then(function (body) {
+          state.backendUp = true;
+          state.notes = mergeNotes(merged, normalizeNotes((body || {}).notes));
+          cb();
+        })
+        .catch(function () { state.notes = merged; cb(); });
+    });
+  }
+
+  function docSha() {
+    return (state.doc && state.doc.sha256) || (state.review.candidate.sha256) || "unknown";
+  }
+
   function saveNotes() { store.set(storageKey(), state.notes); }
+
+  function pushNote(it, noteText, cb) {
+    var entry = { note: noteText, by: state.reviewer, at: new Date().toISOString() };
+    var id = itemId(it);
+    state.notes[id] = (state.notes[id] || []).concat([entry]);
+    saveNotes();
+    // Share with other recruiters through the backend; local copy keeps
+    // working offline.
+    fetch(BACKEND + "/api/notes/" + docSha(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ item_id: id, note: noteText, by: state.reviewer }),
+    }).then(function () { state.backendUp = true; cb(true); })
+      .catch(function () { cb(false); });
+  }
 
   function itemId(it) {
     return it.kind === "gap" ? it.gap_id : it.entry_id;
   }
+  function itemNotes(it) {
+    return state.notes[itemId(it)] || [];
+  }
   function isReviewed(it) {
-    var n = state.notes[itemId(it)];
-    return !!(n && n.note && n.note.trim());
+    return itemNotes(it).length > 0;
   }
 
   /* ---------------- rendering ---------------- */
@@ -138,17 +229,13 @@
     var r = state.review;
     el.error.hidden = true;
     el.review.hidden = false;
+    el.evidenceView.hidden = true;
 
-    // Candidate header: name, most recent role, years.
+    // Candidate header: name + career span only. No role/org description.
     el.name.textContent = r.candidate.name || "Unnamed candidate";
-    var roleBits = [r.candidate.current_role, r.candidate.current_org].filter(Boolean);
-    el.role.textContent = roleBits.join(" · ") || "Role not extracted";
-    var meta = [];
-    if (r.candidate.years_experience != null) meta.push(r.candidate.years_experience + " yrs span");
-    meta.push(reviewableCount() + " items to review");
-    el.meta.textContent = meta.join(" · ");
+    el.meta.textContent = r.candidate.years_experience != null
+      ? r.candidate.years_experience + " yrs span" : "";
 
-    // Accuracy: compact, never a dashboard metric.
     el.accPct.textContent = r.accuracy.percent + "%";
     el.accLabel.textContent = r.accuracy.label;
     if (r.accuracy.percent < 45) {
@@ -156,30 +243,30 @@
       el.accHint.textContent = "Low extraction confidence — verify each item against the resume.";
     } else { el.accHint.hidden = true; }
 
-    // Timeline: most-recent-first (recruiter scanning order).
-    var events = (r.events || []).slice().sort(function (a, b) {
-      if (a.start_date === b.start_date) return 0;
-      return (a.start_date || "") < (b.start_date || "") ? 1 : -1; // most-recent-first
-    });
-    el.timeline.innerHTML = "";
-    el.timelineCount.textContent = events.length ? "· " + events.length + " roles" : "";
-    el.empty.hidden = events.length > 0 || (r.gaps || []).length > 0;
-    events.forEach(function (ev) { el.timeline.appendChild(renderEvent(ev)); });
-
-    // Gaps: visually distinct, framed as needing attention — not a verdict.
+    // Gaps first (the alert), shown only when found.
     el.gaps.innerHTML = "";
     var gaps = r.gaps || [];
     el.gapSection.hidden = gaps.length === 0;
     el.gapCount.textContent = gaps.length ? "· " + gaps.length + " to check" : "";
     gaps.forEach(function (g) { el.gaps.appendChild(renderGap(g)); });
 
-    // Undated entries.
+    // Timeline: most-recent-first, collapsed until wanted.
+    var events = (r.events || []).slice().sort(function (a, b) {
+      if (a.start_date === b.start_date) return 0;
+      return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
+    });
+    el.timeline.innerHTML = "";
+    el.timelineCount.textContent = events.length ? "· " + events.length + " roles" : "";
+    events.forEach(function (ev) { el.timeline.appendChild(renderEvent(ev)); });
+
+    // Undated: collapsed until wanted.
     el.undated.innerHTML = "";
     var und = r.undated || [];
     el.undatedSection.hidden = und.length === 0;
     el.undatedCount.textContent = und.length ? "· " + und.length : "";
     und.forEach(function (u) { el.undated.appendChild(renderUndated(u)); });
 
+    el.empty.hidden = events.length > 0 || gaps.length > 0;
     updateProgress();
   }
 
@@ -198,36 +285,55 @@
     el.progressText.textContent = total ? done + " of " + total + " reviewed" : "Nothing to review";
   }
 
-  /* ---------------- items ---------------- */
+  /* ---------------- compact rows: dates + title + status icon ---------------- */
 
-  function renderEvent(ev) {
-    var li = document.createElement("li");
-    li.className = "item" + (isReviewed(ev) ? " reviewed" : (ev.needs_review ? " needs-review" : ""));
-    li.dataset.item = itemId(ev);
-
+  function rowHead(it, datesLabel, titleText) {
     var head = document.createElement("button");
     head.className = "item-head";
     head.setAttribute("aria-expanded", "false");
+    head.title = titleText || "";
+    var st = document.createElement("span");
+    st.className = "item-status " + (isReviewed(it) ? "status-done" : "status-review");
+    st.textContent = isReviewed(it) ? "✓" : "!";
+    st.title = isReviewed(it) ? "Reviewed" : "Needs review";
     head.innerHTML =
-      '<span class="item-dates">' + esc(fmtRange(ev.start_date, ev.end_date, ev.is_ongoing)) + "</span>" +
-      '<span class="item-main"><span class="item-title">' + esc(ev.title || "Role not extracted") + "</span><br/>" +
-      '<span class="item-sub">' + esc([ev.organization, ev.location].filter(Boolean).join(" · ") || sectionName(ev.section)) + "</span></span>" +
-      statusHtml(ev) +
-      '<span class="chev">▾</span>';
+      '<span class="item-dates">' + esc(datesLabel) + "</span>" +
+      '<span class="item-title">' + esc(titleText || "—") + "</span>";
+    head.appendChild(st);
+    var chev = document.createElement("span");
+    chev.className = "chev";
+    chev.textContent = "▸";
+    head.appendChild(chev);
+    return { head: head, status: st, chev: chev };
+  }
+
+  function bindExpand(container, head, chev) {
     head.addEventListener("click", function () {
-      li.classList.toggle("open");
-      head.setAttribute("aria-expanded", li.classList.contains("open") ? "true" : "false");
+      var open = container.classList.toggle("open");
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+      chev.textContent = open ? "▾" : "▸";
     });
+  }
+
+  function renderEvent(ev) {
+    var li = document.createElement("li");
+    li.className = "item" + (isReviewed(ev) ? " reviewed" : " needs-review");
+    var parts = rowHead(ev, fmtRange(ev.start_date, ev.end_date, ev.is_ongoing), ev.title);
+    bindExpand(li, parts.head, parts.chev);
 
     var body = document.createElement("div");
     body.className = "item-body";
+    if (ev.organization && !sameText(ev.organization, ev.title)) {
+      body.appendChild(detail("Organization", ev.organization));
+    }
+    if (ev.location) body.appendChild(detail("Location", ev.location));
     body.appendChild(detail("Detected from", sectionName(ev.section)));
     body.appendChild(detail("Confidence", ev.confidence_band + (ev.trusted ? "" : " — verify against resume")));
     if (ev.raw_range) body.appendChild(detail("Dates as written", ev.raw_range));
-    body.appendChild(evidenceBlock(ev));
+    body.appendChild(viewResumeButton(ev));
     body.appendChild(reviewBlock(ev, li));
 
-    li.appendChild(head);
+    li.appendChild(parts.head);
     li.appendChild(body);
     return li;
   }
@@ -236,27 +342,21 @@
     var div = document.createElement("div");
     div.className = "item gap" + (isReviewed(g) ? " reviewed" : " needs-review");
     var months = g.gap_months_approx != null ? " (" + g.gap_months_approx + " months)" : "";
-    var head = document.createElement("button");
-    head.className = "item-head";
-    head.innerHTML =
-      '<span class="item-dates">' + esc(fmtRange(g.start_date, g.end_date, false)) + "</span>" +
-      '<span class="item-main"><span class="item-title">Potential career gap' + esc(months) + "</span><br/>" +
-      '<span class="item-sub">No employment stated here — your call.</span></span>' +
-      statusHtml(g) +
-      '<span class="chev">▾</span>';
-    head.addEventListener("click", function () { div.classList.toggle("open"); });
+    var parts = rowHead(g, fmtRange(g.start_date, g.end_date, false), "Potential career gap" + months);
+    parts.head.title = "No employment stated here — your call.";
+    bindExpand(div, parts.head, parts.chev);
 
     var body = document.createElement("div");
     body.className = "item-body";
-    body.appendChild(detail("Why flagged", "No employment covers this stretch (gaps under 90 days are ignored)."));
+    body.appendChild(detail("Why flagged", "No employment covers this stretch (breaks under 90 days are ignored)."));
     var ev = document.createElement("div");
     ev.className = "evidence";
     ev.innerHTML = '<span class="muted">A gap is an absence — there is no resume passage to show. ' +
-      "Compare the roles around it in the timeline above.</span>";
+      "Compare the roles around it in the timeline.</span>";
     body.appendChild(ev);
     body.appendChild(reviewBlock(g, div));
 
-    div.appendChild(head);
+    div.appendChild(parts.head);
     div.appendChild(body);
     return div;
   }
@@ -264,26 +364,28 @@
   function renderUndated(u) {
     var div = document.createElement("div");
     div.className = "item" + (isReviewed(u) ? " reviewed" : " needs-review");
-    var head = document.createElement("button");
-    head.className = "item-head";
-    head.innerHTML =
-      '<span class="item-dates">No dates</span>' +
-      '<span class="item-main"><span class="item-title">' + esc(u.title || "Entry") + "</span><br/>" +
-      '<span class="item-sub">' + esc([u.organization, sectionName(u.section)].filter(Boolean).join(" · ")) + "</span></span>" +
-      statusHtml(u) +
-      '<span class="chev">▾</span>';
-    head.addEventListener("click", function () { div.classList.toggle("open"); });
+    var parts = rowHead(u, "No dates", u.title || ("Entry " + (u.entry_id || "")));
+    bindExpand(div, parts.head, parts.chev);
 
     var body = document.createElement("div");
     body.className = "item-body";
+    if (u.organization && !sameText(u.organization, u.title)) {
+      body.appendChild(detail("Organization", u.organization));
+    }
     body.appendChild(detail("Detected from", sectionName(u.section)));
     body.appendChild(detail("Confidence", u.confidence_band + " — verify against resume"));
-    body.appendChild(evidenceBlock(u));
+    body.appendChild(viewResumeButton(u));
     body.appendChild(reviewBlock(u, div));
 
-    div.appendChild(head);
+    div.appendChild(parts.head);
     div.appendChild(body);
     return div;
+  }
+
+  function sameText(a, b) {
+    function norm(s) { return (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+    var na = norm(a), nb = norm(b);
+    return !!na && !!nb && (na === nb || na.indexOf(nb) === 0 || nb.indexOf(na) === 0);
   }
 
   function detail(k, v) {
@@ -293,70 +395,73 @@
     return p;
   }
 
-  function statusHtml(it) {
-    if (isReviewed(it)) return '<span class="item-status status-done">✓ Reviewed</span>';
-    if (it.kind === "gap" || it.needs_review) return '<span class="item-status status-review">! Needs review</span>';
-    return '<span class="item-status muted">—</span>';
-  }
+  /* ---------------- View in Resume: straight to the highlighted text ---------------- */
 
-  /* ---------------- evidence: exact source, never generic ---------------- */
-
-  function evidenceBlock(it) {
-    var wrap = document.createElement("div");
-    var ev = it.evidence;
-    if (!ev || ev.unavailable || !ev.excerpt) {
-      wrap.innerHTML = '<div class="evidence"><span class="muted">Exact source text isn’t available for this item.</span></div>';
-      return wrap;
-    }
-    var html = esc(ev.excerpt);
-    if (ev.raw_range) {
-      // Highlight the exact matched date span inside the excerpt.
-      html = html.replace(esc(ev.raw_range), "<mark>" + esc(ev.raw_range) + "</mark>");
-    }
-    var meta = [];
-    if (ev.pages && ev.pages.length) meta.push("page " + ev.pages.map(function (p) { return p + 1; }).join(", "));
-    if (ev.start_line) meta.push(ev.start_line + (ev.end_line && ev.end_line !== ev.start_line ? "–" + ev.end_line : ""));
-    var div = document.createElement("div");
-    div.className = "evidence";
-    div.innerHTML = html + '<div class="evidence-meta">Exact source · ' + esc(meta.join(" · ") || "line provenance") + "</div>";
-
+  function viewResumeButton(it) {
     var btn = document.createElement("button");
     btn.className = "btn";
     btn.textContent = "View in Resume";
-    btn.title = "Scroll the open resume tab to this exact passage";
-    btn.addEventListener("click", function () { viewInResume(it, btn); });
-
-    var status = document.createElement("p");
-    status.className = "muted small";
-    status.style.margin = "4px 0 0";
-    status.hidden = true;
-    wrap.appendChild(div);
+    btn.title = "Open the exact resume passage, highlighted";
+    if (!it.evidence || !it.evidence.excerpt) btn.disabled = true;
+    btn.addEventListener("click", function () { openEvidenceView(it); });
+    var wrap = document.createElement("div");
+    wrap.className = "actions evidence-go";
     wrap.appendChild(btn);
-    wrap.appendChild(status);
-    wrap._status = status;
-    wrap._btn = btn;
     return wrap;
   }
 
-  function viewInResume(it, btn) {
+  function openEvidenceView(it) {
     var ev = it.evidence || {};
+    el.evidenceTitle.textContent = it.title || (it.kind === "gap" ? "Potential career gap" : "Entry");
+    el.evidenceSub.textContent = it.kind === "event"
+      ? fmtRange(it.start_date, it.end_date, it.is_ongoing) + " · " + sectionName(it.section)
+      : (it.kind === "gap" ? fmtRange(it.start_date, it.end_date, false) : sectionName(it.section));
+
+    // Rebuild the resume from its exact source lines; highlight this item's lines.
+    el.evidenceDoc.innerHTML = "";
+    var hits = {};
+    (ev.line_ids || []).forEach(function (id) { hits[id] = true; });
+    var lines = ((state.doc && state.doc.lines) || []).slice().sort(function (a, b) {
+      return (a.index || 0) - (b.index || 0);
+    });
+    var lastPage = null, firstHit = null;
+    lines.forEach(function (ln) {
+      if (ln.page_index !== lastPage) {
+        lastPage = ln.page_index;
+        var pg = document.createElement("div");
+        pg.className = "epage";
+        pg.textContent = "Page " + (lastPage + 1);
+        el.evidenceDoc.appendChild(pg);
+      }
+      var text = ln.display_text || "";
+      if (!text.trim()) return;
+      var div = document.createElement("div");
+      div.className = "eline" + (hits[ln.line_id] ? " hit" : "");
+      div.id = "ev-" + ln.line_id;
+      if (ev.raw_range && hits[ln.line_id]) {
+        div.innerHTML = esc(text).replace(esc(ev.raw_range), "<mark>" + esc(ev.raw_range) + "</mark>");
+      } else {
+        div.textContent = text;
+      }
+      el.evidenceDoc.appendChild(div);
+      if (hits[ln.line_id] && !firstHit) firstHit = div;
+    });
+
+    el.review.hidden = true;
+    el.evidenceView.hidden = false;
+    if (firstHit && firstHit.scrollIntoView) firstHit.scrollIntoView({ block: "center" });
+
+    // Best effort: also highlight in the open resume tab.
     var texts = [];
     if (ev.raw_range) texts.push(ev.raw_range);
     var firstLine = (ev.excerpt || "").split("\n").filter(function (l) { return l.trim(); })[0];
     if (firstLine) texts.push(firstLine.trim().slice(0, 120));
-    if (!texts.length) return;
-    btn.disabled = true;
-    btn.textContent = "Finding…";
-    var wrap = btn.parentElement;
-    sendHighlight(texts, function (found) {
-      btn.disabled = false;
-      btn.textContent = "View in Resume";
-      var s = wrap._status;
-      s.hidden = false;
-      s.textContent = found
-        ? "Highlighted in the open resume tab."
-        : "Not found in the open tab — the excerpt above is the exact source (open the parsed resume file to compare).";
-    });
+    if (texts.length) sendHighlight(texts, function () {});
+  }
+
+  function closeEvidenceView() {
+    el.evidenceView.hidden = true;
+    el.review.hidden = false;
   }
 
   function sendHighlight(texts, cb) {
@@ -372,28 +477,28 @@
     } catch (e) { cb(false); }
   }
 
-  /* ---------------- mandatory-note review gate ---------------- */
+  /* ---------------- review: mandatory note + name, shared with all recruiters ---------------- */
 
   function reviewBlock(it, container) {
-    var id = itemId(it);
     var wrap = document.createElement("div");
-    var saved = state.notes[id];
+
+    var list = document.createElement("ul");
+    list.className = "saved-notes";
+    renderSavedNotes(list, it);
 
     var label = document.createElement("label");
     label.className = "note-label";
     label.textContent = "Review note";
-    label.htmlFor = "note-" + id;
+    label.htmlFor = "note-" + itemId(it);
 
     var ta = document.createElement("textarea");
     ta.className = "note";
-    ta.id = "note-" + id;
+    ta.id = "note-" + itemId(it);
     ta.placeholder = "e.g. Verified against resume p.1 — dates match.";
-    ta.value = (saved && saved.note) || "";
 
     var err = document.createElement("p");
     err.className = "note-error";
     err.hidden = true;
-    err.textContent = "Add a review note before marking this item as reviewed.";
 
     var actions = document.createElement("div");
     actions.className = "actions";
@@ -401,48 +506,71 @@
     syncReviewBtn(btn, it);
     btn.addEventListener("click", function () {
       var note = ta.value.trim();
-      if (!note) {
-        // Hard gate: no note, no review. Explain + focus.
+      // Hard gates: reviewer name (so others know who reviewed) + note.
+      if (!state.reviewer) {
         err.hidden = false;
+        err.textContent = "Add your name under “Reviewing as” so other recruiters know who reviewed.";
+        el.reviewerName.focus();
+        return;
+      }
+      if (!note) {
+        err.hidden = false;
+        err.textContent = "Add a review note before marking this item as reviewed.";
         ta.focus();
         return;
       }
       err.hidden = true;
-      state.notes[id] = { note: note, at: new Date().toISOString() };
-      saveNotes();
-      syncReviewBtn(btn, it);
-      refreshStatus(container, it);
-      updateProgress();
+      btn.disabled = true;
+      pushNote(it, note, function (shared) {
+        btn.disabled = false;
+        ta.value = "";
+        renderSavedNotes(list, it);
+        syncReviewBtn(btn, it);
+        refreshStatus(container, it);
+        updateProgress();
+        syncHint(syncEl, shared);
+      });
     });
 
     ta.addEventListener("input", function () {
       if (ta.value.trim()) err.hidden = true;
-      // Editing the note after review keeps the review (note is the record);
-      // clearing it re-opens the item.
-      if (isReviewed(it) && !ta.value.trim()) {
-        delete state.notes[id];
-        saveNotes();
-        syncReviewBtn(btn, it);
-        refreshStatus(container, it);
-        updateProgress();
-      } else if (ta.value.trim() && state.notes[id]) {
-        state.notes[id] = { note: ta.value.trim(), at: new Date().toISOString() };
-        saveNotes();
-      }
     });
 
+    var syncEl = document.createElement("p");
+    syncEl.className = "sync-hint";
+    syncHint(syncEl, state.backendUp);
+
     actions.appendChild(btn);
+    wrap.appendChild(list);
     wrap.appendChild(label);
     wrap.appendChild(ta);
     wrap.appendChild(err);
     wrap.appendChild(actions);
+    wrap.appendChild(syncEl);
     return wrap;
+  }
+
+  function renderSavedNotes(list, it) {
+    list.innerHTML = "";
+    itemNotes(it).forEach(function (n) {
+      var li = document.createElement("li");
+      var when = n.at ? fmtTime(n.at) : "";
+      li.innerHTML = esc(n.note) +
+        '<div class="by">' + esc(n.by || "Recruiter") + (when ? " · " + esc(when) : "") + "</div>";
+      list.appendChild(li);
+    });
+  }
+
+  function syncHint(p, shared) {
+    p.textContent = shared
+      ? "Saved — visible to other recruiters."
+      : "Stored on this device only (backend offline) — other recruiters can’t see it yet.";
   }
 
   function syncReviewBtn(btn, it) {
     if (isReviewed(it)) {
       btn.className = "btn done";
-      btn.textContent = "✓ Reviewed — update note to revise";
+      btn.textContent = "✓ Add note";
     } else {
       btn.className = "btn primary";
       btn.textContent = "Mark Reviewed";
@@ -451,13 +579,12 @@
 
   function refreshStatus(container, it) {
     container.classList.toggle("reviewed", isReviewed(it));
-    container.classList.toggle("needs-review", !isReviewed(it) && (it.kind === "gap" || it.needs_review));
+    container.classList.toggle("needs-review", !isReviewed(it));
     var st = container.querySelector(".item-status");
     if (st) {
-      var tmp = document.createElement("span");
-      tmp.innerHTML = statusHtml(it);
-      st.className = tmp.firstChild.className;
-      st.textContent = tmp.firstChild.textContent;
+      st.className = "item-status " + (isReviewed(it) ? "status-done" : "status-review");
+      st.textContent = isReviewed(it) ? "✓" : "!";
+      st.title = isReviewed(it) ? "Reviewed" : "Needs review";
     }
   }
 
@@ -473,6 +600,12 @@
     }
     if (!start && !end) return "No dates";
     return fmt(start) + " – " + (ongoing || !end ? "Present" : fmt(end));
+  }
+
+  function fmtTime(iso) {
+    try {
+      return new Date(iso).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+    } catch (e) { return iso; }
   }
 
   function sectionName(s) {
