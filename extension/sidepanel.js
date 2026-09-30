@@ -270,6 +270,18 @@
   function onMarkReviewed() {
     var text = el.resumeNote.value.trim();
     if (!text) {
+      if (state.note) {
+        // Update doubles as edit: empty box + existing note loads the
+        // previous note for revision; the next click saves it.
+        el.resumeNote.value = state.note.note;
+        el.resumeNoteError.hidden = true;
+        el.resumeNote.focus();
+        try {
+          el.resumeNote.setSelectionRange(
+            el.resumeNote.value.length, el.resumeNote.value.length);
+        } catch (e) { /* older engines */ }
+        return;
+      }
       el.resumeNoteError.hidden = false;
       el.resumeNote.focus();
       return;
