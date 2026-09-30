@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Resume Timeline Review",
+  "version": "1.0.0",
+  "description": "Recruiter-first career timeline review: chronological roles, potential gaps, and exact resume evidence.",
+  "minimum_chrome_version": "114",
+  "action": {
+    "default_title": "Review resume timeline"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "permissions": ["sidePanel", "storage", "activeTab", "scripting"],
+  "host_permissions": ["http://localhost:8000/*"]
+}

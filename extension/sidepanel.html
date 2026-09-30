@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resume Timeline Review</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- Upload / source bar: one action only -->
+    <div class="sourcebar">
+      <label class="upload" title="Parse a resume file with the local backend">
+        <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.html" hidden />
+        <span class="upload-btn">Parse resume</span>
+      </label>
+      <span id="sourceLabel" class="source-label">Sample resume (real parser output)</span>
+    </div>
+
+    <div id="stateLoading" class="state" hidden>
+      <p>Reading resume…</p>
+    </div>
+
+    <div id="stateError" class="state state-error" hidden>
+      <p class="state-title">Couldn’t load the timeline</p>
+      <p id="errorMsg" class="muted"></p>
+      <button id="retryBtn" class="btn">Try sample data</button>
+    </div>
+
+    <div id="review" hidden>
+      <!-- Candidate header -->
+      <header class="candidate">
+        <div class="candidate-row">
+          <div class="candidate-id">
+            <h1 id="candName">—</h1>
+            <p id="candRole" class="muted"></p>
+            <p id="candMeta" class="muted small"></p>
+          </div>
+          <div class="accuracy" title="Share of timeline blocks the parser trusted, blended with extraction confidence. It guides how carefully to verify — it never rates the candidate.">
+            <span id="accPct" class="accuracy-pct">—</span>
+            <span id="accLabel" class="accuracy-label">—</span>
+          </div>
+        </div>
+        <p id="accHint" class="accuracy-hint muted small" hidden></p>
+        <div class="progress" aria-label="Review progress">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <p id="progressText" class="muted small"></p>
+      </header>
+
+      <!-- Timeline -->
+      <section aria-label="Career timeline">
+        <h2 class="section-title">Timeline <span id="timelineCount" class="muted"></span></h2>
+        <ol id="timeline" class="timeline"></ol>
+      </section>
+
+      <!-- Gaps -->
+      <section aria-label="Potential career gaps" id="gapSection" hidden>
+        <h2 class="section-title">Needs your review <span id="gapCount" class="muted"></span></h2>
+        <div id="gaps"></div>
+      </section>
+
+      <!-- Undated -->
+      <section aria-label="Entries without dates" id="undatedSection" hidden>
+        <h2 class="section-title">No dates found <span id="undatedCount" class="muted"></span></h2>
+        <div id="undated"></div>
+      </section>
+
+      <div id="stateEmpty" class="state" hidden>
+        <p class="state-title">No timeline entries found</p>
+        <p class="muted">The parser could not place any dated entries. Check the resume file and try again.</p>
+      </div>
+
+      <footer class="footnote muted small">
+        Extraction assists your review — you make the hiring decision.
+      </footer>
+    </div>
+  </div>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

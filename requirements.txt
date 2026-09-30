@@ -1,3 +1,7 @@
 markitdown[all]
 pydantic>=2.0
 pytest
+fastapi
+uvicorn
+python-multipart
+httpx
