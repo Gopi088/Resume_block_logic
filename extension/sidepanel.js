@@ -401,7 +401,9 @@
         // The button only ever highlights the open resume tab. Nothing from
         // the resume is rendered in the panel and no backend page is opened.
         if (res.ok && res.via === "fragment") {
-          status.textContent = "Jumped to the passage in the resume tab.";
+          status.textContent = res.page
+            ? "Jumped to page " + res.page + " in the resume tab."
+            : "Jumped to the passage in the resume tab.";
         } else if (res.ok) {
           status.textContent = "Highlighted in the open resume tab.";
         } else {
@@ -463,25 +465,34 @@
   }
 
   function fragmentPhrase(it) {
-    // First ~8 words of the evidence's first line — stable anchor text the
-    // browser can find, including inside Chrome's PDF viewer.
+    // First ~8 alphanumeric words of the evidence's first line — stable
+    // anchor text. Pure-punctuation tokens (dashes) are dropped because
+    // hyphen/en-dash variants differ between the PDF layer and parsed text.
     var ev = it.evidence || {};
     var firstLine = ((ev.excerpt || "").split("\n").filter(function (l) { return l.trim(); })[0] || "");
-    var words = firstLine.replace(/[*_|#>`]/g, " ").split(/\s+/).filter(Boolean).slice(0, 8);
+    var words = firstLine.replace(/[*_|#>`]/g, " ").split(/\s+/)
+      .filter(function (w) { return /[A-Za-z0-9]/.test(w); }).slice(0, 8);
     if (words.length < 3 || !/[a-zA-Z]{3,}/.test(words.join(" "))) return null;
     return words.join(" ");
   }
 
   function fragmentNavigate(tab, it, cb) {
+    var ev = it.evidence || {};
     var phrase = fragmentPhrase(it);
-    if (!phrase || !tab.url || !/^https?:|^file:/i.test(tab.url)) {
+    if (!tab.url || !/^https?:|^file:/i.test(tab.url)) {
       return cb({ ok: false, reason: "not-found" });
     }
-    var url = tab.url.split("#")[0] + "#:~:text=" + encodeURIComponent(phrase);
+    // Page-anchored jump: #page=N always lands the viewer on the evidence
+    // page (text fragments alone silently no-op in the PDF viewer when the
+    // text layer differs by a dash or space). The :~:text= part highlights
+    // when it matches.
+    var page = (ev.pages && ev.pages.length) ? (ev.pages[0] + 1) : null;
+    var url = tab.url.split("#")[0] + (page ? "#page=" + page : "#");
+    if (phrase) url += ":~:text=" + encodeURIComponent(phrase);
     try {
       chrome.tabs.update(tab.id, { url: url }, function () {
         if (chrome.runtime.lastError) return cb({ ok: false, reason: "not-found" });
-        cb({ ok: true, via: "fragment" });
+        cb({ ok: true, via: "fragment", page: page });
       });
     } catch (e) { cb({ ok: false, reason: "not-found" }); }
   }
