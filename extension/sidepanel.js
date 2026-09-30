@@ -159,7 +159,10 @@
         el.source.textContent = (doc.filename || "Resume") + " (open tab)";
         setDocument(doc);
       })
-      .catch(function () { loadFixture(); });
+      .catch(function () { 
+        chrome.runtime.sendMessage({ type: "PARSER_RESULT", success: false, confidence: null, summary: null }).catch(function () {});
+        loadFixture(); 
+      });
   }
 
   function onFile(e) {
@@ -178,6 +181,7 @@
         setDocument(doc);
       })
       .catch(function () {
+        chrome.runtime.sendMessage({ type: "PARSER_RESULT", success: false, confidence: null, summary: null }).catch(function () {});
         showError("The local review backend isn’t reachable at " + BACKEND +
           ". Start it with: .venv/bin/python -m uvicorn backend.server:app --port 8000");
       });
@@ -192,6 +196,27 @@
       render();
       showLoading(false);
     });
+    // Notify launcher of parser result
+    var confidence = null;
+    var summary = null;
+    if (state.review && state.review.accuracy) {
+      confidence = state.review.accuracy.percent != null ? state.review.accuracy.percent / 100 : null;
+    }
+    // Build a human-readable summary from the timeline
+    if (state.review && state.review.events) {
+      var expEvents = state.review.events.filter(function (e) { return e.section === "experience"; });
+      if (expEvents.length) {
+        var companies = new Set();
+        expEvents.forEach(function (e) { if (e.organization) companies.add(e.organization); });
+        summary = expEvents.length + " yr" + (expEvents.length !== 1 ? "s" : "") + " · " + companies.size + " compan" + (companies.size === 1 ? "y" : "ies");
+      }
+    }
+    chrome.runtime.sendMessage({
+      type: "PARSER_RESULT",
+      success: true,
+      confidence: confidence,
+      summary: summary
+    }).catch(function () { /* background not ready */ });
   }
 
   /* ---------------- the single shared resume note ---------------- */

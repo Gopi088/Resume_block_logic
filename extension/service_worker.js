@@ -1,6 +1,5 @@
-/* Service worker: opens the review side panel on toolbar click and injects
-   the evidence highlighter into the active tab on demand. */
-
+/* Service worker: opens the review side panel, injects the evidence highlighter,
+   and forwards parser state to the Career Timeline launcher. */
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch(function () {});
@@ -24,10 +23,26 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     sendResponse({ ok: true });
     return true;
   }
+  /* Background -> launcher state propagation.
+     The side panel (or parse API response) sends PARSER_RESULT with:
+     { success: boolean, confidence: number|null, summary: string|null }
+     We forward this to the content script as LAUNCHER_STATE. */
+  if (msg && msg.type === "PARSER_RESULT" && sender.tab && sender.tab.id != null) {
+    chrome.tabs.sendMessage(sender.tab.id, {
+      type: "LAUNCHER_STATE",
+      payload: {
+        success: msg.success,
+        confidence: msg.confidence,
+        summary: msg.summary
+      }
+    }).catch(function () { /* content script not ready */ });
+    sendResponse({ ok: true });
+    return true;
+  }
 });
 
-// Follow the recruiter: when they switch tabs, offer the open resume to the
-// side panel (it auto-analyzes only while no real resume has been parsed).
+/* Follow the recruiter: when they switch tabs, offer the open resume to the
+   side panel (it auto-analyzes only while no real resume has been parsed). */
 function notifyOpenTab() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     try {
