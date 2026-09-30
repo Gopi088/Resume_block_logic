@@ -80,9 +80,6 @@ body {
   color: var(--muted); border: 1px solid var(--line); border-radius: 3px;
   padding: 0 4px; margin-right: 4px; vertical-align: 1px;
 }
-.tstatus { font-size: 11px; margin-top: 1px; }
-.tstatus.review { color: var(--warn-ink); }
-.tstatus.done { color: var(--ok-ink); }
 .chev { color: var(--muted); flex-shrink: 0; font-size: 12px; }
 
 .gap { background: var(--wash); border-radius: var(--radius); }
@@ -93,7 +90,10 @@ body {
 .detail-row { margin: 2px 0; font-size: 12px; }
 .detail-row .k { color: var(--muted); }
 
-/* ---- review note (mandatory, per item) ---- */
+/* ---- review note (mandatory, one per resume) ---- */
+#resumeReview {
+  margin-top: 12px; padding-top: 2px; border-top: 1px solid var(--line);
+}
 .note-label { display: block; font-size: 12px; font-weight: 600; margin: 8px 0 4px; }
 .note {
   width: 100%; min-height: 40px; resize: vertical;

@@ -71,6 +71,19 @@
         <p class="muted">The parser could not place any dated entries. Check the resume file and try again.</p>
       </div>
 
+      <!-- The single review note for the whole resume -->
+      <section aria-label="Resume review" id="resumeReview">
+        <h2 class="section-title">Your review</h2>
+        <ul id="savedNotes" class="saved-notes"></ul>
+        <label class="note-label" for="resumeNote">Review note</label>
+        <textarea id="resumeNote" class="note"></textarea>
+        <p id="resumeNoteError" class="note-error" hidden>Add a review note before marking this resume as reviewed.</p>
+        <div class="actions">
+          <button id="markReviewedBtn" class="btn primary">Mark Reviewed</button>
+        </div>
+        <p id="syncHint" class="sync-hint"></p>
+      </section>
+
       <footer class="footnote muted">
         AI-assisted extraction · You make the final decision.
       </footer>

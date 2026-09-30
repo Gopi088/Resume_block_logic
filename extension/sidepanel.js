@@ -6,6 +6,7 @@
   "use strict";
 
   var BACKEND = "http://localhost:8000";
+  var RESUME_NOTE_ID = "resume"; // the single review note for the whole resume
   var RESUME_URL_RE = /\.(pdf|txt|html?|md)([#?]|$)/i;
   var store = storage();
 
@@ -33,7 +34,7 @@
   var state = {
     doc: null,      // full parser payload (fixture or backend response)
     review: null,   // review projection
-    notes: {},      // itemId -> [{note, by, at}] shared across recruiters
+    note: null,     // {note, by, at} — the one resume-level review, shared
     reviewerId: "",
     backendUp: false,
     isFixture: true,
@@ -67,6 +68,11 @@
     undatedChev: document.getElementById("undatedChev"),
     undated: document.getElementById("undated"),
     undatedCount: document.getElementById("undatedCount"),
+    savedNotes: document.getElementById("savedNotes"),
+    resumeNote: document.getElementById("resumeNote"),
+    resumeNoteError: document.getElementById("resumeNoteError"),
+    markReviewedBtn: document.getElementById("markReviewedBtn"),
+    syncHint: document.getElementById("syncHint"),
   };
 
   el.retry.addEventListener("click", function () { loadFixture(); });
@@ -76,6 +82,10 @@
   });
   el.undatedToggle.addEventListener("click", function () {
     toggleSection(el.undated, el.undatedToggle, el.undatedChev);
+  });
+  el.markReviewedBtn.addEventListener("click", onMarkReviewed);
+  el.resumeNote.addEventListener("input", function () {
+    if (el.resumeNote.value.trim()) el.resumeNoteError.hidden = true;
   });
 
   store.get("reviewerId", function (v) {
@@ -182,13 +192,13 @@
     state.doc = doc;
     state.review = doc.review || null;
     if (!state.review) { showError("This payload has no review projection."); return; }
-    loadNotes(function () {
+    loadNote(function () {
       render();
       showLoading(false);
     });
   }
 
-  /* ---------------- shared per-item notes ---------------- */
+  /* ---------------- the single shared resume note ---------------- */
 
   function storageKey() {
     var sha = (state.doc && state.doc.sha256) || (state.review.candidate.sha256) || "unknown";
@@ -213,71 +223,74 @@
     };
   }
 
-  function normalizeNotes(raw) {
-    var out = {};
-    Object.keys(raw || {}).forEach(function (id) {
-      var v = raw[id];
-      if (Array.isArray(v)) out[id] = v.filter(function (n) { return n && n.note; });
-      else if (v && v.note) out[id] = [{ note: v.note, by: v.by || "auto", at: v.at || null }];
-    });
-    return out;
-  }
-
-  function mergeNotes(a, b) {
-    var out = {};
-    Object.keys(a || {}).concat(Object.keys(b || {})).forEach(function (id) {
-      var seen = {};
-      out[id] = (a[id] || []).concat(b[id] || []).filter(function (n) {
-        var k = (n.note || "") + "|" + (n.by || "") + "|" + (n.at || "");
-        if (seen[k]) return false;
-        seen[k] = true;
-        return !!n.note;
-      });
-    });
-    return out;
-  }
-
-  function loadNotes(cb) {
-    store.get(storageKey(), function (local) {
-      var merged = normalizeNotes(local);
-      fetch(BACKEND + "/api/notes/" + docSha())
-        .then(function (r) { if (!r.ok) throw new Error("no backend"); return r.json(); })
-        .then(function (body) {
-          state.backendUp = true;
-          state.notes = mergeNotes(merged, normalizeNotes((body || {}).notes));
-          cb();
-        })
-        .catch(function () { state.notes = merged; cb(); });
-    });
-  }
-
   function docSha() {
     return (state.doc && state.doc.sha256) || (state.review.candidate.sha256) || "unknown";
   }
 
-  function saveNotes() { store.set(storageKey(), state.notes); }
+  function pickNote(entries) {
+    if (!entries) return null;
+    if (Array.isArray(entries)) {
+      var valid = entries.filter(function (n) { return n && n.note; });
+      return valid.length ? valid[valid.length - 1] : null;
+    }
+    return entries.note ? entries : null;
+  }
 
-  function pushNote(it, noteText, cb) {
-    var entry = { note: noteText, by: state.reviewerId, at: new Date().toISOString() };
-    var id = itemId(it);
-    state.notes[id] = (state.notes[id] || []).concat([entry]);
-    saveNotes();
+  function loadNote(cb) {
+    store.get(storageKey(), function (local) {
+      var localNote = pickNote(local && local[RESUME_NOTE_ID]);
+      fetch(BACKEND + "/api/notes/" + docSha())
+        .then(function (r) { if (!r.ok) throw new Error("no backend"); return r.json(); })
+        .then(function (body) {
+          state.backendUp = true;
+          var shared = pickNote(body && body.notes && body.notes[RESUME_NOTE_ID]);
+          state.note = latest(localNote, shared);
+          // Also honor notes saved per item by older builds: surface the newest.
+          if (!state.note && local) {
+            Object.keys(local).forEach(function (id) {
+              if (id === RESUME_NOTE_ID) return;
+              state.note = latest(state.note, pickNote(local[id]));
+            });
+          }
+          cb();
+        })
+        .catch(function () {
+          state.note = localNote;
+          cb();
+        });
+    });
+  }
+
+  function latest(a, b) {
+    if (!a) return b;
+    if (!b) return a;
+    return (b.at || "") >= (a.at || "") ? b : a;
+  }
+
+  function onMarkReviewed() {
+    var text = el.resumeNote.value.trim();
+    if (!text) {
+      el.resumeNoteError.hidden = false;
+      el.resumeNote.focus();
+      return;
+    }
+    el.resumeNoteError.hidden = true;
+    el.markReviewedBtn.disabled = true;
+    var entry = { note: text, by: state.reviewerId, at: new Date().toISOString() };
+    state.note = entry;
+    store.set(storageKey(), { resume: entry });
     fetch(BACKEND + "/api/notes/" + docSha(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ item_id: id, note: noteText, by: state.reviewerId }),
-    }).then(function () { state.backendUp = true; cb(true); })
-      .catch(function () { cb(false); });
+      body: JSON.stringify({ item_id: RESUME_NOTE_ID, note: text, by: state.reviewerId }),
+    }).then(function () { state.backendUp = true; finishSave(true); })
+      .catch(function () { finishSave(false); });
   }
 
-  function itemId(it) {
-    return it.kind === "gap" ? it.gap_id : it.entry_id;
-  }
-  function itemNotes(it) {
-    return state.notes[itemId(it)] || [];
-  }
-  function isReviewed(it) {
-    return itemNotes(it).length > 0;
+  function finishSave(shared) {
+    el.markReviewedBtn.disabled = false;
+    el.resumeNote.value = "";
+    renderReviewSection(shared);
   }
 
   /* ---------------- rendering ---------------- */
@@ -294,12 +307,8 @@
     el.role.hidden = !recentRole;
 
     el.accPct.textContent = r.accuracy.percent + "%";
-    if (r.accuracy.percent < 45) {
-      el.accNote.textContent = "⚠ Low — some items need review";
-    } else {
-      el.accNote.textContent = "";
-    }
-    updateActionNote();
+    el.accNote.textContent = r.accuracy.percent < 45 ? "⚠ Low — some items need review" : "";
+    renderReviewSection(state.backendUp);
 
     // Gaps first (the alert), shown only when found.
     el.gaps.innerHTML = "";
@@ -337,25 +346,26 @@
     return exp[0].title || null;
   }
 
-  function reviewableItems() {
-    var r = state.review;
-    return (r.events || []).concat(r.gaps || [], r.undated || []);
-  }
-
-  function updateActionNote() {
-    var all = reviewableItems();
-    var done = all.filter(isReviewed).length;
-    var left = all.length - done;
-    if (!all.length) {
-      el.actionNote.textContent = "";
-      el.actionNote.className = "action-note";
-    } else if (left === 0) {
-      el.actionNote.textContent = "✓ All reviewed";
+  function renderReviewSection(shared) {
+    el.savedNotes.innerHTML = "";
+    if (state.note) {
+      var li = document.createElement("li");
+      li.innerHTML = esc(state.note.note) +
+        '<div class="by">Reviewed · ' + esc(fmtTime(state.note.at)) + "</div>";
+      el.savedNotes.appendChild(li);
+      el.actionNote.textContent = "✓ Reviewed";
       el.actionNote.className = "action-note done";
+      el.markReviewedBtn.className = "btn done";
+      el.markReviewedBtn.textContent = "✓ Update review";
     } else {
-      el.actionNote.textContent = "⚠ " + left + " item" + (left === 1 ? "" : "s") + " need review";
+      el.actionNote.textContent = "⚠ Resume needs review";
       el.actionNote.className = "action-note todo";
+      el.markReviewedBtn.className = "btn primary";
+      el.markReviewedBtn.textContent = "Mark Reviewed";
     }
+    el.syncHint.textContent = shared
+      ? "Saved — visible to other recruiters."
+      : "Stored on this device only (backend offline) — other recruiters can’t see it yet.";
   }
 
   function kindLabel(section) {
@@ -363,18 +373,16 @@
     return KIND_LABELS[section] || (section.charAt(0).toUpperCase() + section.slice(1));
   }
 
-  /* ---------------- compact rows: date / title / org / status / expand ---------------- */
+  /* ---------------- compact rows: date / title / org / expand ---------------- */
 
-  function rowHead(datesLabel, titleHtml, subText, it) {
+  function rowHead(datesLabel, titleHtml, subText) {
     var head = document.createElement("button");
     head.className = "trow";
     head.setAttribute("aria-expanded", "false");
     var main = document.createElement("span");
     main.className = "tmain";
     main.innerHTML = '<span class="ttitle">' + titleHtml + "</span>" +
-      (subText ? '<br/><span class="tsub">' + esc(subText) + "</span>" : "") +
-      '<br/><span class="tstatus ' + (isReviewed(it) ? "done" : "review") + '">' +
-      (isReviewed(it) ? "✓ Reviewed" : "⚠ Needs review") + "</span>";
+      (subText ? '<br/><span class="tsub">' + esc(subText) + "</span>" : "");
     head.innerHTML = '<span class="tdates">' + esc(datesLabel) + "</span>";
     head.appendChild(main);
     var chev = document.createElement("span");
@@ -409,7 +417,7 @@
     li.className = "titem";
     var sub = (ev.organization && !sameText(ev.organization, ev.title)) ? ev.organization : "";
     if (ev.location) sub = sub ? sub + " · " + ev.location : ev.location;
-    var parts = rowHead(fmtRange(ev.start_date, ev.end_date, ev.is_ongoing), titleFor(ev), sub, ev);
+    var parts = rowHead(fmtRange(ev.start_date, ev.end_date, ev.is_ongoing), titleFor(ev), sub);
     bindExpand(li, parts.head, parts.chev);
 
     var body = document.createElement("div");
@@ -419,7 +427,6 @@
     if (ev.raw_range) body.appendChild(detail("Dates as written", ev.raw_range));
     body.appendChild(detail("Confidence", ev.confidence_band + (ev.trusted ? "" : " — check against resume")));
     body.appendChild(viewResumeBlock(ev));
-    body.appendChild(reviewBlock(ev, li, parts.head));
 
     li.appendChild(parts.head);
     li.appendChild(body);
@@ -431,15 +438,13 @@
     div.className = "titem gap";
     var months = g.gap_months_approx != null ? " (" + g.gap_months_approx + " months)" : "";
     var parts = rowHead(fmtRange(g.start_date, g.end_date, false),
-      esc("Potential gap"), "No employment stated" + months, g);
+      esc("Potential gap"), "No employment stated" + months);
     parts.head.title = "Expand for details";
     bindExpand(div, parts.head, parts.chev);
 
     var body = document.createElement("div");
     body.className = "tbody";
     body.appendChild(detail("Why flagged", "No employment covers this stretch (breaks under 90 days are ignored). Only you can judge what it means."));
-    body.appendChild(reviewBlock(g, div, parts.head));
-
     div.appendChild(parts.head);
     div.appendChild(body);
     return div;
@@ -454,7 +459,7 @@
       ? '<span class="tkind">' + esc(label) + "</span>" + esc(title)
       : esc(title);
     var sub = (u.organization && !sameText(u.organization, u.title)) ? u.organization : "";
-    var parts = rowHead("Undated", titleHtml, sub, u);
+    var parts = rowHead("Undated", titleHtml, sub);
     bindExpand(div, parts.head, parts.chev);
 
     var body = document.createElement("div");
@@ -465,7 +470,6 @@
     }
     body.appendChild(detail("Confidence", u.confidence_band + " — check against resume"));
     body.appendChild(viewResumeBlock(u));
-    body.appendChild(reviewBlock(u, div, parts.head));
 
     div.appendChild(parts.head);
     div.appendChild(body);
@@ -665,106 +669,6 @@
         cb({ ok: true, via: "fragment", page: page });
       });
     } catch (e) { cb({ ok: false, reason: "not-found" }); }
-  }
-
-  /* ---------------- per-item review: mandatory note, stays with the item ---------------- */
-
-  function reviewBlock(it, item, head) {
-    var wrap = document.createElement("div");
-
-    var list = document.createElement("ul");
-    list.className = "saved-notes";
-    renderSavedNotes(list, it);
-
-    var label = document.createElement("label");
-    label.className = "note-label";
-    label.textContent = "Review note";
-    label.htmlFor = "note-" + itemId(it);
-
-    var ta = document.createElement("textarea");
-    ta.className = "note";
-    ta.id = "note-" + itemId(it);
-
-    var err = document.createElement("p");
-    err.className = "note-error";
-    err.hidden = true;
-
-    var actions = document.createElement("div");
-    actions.className = "actions";
-    var btn = document.createElement("button");
-    syncReviewBtn(btn, it);
-    btn.addEventListener("click", function () {
-      var note = ta.value.trim();
-      if (!note) {
-        err.hidden = false;
-        err.textContent = "Add a review note before marking this item as reviewed.";
-        ta.focus();
-        return;
-      }
-      err.hidden = true;
-      btn.disabled = true;
-      pushNote(it, note, function (shared) {
-        btn.disabled = false;
-        ta.value = "";
-        renderSavedNotes(list, it);
-        syncReviewBtn(btn, it);
-        refreshStatus(item, head, it);
-        updateActionNote();
-        syncHint(syncEl, shared);
-      });
-    });
-
-    ta.addEventListener("input", function () {
-      if (ta.value.trim()) err.hidden = true;
-    });
-
-    var syncEl = document.createElement("p");
-    syncEl.className = "sync-hint";
-    syncHint(syncEl, state.backendUp);
-
-    actions.appendChild(btn);
-    wrap.appendChild(list);
-    wrap.appendChild(label);
-    wrap.appendChild(ta);
-    wrap.appendChild(err);
-    wrap.appendChild(actions);
-    wrap.appendChild(syncEl);
-    return wrap;
-  }
-
-  function renderSavedNotes(list, it) {
-    list.innerHTML = "";
-    itemNotes(it).forEach(function (n) {
-      var li = document.createElement("li");
-      var when = n.at ? fmtTime(n.at) : "";
-      li.innerHTML = esc(n.note) +
-        '<div class="by">Reviewed' + (when ? " · " + esc(when) : "") + "</div>";
-      list.appendChild(li);
-    });
-  }
-
-  function syncHint(p, shared) {
-    p.textContent = shared
-      ? "Saved — visible to other recruiters."
-      : "Stored on this device only (backend offline) — other recruiters can’t see it yet.";
-  }
-
-  function syncReviewBtn(btn, it) {
-    if (isReviewed(it)) {
-      btn.className = "btn done";
-      btn.textContent = "✓ Add note";
-    } else {
-      btn.className = "btn primary";
-      btn.textContent = "Mark Reviewed";
-    }
-  }
-
-  function refreshStatus(item, head, it) {
-    var st = head.querySelector(".tstatus");
-    if (st) {
-      st.className = "tstatus " + (isReviewed(it) ? "done" : "review");
-      st.textContent = isReviewed(it) ? "✓ Reviewed" : "⚠ Needs review";
-    }
   }
 
   /* ---------------- helpers ---------------- */

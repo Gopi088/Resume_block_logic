@@ -57,10 +57,11 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
   chevron = expand only) with separators instead of cards. Experience rows
   read as roles; every other section carries a kind tag (Education,
   Certification, Skills, Summary, …) so dated blocks are never mislabeled.
-- Expanded rows show org/location/dates-as-written/confidence, the
-  View-in-Resume jump, and the item's own review note (mandatory before
-  Mark Reviewed; saved notes stay visible with their item).
-- Review notes POST to `/api/notes/{sha}` keyed by timeline entry/gap id, so
+- Expanded rows show org/location/dates-as-written/confidence and the
+  View-in-Resume jump. One review note covers the whole resume ("Your review"
+  section, mandatory before Mark Reviewed); the saved note stays visible with
+  its timestamp and the header flips to `✓ Reviewed`.
+- Review notes POST to `/api/notes/{sha}` under a single `resume` item, so
   every recruiter sees them; offline they stay on-device with an honest notice.
   The author identity is auto-stamped (anonymous device id, nothing to type).
 - View in Resume highlights the exact passage and nothing else: no panel
