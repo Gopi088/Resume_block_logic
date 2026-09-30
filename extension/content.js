@@ -132,13 +132,14 @@
       :root {
         --ct-brand: #2563EB;
         --ct-brand-hover: #1D4ED8;
+        --ct-brand-glow: rgba(37, 99, 235, 0.4);
         --ct-white: #FFFFFF;
         --ct-outer-ring: #FFFFFF;
         --ct-shadow: rgba(0, 0, 0, 0.35);
-        --ct-size: 48px;
-        --ct-icon-size: 22px;
+        --ct-size: 56px;
+        --ct-icon-size: 26px;
         --ct-radius: 50%;
-        --ct-transition: 150ms;
+        --ct-transition: 200ms;
       }
 
       .ct-btn {
@@ -149,23 +150,34 @@
         width: var(--ct-size);
         height: var(--ct-size);
         border-radius: var(--ct-radius);
-        background: var(--ct-brand);
+        background: linear-gradient(135deg, var(--ct-brand) 0%, #1D4ED8 100%);
         color: var(--ct-white);
         border: 2px solid var(--ct-outer-ring);
-        box-shadow: 0 2px 8px var(--ct-shadow);
+        box-shadow: 
+          0 2px 8px var(--ct-shadow),
+          0 0 0 1px rgba(255,255,255,0.15) inset,
+          0 0 20px var(--ct-brand-glow);
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: background-color 120ms ease, transform 100ms ease, box-shadow 120ms ease;
+        transition: background-color 180ms ease, transform 150ms ease, box-shadow 180ms ease;
         outline: none;
+        animation: ct-subtle-pulse 3s ease-in-out infinite;
       }
       .ct-btn:focus-visible {
         outline: 3px solid var(--ct-brand);
         outline-offset: 3px;
       }
-      .ct-btn:hover { background: #1D4ED8; transform: scale(1.05); }
-      .ct-btn:active { background: #1E40AF; transform: scale(0.97); }
+      .ct-btn:hover { 
+        background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
+        transform: scale(1.06);
+        box-shadow: 
+          0 4px 16px var(--ct-shadow),
+          0 0 0 1px rgba(255,255,255,0.2) inset,
+          0 0 28px var(--ct-brand-glow);
+      }
+      .ct-btn:active { background: #1E40AF; transform: scale(0.96); }
 
       /* White outer ring for contrast on any background */
       .ct-btn::before {
@@ -182,14 +194,20 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 22px;
-        height: 22px;
+        width: var(--ct-icon-size);
+        height: var(--ct-icon-size);
         color: #FFFFFF;
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
       }
       .ct-icon svg { width: 100%; height: 100%; }
 
+      @keyframes ct-subtle-pulse {
+        0%, 100% { box-shadow: 0 2px 8px var(--ct-shadow), 0 0 0 1px rgba(255,255,255,0.15) inset, 0 0 20px var(--ct-brand-glow); }
+        50% { box-shadow: 0 2px 8px var(--ct-shadow), 0 0 0 1px rgba(255,255,255,0.15) inset, 0 0 32px var(--ct-brand-glow); }
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        .ct-btn { transition: none !important; }
+        .ct-btn { transition: none !important; animation: none !important; }
       }
     `;
     shadow.appendChild(style);
