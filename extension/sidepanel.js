@@ -359,6 +359,20 @@
     events.forEach(function (ev) { el.timeline.appendChild(renderEvent(ev)); });
 
     el.empty.hidden = events.length > 0 || gaps.length > 0;
+
+    // Notify launcher of items needing review (gaps + unreviewed events)
+    var needsReviewCount = gaps.length;
+    (r.events || []).forEach(function (ev) {
+      if (!state.note || !state.note.note) {
+        // Simple heuristic: if there's no global note, items might need review
+        // We'll count items that don't have explicit review
+        needsReviewCount++;
+      }
+    });
+    chrome.runtime.sendMessage({
+      type: "LAUNCHER_BADGE",
+      count: needsReviewCount
+    }).catch(function () { /* background not ready */ });
   }
 
   function renderReviewSection(shared) {

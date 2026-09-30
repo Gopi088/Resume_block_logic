@@ -41,6 +41,18 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   }
 });
 
+/* Background forwards badge count updates to the launcher. */
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+  if (msg && msg.type === "LAUNCHER_BADGE" && sender.tab && sender.tab.id != null) {
+    chrome.tabs.sendMessage(sender.tab.id, {
+      type: "LAUNCHER_BADGE",
+      count: msg.count || 0
+    }).catch(function () { /* content script not ready */ });
+    sendResponse({ ok: true });
+    return true;
+  }
+});
+
 /* Follow the recruiter: when they switch tabs, offer the open resume to the
    side panel (it auto-analyzes only while no real resume has been parsed). */
 function notifyOpenTab() {
