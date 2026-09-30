@@ -117,3 +117,34 @@ def test_shared_notes_roundtrip(tmp_path, monkeypatch):
 
     again = client.get("/api/notes/abc123").json()["notes"]
     assert len(again["E000001"]) == 1
+
+
+def test_pipe_header_borrowed_from_same_block():
+    from backend.server import _last_pipe, _pipe_header, _resolve_header
+
+    header = {"entry_id": "E000003", "index": 3, "block_id": "B000003",
+              "section": "experience",
+              "text": "PROFESSIONAL EXPERIENCE\nData Management Analyst | Wells Fargo\nHyderabad, India"}
+    dated = {"entry_id": "E000004", "index": 4, "block_id": "B000003",
+             "section": "experience",
+             "text": "Feb 2025 – Present\n• Support data governance initiatives."}
+    tailed = {"entry_id": "E000005", "index": 5, "block_id": "B000003",
+              "section": "experience",
+              "text": "Sep 2021 – Dec 2024\n• Enhanced ETL processes."}
+    tailed_prev = dict(dated)
+    tailed_prev["text"] += "\nSoftware Engineer | Cognizant"
+    ordered = [header, dated, tailed]
+
+    # Own pre-date header wins.
+    assert _pipe_header(header["text"]) == ("Data Management Analyst", "Wells Fargo")
+    # Post-date pipes never qualify as the entry's own header.
+    assert _pipe_header(tailed_prev["text"]) == (None, None)
+    # Dated entries borrow the closest preceding same-block header.
+    assert _resolve_header(dated, ordered) == ("Data Management Analyst", "Wells Fargo")
+    assert _resolve_header(tailed, [header, tailed_prev, tailed]) == (
+        "Software Engineer", "Cognizant")
+    # Never across blocks.
+    other = dict(tailed)
+    other["block_id"] = "B000009"
+    assert _resolve_header(other, ordered) == (None, None)
+    assert _last_pipe("a\nLead | DevOps\nmulti | pipe | list") == ("Lead", "DevOps")

@@ -136,6 +136,9 @@ def build_review_projection(out: dict) -> dict:
     """
     lines = {ln["line_id"]: ln for ln in out.get("lines", [])}
     entries = {e["entry_id"]: e for e in out.get("entries", {}).get("entries", [])}
+    ordered_entries = sorted(
+        out.get("entries", {}).get("entries", []), key=lambda e: e.get("index", 0)
+    )
     entry_dates = {
         ed["entry_id"]: ed for ed in out.get("entry_dates", {}).get("entry_dates", [])
     }
@@ -151,14 +154,18 @@ def build_review_projection(out: dict) -> dict:
         entry = entries.get(ev["entry_id"], {})
         ed = entry_dates.get(ev["entry_id"], {})
         fsec = sections.get(ev.get("block_id", ""), {})
-        org = _entry_org(entry.get("text", ""))
+        title, org = _resolve_header(entry, ordered_entries)
+        if org is None:
+            org = _entry_org(entry.get("text", ""))
+        if title is None:
+            title = _entry_title(entry.get("text", ""), org, ev.get("raw_range"))
         items.append(
             {
                 "kind": "event",
                 "entry_id": ev["entry_id"],
                 "block_id": ev.get("block_id"),
                 "section": ev.get("section"),
-                "title": _entry_title(entry.get("text", ""), org, ev.get("raw_range")),
+                "title": title,
                 "organization": org,
                 "location": _entry_location(entry.get("text", "")),
                 "start_date": ev.get("start_date"),
@@ -198,14 +205,18 @@ def build_review_projection(out: dict) -> dict:
         # Contact boilerplate is identity, not review work — keep review list focused.
         if entry.get("section") == "contact":
             continue
-        org = _entry_org(entry.get("text", ""))
+        title, org = _resolve_header(entry, ordered_entries)
+        if org is None:
+            org = _entry_org(entry.get("text", ""))
+        if title is None:
+            title = _entry_title(entry.get("text", ""), org, None)
         undated.append(
             {
                 "kind": "undated",
                 "entry_id": eid,
                 "block_id": entry.get("block_id"),
                 "section": entry.get("section"),
-                "title": _entry_title(entry.get("text", ""), org, None),
+                "title": title,
                 "organization": org,
                 "confidence": round(float(fsec.get("confidence", 0.0)), 3),
                 "confidence_band": _band(float(fsec.get("confidence", 0.0))),
@@ -334,9 +345,113 @@ def _entry_lines(text: str) -> list[str]:
     return out
 
 
+def _match_pipe_line(head: str) -> tuple[str | None, str | None]:
+    """A clean two-part 'Role | Organization' header, else (None, None."""
+    import re
+
+    head = _clean_pipe_line(head)
+    if not head or "@" in head or "://" in head or head.count("|") != 1:
+        return None, None
+    role, _, org = head.partition("|")
+    role, org = role.strip(" \t-–—:,"), org.strip(" \t-–—:,")
+    if not (2 <= len(role) <= 60 and 2 <= len(org) <= 50):
+        return None, None
+    if not re.search(r"[a-zA-Z]{3,}", role) or not re.search(r"[a-zA-Z]{3,}", org):
+        return None, None
+    return role, org
+
+
+def _clean_pipe_line(text: str) -> str:
+    import re
+
+    t = re.sub(r"!\[.*?\]\(.*?\)", " ", text or "")
+    t = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", t)
+    t = t.replace("*", "").replace("#", "").replace("_", " ")
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def _pipe_header(text: str) -> tuple[str | None, str | None]:
+    """Role | Organization header lines, e.g. 'Data Management Analyst | Wells Fargo'.
+
+    Only lines up to and including the first date-bearing line qualify: a pipe
+    line after the date starts the NEXT job, not this one. Returns (role, org)
+    or (None, None). Skips contact lines and multi-pipe skill lists.
+    """
+    import re
+
+    for ln in (text or "").splitlines():
+        c = _clean_pipe_line(ln)
+        if not c or "@" in c or "://" in c:
+            continue
+        # Role headers often share their line with the date range
+        # ("Data Management Analyst | Wells Fargo   Feb 2025 – Present"):
+        # judge only the part before the first date token.
+        mdate = re.search(
+            r"(?:(?:19|20)\d{2}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s*\d{2,4})",
+            c,
+            re.I,
+        )
+        head = c[: mdate.start()].strip() if mdate else c
+        role, org = _match_pipe_line(head)
+        if role:
+            return role, org
+        if mdate:
+            break  # pipes past the date line belong to the next entry
+    return None, None
+
+
+def _last_pipe(text: str) -> tuple[str | None, str | None]:
+    """Last pipe header anywhere in the text (for borrowing from the previous
+    same-block entry, where the header is the closest preceding role line)."""
+    found: tuple[str | None, str | None] = (None, None)
+    for ln in (text or "").splitlines():
+        role, org = _match_pipe_line(ln)
+        if role:
+            found = (role, org)
+    return found
+
+
+def _has_company(text: str) -> bool:
+    import re
+
+    return bool(re.search(r"company\s*-\s*[A-Za-z]", _clean_md(text), re.I))
+
+
+HEADER_SECTIONS = frozenset({"experience", "education", "projects"})
+
+
+def _resolve_header(entry: dict, ordered_entries: list) -> tuple[str | None, str | None]:
+    """Best role/org header for one entry: own pre-date pipe header; else the
+    closest preceding pipe header in the same B2 block (B7 often splits the
+    header line into its own undated entry, or trails the next job's header
+    at the previous entry's tail); else (None, None) to use the fallbacks.
+    """
+    text = entry.get("text", "")
+    section = entry.get("section", "")
+    if section not in HEADER_SECTIONS:
+        return None, None
+    role, org = _pipe_header(text)
+    if role:
+        return role, org
+    if _has_company(text):
+        return None, None  # Company-style resumes resolve via their own path
+    block_id = entry.get("block_id")
+    idx = entry.get("index", -1)
+    for prev in reversed([e for e in ordered_entries if e.get("index", -1) < idx]):
+        if prev.get("block_id") != block_id:
+            break  # same-block entries are contiguous; never borrow across blocks
+        role, org = _last_pipe(prev.get("text", ""))
+        if role:
+            return role, org
+    return None, None
+
+
 def _entry_title(text: str, org: str | None = None, raw_range: str | None = None) -> str | None:
     import re
 
+    role, pipe_org = _pipe_header(text)
+    if role:
+        return role
     cleaned = _clean_md(text)
     if org:
         cleaned = cleaned.replace(org, " ")
@@ -389,6 +504,9 @@ def _word_truncate(text: str, limit: int) -> str:
 def _entry_org(text: str) -> str | None:
     import re
 
+    _, pipe_org = _pipe_header(text)
+    if pipe_org:
+        return pipe_org
     m = re.search(
         r"company\s*-\s*([A-Za-z][A-Za-z0-9 .,&()\-]{1,60})", _clean_md(text), re.I
     )
