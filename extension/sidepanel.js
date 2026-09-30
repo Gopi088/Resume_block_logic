@@ -394,15 +394,23 @@
     btn.addEventListener("click", function () {
       btn.disabled = true;
       btn.textContent = "Finding…";
-      highlightInOpenTab(it, function (found) {
+      highlightInOpenTab(it, function (res) {
         btn.disabled = false;
         btn.textContent = "View in Resume";
         status.hidden = false;
         // Nothing from the resume is rendered in the panel: the highlight
-        // lands in the open resume tab, period.
-        status.textContent = found
-          ? "Highlighted in the open resume tab."
-          : "Open the resume file in the active tab, then try again. (For file:// URLs, enable “Allow access to file URLs” on the extension card.)";
+        // lands in a resume tab, period.
+        if (res.ok && res.via === "parsed") {
+          status.textContent = "Opened the parsed resume at the exact lines.";
+        } else if (res.ok) {
+          status.textContent = "Highlighted in the open resume tab.";
+        } else if (res.reason === "pdf-viewer" || !state.backendUp) {
+          status.textContent = "Chrome blocks highlighting inside PDF tabs. " +
+            "Start the backend and re-parse the file, then View in Resume opens the exact lines.";
+        } else {
+          status.textContent = "Open the resume file in the active tab, then try again. " +
+            "(For file:// URLs, reload the tab after enabling “Allow access to file URLs”.)";
+        }
       });
     });
 
@@ -415,12 +423,24 @@
   }
 
   function sendToTab(tabId, texts, cb) {
-    try {
-      chrome.tabs.sendMessage(tabId, { type: "HIGHLIGHT_RESUME_EVIDENCE", texts: texts }, function (resp) {
-        if (chrome.runtime.lastError) return cb(false);
-        cb(!!(resp && resp.found));
-      });
-    } catch (e) { cb(false); }
+    function send(afterInject) {
+      try {
+        chrome.tabs.sendMessage(tabId, { type: "HIGHLIGHT_RESUME_EVIDENCE", texts: texts }, function (resp) {
+          if (chrome.runtime.lastError) return afterInject ? cb(false) : inject();
+          cb(!!(resp && resp.found));
+        });
+      } catch (e) { cb(false); }
+    }
+    function inject() {
+      if (!chrome.scripting) return cb(false);
+      try {
+        chrome.scripting.executeScript({ target: { tabId: tabId }, files: ["content.js"] }, function () {
+          if (chrome.runtime.lastError) return cb(false); // e.g. PDF viewer: not scriptable
+          send(true);
+        });
+      } catch (e) { cb(false); }
+    }
+    send(false);
   }
 
   function highlightInOpenTab(it, cb) {
@@ -429,23 +449,40 @@
     if (ev.raw_range) texts.push(ev.raw_range);
     var firstLine = (ev.excerpt || "").split("\n").filter(function (l) { return l.trim(); })[0];
     if (firstLine) texts.push(firstLine.trim().slice(0, 120));
-    if (!texts.length) return cb(false);
+    if (!texts.length) return cb({ ok: false, reason: "no-text" });
     try {
-      if (typeof chrome === "undefined" || !chrome.tabs || !chrome.scripting) return cb(false);
+      if (typeof chrome === "undefined" || !chrome.tabs) return cb({ ok: false, reason: "no-tabs" });
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        if (!tabs || !tabs[0] || tabs[0].id == null) return cb(false);
-        var tabId = tabs[0].id;
-        // The highlighter may already be present (declared content script);
-        // otherwise inject it on demand, then jump to the exact passage.
-        sendToTab(tabId, texts, function (ok) {
-          if (ok) return cb(true);
-          chrome.scripting.executeScript({ target: { tabId: tabId }, files: ["content.js"] }, function () {
-            if (chrome.runtime.lastError) return cb(false);
-            sendToTab(tabId, texts, cb);
-          });
+        if (!tabs || !tabs[0] || tabs[0].id == null) return cb({ ok: false, reason: "no-tab" });
+        var tab = tabs[0];
+        sendToTab(tab.id, texts, function (ok) {
+          if (ok) return cb({ ok: true });
+          // Direct highlight failed (PDF viewer blocks all scripting, or the
+          // file tab lacks permission). Fall back to the parsed copy.
+          openParsedView(it, tab.url, cb);
         });
       });
-    } catch (e) { cb(false); }
+    } catch (e) { cb({ ok: false, reason: "error" }); }
+  }
+
+  function openParsedView(it, tabUrl, cb) {
+    var ev = it.evidence || {};
+    var ids = ev.line_ids || [];
+    if (!state.backendUp || !ids.length) {
+      return cb({ ok: false, reason: looksLikePdf(tabUrl) ? "pdf-viewer" : "no-tab" });
+    }
+    var url = BACKEND + "/resume-view/" + docSha() +
+      "?hl=" + ids.map(encodeURIComponent).join(",") + "#" + ids[0];
+    try {
+      chrome.tabs.create({ url: url }, function () {
+        if (chrome.runtime.lastError) return cb({ ok: false, reason: "no-tab" });
+        cb({ ok: true, via: "parsed" });
+      });
+    } catch (e) { cb({ ok: false, reason: "no-tab" }); }
+  }
+
+  function looksLikePdf(url) {
+    return !!url && /\.pdf([?#]|$)/i.test(url);
   }
 
   /* ---------------- helpers ---------------- */

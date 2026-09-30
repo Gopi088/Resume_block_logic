@@ -59,8 +59,9 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
   on-device with an honest notice.
 - View in Resume highlights the exact passage in the open resume tab (declared
   content script for http/https + on-demand injection elsewhere — never page
-  top). Nothing from the resume is rendered in the panel; if the tab can't be
-  reached (PDF viewer limits, file URLs without permission), a one-line
-  instruction appears instead of an excerpt.
+  top). Nothing from the resume is rendered in the panel. When the open tab
+  can't be scripted (Chrome's PDF viewer blocks all extensions), and the
+  backend holds the parsed file, the panel opens `/resume-view/{sha}` — the
+  same source lines — at the exact highlighted lines instead.
 - States: loading, empty, error/offline-backend, low-confidence hint,
   evidence-unavailable (gaps are derived absences — stated explicitly).
