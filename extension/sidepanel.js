@@ -52,7 +52,6 @@
     file: document.getElementById("fileInput"),
     source: document.getElementById("sourceLabel"),
     name: document.getElementById("candName"),
-    role: document.getElementById("candRole"),
     accPct: document.getElementById("accPct"),
     accNote: document.getElementById("accNote"),
     actionNote: document.getElementById("actionNote"),
@@ -311,11 +310,8 @@
     el.error.hidden = true;
     el.review.hidden = false;
 
-    // Compact header: name + most recent role + confidence + action.
+    // Compact header: name + confidence + action. No role/description line.
     el.name.textContent = r.candidate.name || "Unnamed candidate";
-    var recentRole = mostRecentRole(r);
-    el.role.textContent = recentRole || "";
-    el.role.hidden = !recentRole;
 
     el.accPct.textContent = r.accuracy.percent + "%";
     el.accNote.textContent = r.accuracy.percent < 45 ? "⚠ Low — some items need review" : "";
@@ -345,16 +341,6 @@
     und.forEach(function (u) { el.undated.appendChild(renderUndated(u)); });
 
     el.empty.hidden = events.length > 0 || gaps.length > 0;
-  }
-
-  function mostRecentRole(r) {
-    var exp = (r.events || []).filter(function (e) { return e.section === "experience"; });
-    if (!exp.length) return null;
-    exp.sort(function (a, b) {
-      if (a.start_date === b.start_date) return 0;
-      return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
-    });
-    return exp[0].title || null;
   }
 
   function renderReviewSection(shared) {
@@ -459,19 +445,14 @@
   }
 
   function renderGap(g) {
+    // Static row: no expandable description, no verdict — the dates speak.
     var div = document.createElement("div");
     div.className = "titem gap";
-    var months = g.gap_months_approx != null ? " (" + g.gap_months_approx + " months)" : "";
-    var parts = rowHead(fmtRange(g.start_date, g.end_date, false),
-      esc("Potential gap"), "No employment stated" + months);
-    parts.head.title = "Expand for details";
-    bindExpand(div, parts.head, parts.chev);
-
-    var body = document.createElement("div");
-    body.className = "tbody";
-    body.appendChild(detail("Why flagged", "No employment covers this stretch (breaks under 90 days are ignored). Only you can judge what it means."));
-    div.appendChild(parts.head);
-    div.appendChild(body);
+    var row = document.createElement("div");
+    row.className = "trow static";
+    row.innerHTML = '<span class="tdates">' + esc(fmtRange(g.start_date, g.end_date, false)) + "</span>" +
+      '<span class="tmain"><span class="ttitle">' + esc("Potential gap") + "</span></span>";
+    div.appendChild(row);
     return div;
   }
 
