@@ -120,7 +120,7 @@
     // Host element in light DOM
     var host = document.createElement("div");
     host.id = "career-timeline-launcher-host";
-    host.style.cssText = "all: initial; position: fixed; bottom: 20px; right: 20px; z-index: 2147483647;";
+    host.style.cssText = "all: initial; position: fixed; bottom: 24px; right: 32px; z-index: 2147483647;";
 
     // Shadow DOM for complete style isolation
     var shadow = host.attachShadow({ mode: "closed" });
