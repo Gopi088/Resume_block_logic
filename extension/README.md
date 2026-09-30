@@ -57,11 +57,9 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
   Notes POST to `/api/notes/{sha}` (item `resume`, kept in
   `backend/notes_store.json`) so every recruiter sees them; offline they stay
   on-device with an honest notice.
-- View in Resume highlights the exact passage in the open resume tab (declared
-  content script for http/https + on-demand injection elsewhere — never page
-  top). Nothing from the resume is rendered in the panel. When the open tab
-  can't be scripted (Chrome's PDF viewer blocks all extensions), and the
-  backend holds the parsed file, the panel opens `/resume-view/{sha}` — the
-  same source lines — at the exact highlighted lines instead.
+- View in Resume highlights the exact passage in the open resume tab and
+  nothing else: no panel excerpt, no backend page, no new tabs. Matching is
+  verbatim first, then whitespace/dash-normalized. When the tab can't take a
+  highlight (Chrome's PDF viewer), one line says so plainly.
 - States: loading, empty, error/offline-backend, low-confidence hint,
   evidence-unavailable (gaps are derived absences — stated explicitly).

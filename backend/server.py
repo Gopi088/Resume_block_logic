@@ -22,11 +22,6 @@ from parse_resume import build_output
 MODEL_PATH = os.environ.get("RESUME_MODEL", "model_real_v2.pkl")
 NOTES_PATH = os.environ.get("RESUME_NOTES", "backend/notes_store.json")
 
-# In-memory cache of parsed resumes (sha -> {filename, lines}) backing the
-# /resume-view fallback page. Bounded; the parser output stays canonical.
-_DOC_CACHE: dict = {}
-_DOC_CACHE_MAX = 20
-
 app = FastAPI(title="Resume Timeline Review API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
@@ -128,64 +123,7 @@ async def parse_resume(file: UploadFile = File(...)) -> dict:
         except OSError:
             pass
     out["review"] = build_review_projection(out)
-    _DOC_CACHE[out["sha256"]] = {
-        "filename": out.get("filename"),
-        "lines": [
-            {k: ln.get(k) for k in ("line_id", "index", "page_index", "display_text")}
-            for ln in out.get("lines", [])
-        ],
-    }
-    while len(_DOC_CACHE) > _DOC_CACHE_MAX:
-        _DOC_CACHE.pop(next(iter(_DOC_CACHE)))
     return {"ok": True, **out}
-
-
-@app.get("/resume-view/{sha}")
-def resume_view(sha: str) -> object:
-    """Readable parsed-resume page used as the View-in-Resume fallback.
-
-    Chrome's PDF viewer cannot be scripted by any extension, so when the open
-    tab can't be highlighted the panel opens this page at the exact evidence
-    lines (?hl=L000001,L000002#L000001). Same source lines the parser used —
-    no new facts.
-    """
-    from fastapi.responses import HTMLResponse
-
-    import html as _html
-
-    cached = _DOC_CACHE.get(sha)
-    if not cached:
-        return HTMLResponse(
-            "<p>Parsed resume not cached (backend restarted?). Re-parse the file from the extension.</p>",
-            status_code=404,
-        )
-    parts = [
-        "<!doctype html><html><head><meta charset='utf-8'>",
-        f"<title>{_html.escape(str(cached.get('filename') or 'Resume'))}</title>",
-        "<style>body{font:13px/1.5 system-ui;margin:16px auto;max-width:720px}"
-        ".rl{padding:1px 6px;overflow-wrap:anywhere}.rl.hit{background:#fff3c4;outline:2px solid #b98a1d}"
-        ".pg{color:#888;font-size:12px;margin:12px 0 4px}</style></head><body>",
-        f"<h2>{_html.escape(str(cached.get('filename') or 'Resume'))}</h2>",
-        "<p style='color:#888'>Parsed text — same lines the timeline was extracted from.</p>",
-    ]
-    last_page = None
-    for ln in cached["lines"]:
-        if ln.get("page_index") != last_page:
-            last_page = ln.get("page_index")
-            parts.append(f"<div class='pg'>Page {last_page + 1}</div>")
-        text = (ln.get("display_text") or "").strip()
-        if not text:
-            continue
-        parts.append(f"<div class='rl' id='{ln['line_id']}'>{_html.escape(text)}</div>")
-    parts.append(
-        "<script>(function(){var q=new URLSearchParams(location.search);"
-        "var ids=(q.get('hl')||'').split(',').filter(Boolean);"
-        "ids.forEach(function(id){var n=document.getElementById(id);"
-        "if(n)n.classList.add('hit')});"
-        "var t=location.hash&&document.querySelector(location.hash);"
-        "if(t)t.scrollIntoView({block:'center'})})()</script></body></html>"
-    )
-    return HTMLResponse("".join(parts))
 
 
 def build_review_projection(out: dict) -> dict:

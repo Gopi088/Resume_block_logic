@@ -398,17 +398,16 @@
         btn.disabled = false;
         btn.textContent = "View in Resume";
         status.hidden = false;
-        // Nothing from the resume is rendered in the panel: the highlight
-        // lands in a resume tab, period.
-        if (res.ok && res.via === "parsed") {
-          status.textContent = "Opened the parsed resume at the exact lines.";
-        } else if (res.ok) {
+        // The button only ever highlights the open resume tab. Nothing from
+        // the resume is rendered in the panel and no backend page is opened.
+        if (res.ok) {
           status.textContent = "Highlighted in the open resume tab.";
-        } else if (res.reason === "pdf-viewer" || !state.backendUp) {
-          status.textContent = "Chrome blocks highlighting inside PDF tabs. " +
-            "Start the backend and re-parse the file, then View in Resume opens the exact lines.";
+        } else if (res.reason === "pdf-viewer") {
+          status.textContent = "Chrome’s PDF viewer can’t be highlighted by any extension — " +
+            "open the resume as text or HTML to use this.";
         } else {
-          status.textContent = "Open the resume file in the active tab, then try again. " +
+          status.textContent = "Couldn’t find that passage in the active tab — " +
+            "open the resume file in a tab, then try again. " +
             "(For file:// URLs, reload the tab after enabling “Allow access to file URLs”.)";
         }
       });
@@ -457,28 +456,10 @@
         var tab = tabs[0];
         sendToTab(tab.id, texts, function (ok) {
           if (ok) return cb({ ok: true });
-          // Direct highlight failed (PDF viewer blocks all scripting, or the
-          // file tab lacks permission). Fall back to the parsed copy.
-          openParsedView(it, tab.url, cb);
+          cb({ ok: false, reason: looksLikePdf(tab.url) ? "pdf-viewer" : "not-found" });
         });
       });
     } catch (e) { cb({ ok: false, reason: "error" }); }
-  }
-
-  function openParsedView(it, tabUrl, cb) {
-    var ev = it.evidence || {};
-    var ids = ev.line_ids || [];
-    if (!state.backendUp || !ids.length) {
-      return cb({ ok: false, reason: looksLikePdf(tabUrl) ? "pdf-viewer" : "no-tab" });
-    }
-    var url = BACKEND + "/resume-view/" + docSha() +
-      "?hl=" + ids.map(encodeURIComponent).join(",") + "#" + ids[0];
-    try {
-      chrome.tabs.create({ url: url }, function () {
-        if (chrome.runtime.lastError) return cb({ ok: false, reason: "no-tab" });
-        cb({ ok: true, via: "parsed" });
-      });
-    } catch (e) { cb({ ok: false, reason: "no-tab" }); }
   }
 
   function looksLikePdf(url) {

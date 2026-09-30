@@ -117,23 +117,3 @@ def test_shared_notes_roundtrip(tmp_path, monkeypatch):
 
     again = client.get("/api/notes/abc123").json()["notes"]
     assert len(again["E000001"]) == 1
-
-
-def test_resume_view_fallback_page():
-    from fastapi.testclient import TestClient
-
-    from backend.server import app
-
-    client = TestClient(app)
-    assert client.get("/resume-view/does-not-exist").status_code == 404
-
-    with open(RESUME, "rb") as f:
-        body = client.post(
-            "/api/parse",
-            files={"file": ("A.Bhargava.docx", f, "application/octet-stream")},
-        ).json()
-    sha = body["sha256"]
-    page = client.get(f"/resume-view/{sha}")
-    assert page.status_code == 200
-    assert "L000000" in page.text  # exact source line anchors present
-    assert "location.hash" in page.text  # auto-scroll/highlight script present
