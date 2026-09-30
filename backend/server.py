@@ -608,11 +608,11 @@ def _entry_title(text: str, org: str | None = None, raw_range: str | None = None
         # real content — the org line is the more complete label.
         return _word_truncate(org, 80)
     if len(seg) >= 3:
-        return _word_truncate(seg, 80)
+        return _word_truncate(seg, 140)
     if org:
         return _word_truncate(org, 80)
     fallback = re.sub(r"^[^A-Za-z]+", "", cleaned).strip()
-    return _word_truncate(fallback, 80) if fallback else None
+    return _word_truncate(fallback, 140) if fallback else None
 
 
 def _word_truncate(text: str, limit: int) -> str:

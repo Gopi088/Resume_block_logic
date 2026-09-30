@@ -13,6 +13,11 @@
   // Backend `section` values, mapped to recruiter-facing kind labels.
   // Experience entries are roles (no label needed); everything else is named
   // for what it is so dated blocks are never mislabeled as career roles.
+  // Timeline shows career history only: real employment and education.
+  // Dated skill/project/certification blocks carry years but are not career
+  // periods, so they stay out of the timeline.
+  var CAREER_SECTIONS = { experience: true, education: true };
+
   var KIND_LABELS = {
     education: "Education",
     certifications: "Certification",
@@ -62,11 +67,6 @@
     gapSection: document.getElementById("gapSection"),
     gaps: document.getElementById("gaps"),
     gapCount: document.getElementById("gapCount"),
-    undatedSection: document.getElementById("undatedSection"),
-    undatedToggle: document.getElementById("undatedToggle"),
-    undatedChev: document.getElementById("undatedChev"),
-    undated: document.getElementById("undated"),
-    undatedCount: document.getElementById("undatedCount"),
     savedNotes: document.getElementById("savedNotes"),
     resumeNote: document.getElementById("resumeNote"),
     resumeNoteError: document.getElementById("resumeNoteError"),
@@ -78,9 +78,6 @@
   el.file.addEventListener("change", onFile);
   el.timelineToggle.addEventListener("click", function () {
     toggleSection(el.timeline, el.timelineToggle, el.timelineChev);
-  });
-  el.undatedToggle.addEventListener("click", function () {
-    toggleSection(el.undated, el.undatedToggle, el.undatedChev);
   });
   el.markReviewedBtn.addEventListener("click", onMarkReviewed);
   el.resumeNote.addEventListener("input", function () {
@@ -324,21 +321,17 @@
     el.gapCount.textContent = gaps.length ? "· " + gaps.length : "";
     gaps.forEach(function (g) { el.gaps.appendChild(renderGap(g)); });
 
-    // Timeline: most-recent-first, collapsed until wanted.
-    var events = (r.events || []).slice().sort(function (a, b) {
+    // Timeline: career history only (experience + education),
+    // most-recent-first, collapsed until wanted.
+    var events = (r.events || []).filter(function (e) {
+      return !!CAREER_SECTIONS[e.section];
+    }).sort(function (a, b) {
       if (a.start_date === b.start_date) return 0;
       return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
     });
     el.timeline.innerHTML = "";
     el.timelineCount.textContent = events.length ? "· " + events.length : "";
     events.forEach(function (ev) { el.timeline.appendChild(renderEvent(ev)); });
-
-    // Other information: recruiter wording, collapsed until wanted.
-    el.undated.innerHTML = "";
-    var und = r.undated || [];
-    el.undatedSection.hidden = und.length === 0;
-    el.undatedCount.textContent = und.length ? "· " + und.length : "";
-    und.forEach(function (u) { el.undated.appendChild(renderUndated(u)); });
 
     el.empty.hidden = events.length > 0 || gaps.length > 0;
   }
@@ -453,32 +446,6 @@
     row.innerHTML = '<span class="tdates">' + esc(fmtRange(g.start_date, g.end_date, false)) + "</span>" +
       '<span class="tmain"><span class="ttitle">' + esc("Potential gap") + "</span></span>";
     div.appendChild(row);
-    return div;
-  }
-
-  function renderUndated(u) {
-    var div = document.createElement("div");
-    div.className = "titem";
-    var label = kindLabel(u.section);
-    var title = (u.title || "Entry");
-    var titleHtml = label
-      ? '<span class="tkind">' + esc(label) + "</span>" + esc(title)
-      : esc(title);
-    var sub = (u.organization && !sameText(u.organization, u.title)) ? u.organization : "";
-    var parts = rowHead("Undated", titleHtml, sub);
-    bindExpand(div, parts.head, parts.chev);
-
-    var body = document.createElement("div");
-    body.className = "tbody";
-    body.appendChild(detail("Note", "This could not be placed on the timeline — no dates were found for it."));
-    if (u.organization && !sameText(u.organization, u.title)) {
-      body.appendChild(detail("Organization", u.organization));
-    }
-    body.appendChild(detail("Confidence", u.confidence_band + " — check against resume"));
-    body.appendChild(viewResumeBlock(u));
-
-    div.appendChild(parts.head);
-    div.appendChild(body);
     return div;
   }
 
