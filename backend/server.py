@@ -708,7 +708,35 @@ def _entry_title(text: str, org: str | None = None, raw_range: str | None = None
                 break
     
     if title:
-        return _word_truncate(title, 140)
+        return _word_cut(title, 140)
+
+    # Fallback: role-pattern search over the full segment (the role often sits
+    # AFTER the skills list in flattened table rows, where the keyword split
+    # below would discard it). Extend a match through a trailing "(...)" group.
+    _ROLE_RE = (
+        r"(?:Senior|Junior|Lead|Principal|Staff|Sr\.?|Assistant|Associate|Deputy|Vice)\s+"
+        r"(?:[A-Z][A-Za-z&]*\s+){0,3}(?:Manager|Analyst|Engineer|Developer|Consultant|Scientist|Architect|Specialist|Administrator|Programmer|Director|Coordinator|Executive|Lead)"
+        r"|(?:Data|Business|Software|Systems?|Project|Product|Program|Technical)\s+"
+        r"(?:[A-Z][A-Za-z&]*\s+){0,2}(?:Analyst|Engineer|Developer|Consultant|Scientist|Architect|Manager|Programmer|Director|Coordinator|Owner|Lead)"
+        r"|\b(?:Programmer|Developer|Engineer|Analyst|Consultant|Manager|Director|Coordinator|Specialist|Administrator)\b"
+    )
+    _role_m = re.search(_ROLE_RE, seg)
+    if _role_m:
+        _role_txt = _role_m.group(0).strip()
+        _tail = seg[_role_m.end():].lstrip()
+        if _tail.startswith("("):
+            _depth, _pos = 0, 0
+            for _pos, _ch in enumerate(_tail):
+                if _ch == "(":
+                    _depth += 1
+                elif _ch == ")":
+                    _depth -= 1
+                    if _depth == 0:
+                        break
+            if _depth == 0:
+                _role_txt = (_role_txt + " " + _tail[: _pos + 1]).strip()
+        if 3 <= len(_role_txt) <= 120:
+            return _word_cut(_role_txt, 140)
 
     # Fallback: original line-by-line check on cleaned text
     # Split into candidate lines and pick the first that looks like a job title.
@@ -729,7 +757,7 @@ def _entry_title(text: str, org: str | None = None, raw_range: str | None = None
             continue
         # This looks like a title
         if len(ln) >= 3:
-            return _word_truncate(ln, 140)
+            return _word_cut(ln, 140)
     
     # Fallback: original seg logic
     seg = re.split(
@@ -745,17 +773,31 @@ def _entry_title(text: str, org: str | None = None, raw_range: str | None = None
     if org and len(seg) < len(org):
         return _word_truncate(org, 80)
     if len(seg) >= 3:
-        return _word_truncate(seg, 140)
+        return _word_cut(seg, 140)
     if org:
         return _word_truncate(org, 80)
     fallback = re.sub(r"^[^A-Za-z]+", "", cleaned).strip()
-    return _word_truncate(fallback, 140) if fallback else None
+    return _word_cut(fallback, 140) if fallback else None
 def _word_truncate(text: str, limit: int) -> str:
     text = (text or "").strip()
     if len(text) <= limit:
         return text
     cut = text.rfind(" ", 0, limit)
     return (text[: cut if cut > 10 else limit].rstrip() + "…")
+
+
+def _word_cut(text: str, limit: int) -> str:
+    """Word-boundary cut WITHOUT an ellipsis marker, for title display.
+
+    The timeline UI wraps titles over multiple lines and must not show "…".
+    The 140-char cap only guards against table-merged junk floods; normal
+    titles pass through untouched.
+    """
+    text = (text or "").strip()
+    if len(text) <= limit:
+        return text
+    cut = text.rfind(" ", 0, limit)
+    return text[: cut if cut > 10 else limit].rstrip()
 
 
 def _entry_org(text: str) -> str | None:
@@ -781,10 +823,15 @@ def _entry_org(text: str) -> str | None:
         if "@" not in ln and "://" not in ln and len(ln) > 1
     ]
     if len(meaningful) >= 2:
-        org = meaningful[1]
-        if re.search(r"\d{4}|present", org, re.I) and len(meaningful) >= 3:
-            org = meaningful[2]
-        return org[:100]
+        # Positional fallback: only accept short, date-free lines. Long
+        # bullet fragments must never become the "organization" (they would
+        # then also corrupt the title via org-subtraction).
+        for cand in meaningful[1:3]:
+            c = cand.strip(" \t-–—:,")
+            if len(c) <= 60 and not re.search(r"\d{4}|present|current", c, re.I) \
+                    and not re.match(r"^[*•\-–]", c):
+                return c[:100]
+        return None
     return None
 
 

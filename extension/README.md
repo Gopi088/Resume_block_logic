@@ -1,4 +1,4 @@
-# Resume Timeline Review — Chrome side-panel extension (MV3)
+# Career Timeline — Chrome side-panel extension (MV3)
 
 Recruiter-first review UI over the existing B0–B9 parser. No parser logic was
 changed: the panel consumes real backend output only.
@@ -14,15 +14,37 @@ changed: the panel consumes real backend output only.
 ```
 
 Without the backend running, the panel boots from
-`extension/sample_data.json` — real parser output for `my_resumes/A.Bhargava.docx`
-(7 events, 1 gap, 10 undated), so every state is inspectable offline.
+`extension/sample_data.json` — real parser output for `my_resumes/A.Bhargava.docx`,
+so every state is inspectable offline.
 
 With the backend up, opening the side panel on a resume tab analyzes that tab
 automatically via `POST /api/parse-url {url}` — no upload click needed
 (`file://` URLs are read from local disk incl. Windows↔WSL drive mapping,
-`http(s)` URLs are downloaded server-side). Uploading via `Parse resume`
+`http(s)` URLs are downloaded server-side). Uploading via the file picker
 remains for DOCX and other files that can't render in a tab. Auto-analysis
 only ever replaces the sample view — never a review in progress.
+
+## Preview fixtures (edge-state test data)
+
+Synthetic, review-shaped payloads for previewing states the sample resume
+doesn't cover. Regenerate with `.venv/bin/python extension/fixtures/make_fixtures.py`.
+Open the panel with `?fixture=N`, e.g. `sidepanel.html?fixture=2`:
+
+| Fixture | State |
+|---|---|
+| `f1` | Clean resume: 5 high-confidence jobs, one real gap, promotion path |
+| `f2` | Problem resume: bullet fragments, year-only dates, zero-length range, missing title |
+| `f3` | Very low confidence (7%): manual-check banner, totals hidden |
+| `f4` | Empty / unreadable parse with Re-scan link |
+| `f5` | Human-checked note (preload storage key `review:fixf5`) |
+| `f6` | Anchor edge cases: dangling ids, no anchor, page-only |
+
+## Unit tests (no new dependencies)
+
+```bash
+node --test extension/timeline-lib.test.js   # totals, grouping, gaps, dates, anchors
+.venv/bin/python -m pytest tests/ -q         # backend contract (unchanged)
+```
 
 Regenerate the fixture after parser changes:
 

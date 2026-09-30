@@ -3,17 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Resume Timeline Review</title>
+  <title>Career Timeline</title>
   <link rel="stylesheet" href="sidepanel.css" />
 </head>
 <body>
-  <div id="app" class="app">
+  <div id="app" class="app" aria-label="Career Timeline">
     <div class="sourcebar">
-      <label class="upload" title="Parse a resume file with the local backend">
-        <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.html" hidden />
-        <span class="upload-btn">Parse resume</span>
-      </label>
-      <span id="sourceLabel" class="source-label">Sample resume (real parser output)</span>
+      <span id="sourceStatus" class="source-label" role="status">Reading resume…</span>
+      <button id="rescanLink" class="link-btn" type="button">Re-scan</button>
+      <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.html" hidden />
     </div>
 
     <div id="stateLoading" class="state" hidden>
@@ -27,43 +25,51 @@
     </div>
 
     <div id="review" hidden>
-      <!-- Compact header: who + current role + confidence + action -->
-      <header class="candidate">
-        <div class="candidate-row">
-          <div class="candidate-id">
-            <h1 id="candName">—</h1>
-          </div>
-          <div class="accuracy">
-            <span class="accuracy-line">Extraction confidence <strong id="accPct">—</strong></span>
-            <span id="accNote" class="accuracy-note muted"></span>
-            <span id="actionNote" class="action-note"></span>
-          </div>
+      <div id="manualBanner" class="banner" hidden>
+        We couldn't read this resume fully. Dates and totals may be wrong.
+      </div>
+
+      <!-- Snapshot card: always visible -->
+      <section aria-label="Candidate snapshot" id="snapshot" hidden>
+        <h1 id="candName">—</h1>
+        <p id="snapRole" class="snap-role" hidden></p>
+        <p id="snapTotals" class="muted" hidden></p>
+        <div id="tenureBar" class="tenurebar" hidden role="img" aria-label="Time per employer"></div>
+        <div id="trustRow" class="trustrow">
+          <span id="trustChip" class="chip"></span>
+          <button id="flaggedLink" class="link-btn" type="button" hidden></button>
         </div>
-      </header>
-
-      <!-- Gaps: calm alert rows, expanded inline -->
-      <section aria-label="Potential career gaps" id="gapSection" hidden>
-        <h2 class="section-title">Career gaps <span id="gapCount" class="muted"></span></h2>
-        <div id="gaps"></div>
-      </section>
-
-      <!-- Timeline: conventional chronological rows -->
-      <section aria-label="Career timeline">
-        <button id="timelineToggle" class="section-toggle" aria-expanded="false">
-          <span class="section-title">Timeline <span id="timelineCount" class="muted"></span></span>
-          <span class="chev" id="timelineChev">▸</span>
+        <button id="timelineToggle" class="btn primary wide" type="button"
+                aria-expanded="false" aria-controls="timelineWrap">
+          <span id="timelineToggleLabel">View full timeline</span>
+          <span class="chev" id="timelineChev" aria-hidden="true">▾</span>
         </button>
-        <ol id="timeline" class="timeline" hidden></ol>
       </section>
 
-      <!-- Undated blocks: recruiter wording, collapsed -->
+      <!-- Timeline: collapsed by default, grouped by employer -->
+      <section aria-label="Career timeline" id="timelineWrap" hidden>
+        <p class="timeline-head">Career timeline <span class="muted">· Newest first</span></p>
+        <ol id="timeline" class="timeline"></ol>
+
+        <button id="eduToggle" class="section-toggle" type="button" aria-expanded="false" hidden>
+          <span class="section-title">Education <span id="eduCount" class="muted"></span></span>
+          <span class="chev" aria-hidden="true">▸</span>
+        </button>
+        <ol id="eduList" class="timeline sublist" hidden></ol>
+
+        <button id="otherToggle" class="section-toggle" type="button" aria-expanded="false" hidden>
+          <span class="section-title">Other text found <span id="otherCount" class="muted"></span></span>
+          <span class="chev" aria-hidden="true">▸</span>
+        </button>
+        <ol id="otherList" class="timeline sublist" hidden></ol>
+      </section>
 
       <div id="stateEmpty" class="state" hidden>
         <p class="state-title">No timeline entries found</p>
         <p class="muted">The parser could not place any dated entries. Check the resume file and try again.</p>
       </div>
 
-      <!-- The single review note for the whole resume -->
+      <!-- The single review note for the whole resume (unchanged) -->
       <section aria-label="Resume review" id="resumeReview">
         <h2 class="section-title">Your review</h2>
         <ul id="savedNotes" class="saved-notes"></ul>
@@ -80,7 +86,9 @@
         AI-assisted extraction · You make the final decision.
       </footer>
     </div>
+    <div id="liveStatus" class="sr-only" aria-live="polite"></div>
   </div>
+  <script src="timeline-lib.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>
