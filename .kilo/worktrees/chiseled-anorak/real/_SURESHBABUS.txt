@@ -1,0 +1,157 @@
+SURESH BABU S
+Senior IAM Program, Project & Delivery Manager | Cloud & Cybersecurity Transformation
+PMP | CISM | Certified ScrumMaster (CSM) | Agile & Scrum Delivery | Program & Portfolio Management
+Bengaluru, India | +91 9600037070 | sureshbabu.chn@gmail.com | linkedin.com/in/sureshbabusanthanaraj
+
+PROFESSIONAL SUMMARY
+
+Senior Program, Project, and Delivery Manager with 18+ years leading enterprise Identity and Access Management
+(IAM), cloud, and cybersecurity transformation programs across global banking and telecommunications
+organizations. Proven track record managing multi-million-dollar, multi-workstream IAM and infrastructure
+portfolios (up to USD 5.5M) spanning 60+ countries, 95,000+ users, and matrixed teams of 25+ engineers,
+architects, and vendor partners.
+
+Deep hands-on expertise in IAM platform delivery — Microsoft Entra ID, SSO/MFA, SAML 2.0/OIDC, Zero Trust,
+Conditional Access, and passwordless authentication — combined with Agile/Scrum delivery (Azure DevOps, Jira),
+PMO governance, steering committee and executive reporting, change management and benefits realization, and
+risk/regulatory compliance (SOX, PCI DSS, ISO 27001, NIST). Recognized for translating technical and architectural
+decisions into measurable business outcomes — cost optimization, delivery predictability, and risk reduction.
+Project Management Professional (PMP), Certified Information Security Manager (CISM), and Certified
+ScrumMaster (CSM) certified.
+
+KEY ACHIEVEMENTS
+
+•  Delivered enterprise cloud, identity, and cybersecurity transformation programs representing USD 8.7M+ in
+
+combined portfolio value across 60+ countries and 95,000+ users.
+
+•  Realized approximately USD 825K in cost savings through vendor consolidation and delivery process
+
+optimization over 5 years.
+
+•  Reduced legacy authentication exceptions by 40% and password-related support incidents by 35% through
+
+Zero Trust and passwordless authentication initiatives.
+
+•  Closed 30+ audit observations across SOX, PCI DSS, ISO 27001, and NIST engagements within regulatory
+
+timelines, with zero compliance escalations.
+
+CORE COMPETENCIES
+
+Program & Portfolio Leadership: Enterprise Program & Portfolio Management · PMO Governance & Steering
+Committee Reporting · Executive Reporting & Stakeholder Management · Change Management & Benefits
+Realization
+
+Identity & Access Management (IAM): Identity & Access Management (IAM) Program Delivery · Microsoft Entra ID
+· SSO/MFA · SAML 2.0/OIDC · Zero Trust & Conditional Access · Passwordless Authentication (Windows Hello for
+Business) · Identity Lifecycle Management · Active Directory & Hybrid Identity
+
+Agile Delivery & Tools: Agile & Scrum Delivery · Azure DevOps · Jira · Confluence · Sprint & Backlog Management ·
+Certified ScrumMaster (CSM)
+
+Architecture & Technical Leadership: Architecture Reviews & Solution Design Governance · Cloud Platform
+Transformation (Azure) · Enterprise Application Integration & Onboarding (1,000+ Apps)
+
+Governance, Risk & Compliance: Program Governance · Risk & Dependency Management · SOX · PCI DSS · ISO
+27001 · NIST · Audit Readiness & Remediation
+
+Financial & Vendor Management: Program Budgeting & Forecasting · Staffing & Capacity Planning · Vendor &
+Contract Management
+
+PROFESSIONAL EXPERIENCE
+
+Career progression from hands-on network engineering into enterprise technical delivery and program leadership,
+with increasing scope, budget, and stakeholder accountability over 18+ years.
+
+IAM Project Manager | Information & Cybersecurity Services | Standard Chartered Global Business Services,
+Bengaluru, India
+
+Jun 2020 – Present
+
+•  Lead end-to-end planning, execution, and delivery of enterprise Identity and Access Management (IAM), cloud,
+
+and cybersecurity transformation programs supporting 95,000+ employees across 60 countries; direct
+
+integration feasibility assessments and onboarding of 1,000+ enterprise applications to Microsoft Entra ID using
+SAML 2.0 and OpenID Connect (OIDC).
+
+•  Own a USD 3.2M multi-workstream program portfolio, managing integrated roadmaps, budgets, forecasts,
+staffing, and vendor/contract resources across a matrixed team of 25+ engineers, security architects, and
+vendor partners.
+
+•  Drive Agile and Scrum delivery using Azure DevOps and Jira for backlog management, sprint tracking, and
+delivery reporting, and Confluence for program documentation and governance artifacts; serve as Interim
+Product Owner for an 8-member cross-functional Agile squad, sustaining 90%+ sprint completion rates.
+
+•  Serve on architecture review boards and lead solution design discussions for identity platform integrations,
+
+providing technical governance input that shaped Conditional Access and Zero Trust design decisions.
+
+•  Established PMO governance structures, steering committee reporting, change management processes, and
+
+RAID/risk tracking across engineering, cybersecurity, infrastructure, and vendor teams; serve as primary liaison
+to executive, security, and business stakeholders on program status and decision-making.
+
+•  Directed Conditional Access policy design aligned with Zero Trust strategy, reducing legacy authentication
+
+exceptions by 40% while maintaining 95%+ policy compliance; led the global Windows Hello for Business and
+passwordless authentication rollout, cutting password-related support incidents by 35% and achieving 98%+
+authentication success.
+
+•  Partnered with Internal Audit, Risk, and Compliance teams to meet SOX, PCI DSS, ISO 27001, and NIST
+requirements, closing 30+ audit observations within agreed regulatory timelines with zero compliance
+escalations.
+
+Technical Delivery Manager | Singtel Global India Pvt. Ltd., Chennai, India
+
+Apr 2010 – Jun 2020
+
+•  Managed a USD 5.5M enterprise infrastructure and Identity and Access Management (IAM) transformation
+program portfolio across APAC, leading Active Directory consolidation and hybrid identity initiatives that
+enabled cloud adoption and SSO across a distributed team of 30+ engineers and vendor resources.
+
+•  Established PMO governance, SLA management, risk/dependency tracking, and executive reporting
+
+frameworks across 12+ cross-functional delivery teams spanning 8 APAC countries, improving delivery
+predictability and stakeholder visibility.
+
+•  Partnered with architecture and engineering leads on solution design and technical governance for identity and
+
+infrastructure integration projects, ensuring alignment with enterprise standards.
+
+•  Managed program budgets and led vendor consolidation and delivery process improvements, delivering USD
+
+825K in cost savings over 5 years.
+
+•  Served as primary stakeholder liaison between application, infrastructure, and security teams, translating
+
+business requirements into technical delivery plans.
+
+Engineering & Technology Roles | Tata Teleservices · ZTE Global India · Shivani Info Solutions, India
+
+2006 – 2010
+
+•  Delivered telecom core network projects — routing optimization, capacity planning, and automated
+provisioning — improving service reliability by 28%, and developed SOPs and technical runbooks that
+strengthened operational readiness across network operations teams.
+
+CERTIFICATIONS
+
+Project Management Professional (PMP) · Certified Information Security Manager (CISM) · Certified ScrumMaster
+(CSM) · ITIL 4 · AWS Solutions Architect · Microsoft Azure Fundamentals (AZ-900)
+
+EDUCATION
+
+Bachelor of Engineering (B.E.) – Electronics & Communications Engineering, 2005
+Anna University, Chennai, India
+
+AWARDS & RECOGNITION
+
+•  Best Performer Award, Standard Chartered (2026) – Recognized for leading the enterprise-wide MFA and
+Windows Hello for Business (WHfB) deployment, delivering secure passwordless authentication to 95,000+
+users across the bank.
+
+•  Security Champion Award, Singtel (2019) – Recognized for outstanding contribution to enterprise security and
+
+risk management initiatives.

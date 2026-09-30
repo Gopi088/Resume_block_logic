@@ -1,0 +1,27 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+## Career Snapshot
+Results-driven engineer with 5 years of experience building data products.
+
+## Career Journey
+Software Engineer | Globex Inc
+March 2020 to Dec 2021
+- Built pipelines using Python, cut cost by 19%
+- Led standups and shipped 6 releases
+Software Engineer | Startup Labs
+04/2022 - Present
+- Built pipelines using Python, cut cost by 27%
+- Led standups and shipped 2 releases
+
+## Schooling
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 8.4
+
+## What I Know
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership
+
+Selected Work
+Project Atlas: resume parser (Python)
+- Cut manual screening time by 30%

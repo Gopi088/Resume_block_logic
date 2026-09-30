@@ -1,0 +1,23 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,WORK EXPERIENCE:,experience
+4,QA Lead | Infosys Ltd,
+5,Nov 2021 - Jan 2023,
+6,"- Built pipelines using Python, reducing cost by 29%",
+7,"- Built pipelines using Python, reducing cost by 56%",
+8,Backend Developer | PROJECTS UNLIMITED,
+9,Sep 2015 - Jan 2017,
+10,"- Built pipelines using Python, reducing cost by 57%",
+11,"- Automated pipelines using Python, reducing cost by 21%",
+12,- Experience with Kubernetes and AWS,
+14,## Honors & Awards,awards
+15,"Employee of the Year, 2020",
+16,"Hackathon winner, 2019",
+18,Languages,languages
+19,"English, Hindi, Kannada",
+21,OBJECTIVE,summary_objective
+22,Results-driven engineer with 5 years of experience building data products.,
+24,ACADEMIC BACKGROUND,education
+25,"B.Tech Computer Science, VTU",
+26,2014 - 2018 | CGPA 7.1,

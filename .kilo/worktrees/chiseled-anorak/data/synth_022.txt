@@ -1,0 +1,35 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+Honors & Awards
+-----
+Employee of the Year, 2020
+Hackathon winner, 2019
+
+**Education**
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 7.7
+
+**Licenses & Certifications**
+AWS Certified Cloud Practitioner, 2021
+Coursera ML Specialization
+
+Languages
+English, Hindi, Kannada
+
+About Me:
+Results-driven engineer with 5 years of experience building data products.
+
+EMPLOYMENT HISTORY
+ML Engineer | TCS
+Jan 2021 - Jan 2023
+- Designed pipelines using Python, reducing cost by 46%
+- Designed pipelines using Python, reducing cost by 18%
+Software Engineer | TCS
+Mar 2018 - Jan 2020
+- Automated pipelines using Python, reducing cost by 51%
+- Automated pipelines using Python, reducing cost by 37%
+
+## Skills
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership

@@ -1,0 +1,21 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,## Languages,languages
+4,"English, Hindi, Kannada",
+6,**Employment History**,experience
+7,Data Analyst | GOOGLE INDIA,
+8,Jan 2019 - Present,
+9,"- Migrated pipelines using Python, reducing cost by 47%",
+10,"- Led pipelines using Python, reducing cost by 14%",
+11,- Led projects across 3 teams,
+12,QA Lead | TCS,
+13,Jan 2022 - Present,
+14,"- Migrated pipelines using Python, reducing cost by 55%",
+15,"- Migrated pipelines using Python, reducing cost by 32%",
+16,- Won the Awards of Excellence 2021,
+18,## Honors & Awards,awards
+19,"Employee of the Year, 2020",
+20,"Hackathon winner, 2019",
+22,## Summary,summary_objective
+23,Results-driven engineer with 5 years of experience building data products.,

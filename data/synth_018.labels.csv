@@ -1,0 +1,16 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,Languages:,languages
+4,"English, Hindi, Kannada",
+6,Tech Stack,skills
+7,"Python, SQL, Docker, Git, Airflow",
+8,"Communication, Leadership",
+10,## Profile,summary_objective
+11,Results-driven engineer with 5 years of experience building data products.,
+13,Licenses & Certifications,certifications
+14,"AWS Certified Cloud Practitioner, 2021",
+15,Coursera ML Specialization,
+17,Honors & Awards,awards
+18,"Employee of the Year, 2020",
+19,"Hackathon winner, 2019",

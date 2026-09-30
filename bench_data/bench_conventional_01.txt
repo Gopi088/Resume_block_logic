@@ -1,0 +1,23 @@
+Aarav Sharma
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+Summary
+Results-driven engineer with 5 years of experience building data products.
+
+PROFESSIONAL EXPERIENCE
+Data Analyst | Infosys Ltd
+04/2022 - Present
+- Built pipelines using Python, cut cost by 52%
+- Led standups and shipped 9 releases
+QA Lead | Infosys Ltd
+Jan 2019 - Present
+- Built pipelines using Python, cut cost by 42%
+- Led standups and shipped 2 releases
+
+EDUCATION
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 8.4
+
+TECHNICAL SKILLS
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership

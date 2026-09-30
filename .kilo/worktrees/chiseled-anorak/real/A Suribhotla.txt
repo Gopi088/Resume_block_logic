@@ -1,0 +1,193 @@
+ A Suribhotla
+
+Senior Data Expert – Data Analyst & Data Modeler
+
+Location: Hyderabad, India
+Email: abhisheksuribhotla@gmail.com
+Phone: +91 8790553327
+
+PROFILE
+
+Senior Data Expert with 8+ years of experience in Data Analysis, Data Modeling, and
+large-scale data transformation within financial and enterprise data environments.
+Strong expertise in Conceptual, Logical, and Physical Data Modeling, SQL-based
+data analysis, reconciliation logic, and end-to-end data flows.
+
+Proven ability to elicit and translate complex business requirements into governed
+data models, metadata artifacts, and scalable analytics solutions. Extensive
+experience working in Agile delivery teams, acting as a bridge between business
+stakeholders and IT, and ensuring clarity, traceability, and alignment across the SDLC.
+Hands-on experience with GCP BigQuery, cloud data platforms, and modern data
+governance practices.
+
+CORE SKILLS
+
+Data Analysis & Modeling
+
+•  Conceptual, Logical & Physical Data Modeling
+
+•  Data Mapping & Source-to-Target Mapping
+
+•  Reconciliation Logic & Financial Data Flows
+
+•  Metadata Management & Data Lineage
+
+•  Data Quality, Validation & Impact Analysis
+
+Technical Skills
+
+•  SQL (Advanced)
+
+•  GCP BigQuery
+
+•  Python (Data Analysis & Validation)
+
+•  Cloud Data Warehousing
+
+•  ETL / ELT Design
+
+Tools & Platforms
+
+•  Erwin (Data Modeling – working knowledge)
+
+•  Visual Paradigm (conceptual familiarity)
+
+•  GCP BigQuery
+
+•  MS Excel, PowerPoint, Word
+
+•  Tableau (Reporting & Validation)
+
+•
+
+Jira, Confluence
+
+Delivery & Methodologies
+
+•  Agile / Scrum
+
+•  SDLC
+
+•  Stakeholder Management
+
+•  Requirements Elicitation & Documentation
+
+PROFESSIONAL EXPERIENCE
+
+Senior Software Engineer / Senior Data Analyst
+
+Virtusa Consulting Services – Hyderabad
+Client: HSBC (Financial Services)
+Jan 2022 – Present
+
+Project: Finance on the Cloud (FOTC) – Global finance data transformation initiative.
+
+Key Responsibilities:
+
+•  Supported large-scale financial data transformation programs across enterprise
+
+finance systems.
+
+•  Worked within Agile, cross-functional teams to design and deliver governed,
+
+high-quality data solutions.
+
+•  Led business, functional, and non-functional requirement elicitation with
+
+finance stakeholders.
+
+•  Translated business requirements into conceptual, logical, and physical data
+
+models aligned with governance standards.
+
+•  Designed reconciliation-ready data structures to support financial reporting and
+
+controls.
+
+•  Performed metadata analysis, including entity definitions, attribute naming, data
+
+types, lengths, and lineage.
+
+•  Produced and owned data modeling artifacts, mapping documents, and
+
+analysis deliverables for development teams.
+
+•  Acted as a bridge between Business, Finance, and IT, ensuring requirement
+
+clarity throughout the SDLC.
+
+•  Supported end-to-end data journey mapping, from source systems through
+
+transformation to consumption layers.
+
+•  Used SQL and BigQuery extensively for data analysis, validation, and
+
+reconciliation checks.
+
+•  Ensured traceability and consistency of data and metadata across
+
+environments.
+
+Senior Data Analyst / BI Analyst
+
+Keolis Hyderabad Mass Rapid Transit System Ltd – Hyderabad
+Client: L&T Metro Rail Limited
+Dec 2017 – Jan 2022
+
+Key Responsibilities:
+
+•  Gathered and analyzed business and technical requirements for enterprise
+
+reporting and analytics.
+
+•  Designed logical and physical data models to support operational and
+
+management reporting.
+
+•  Created source-to-target mappings, transformation rules, and business logic
+
+documentation.
+
+•  Performed data gap analysis and impact assessments across multiple source
+
+systems.
+
+•  Built and maintained analytics-ready data marts for reporting and reconciliation.
+
+•  Conducted time-series and trend analysis on transactional datasets.
+
+•  Developed KPI definitions and ensured alignment between business metrics and
+
+underlying data models.
+
+•  Worked closely with stakeholders to ensure data accuracy, consistency, and
+
+usability.
+
+Data Analyst
+
+Concentrix – Visakhapatnam
+Client: Uber International
+Apr 2017 – Nov 2017
+
+Key Responsibilities:
+
+•  Analyzed high-volume transactional datasets including trips, demand, and fare
+
+data.
+
+•  Created analytical data models to support business reporting and forecasting.
+
+•  Used SQL for data analysis, validation, and reconciliation.
+
+•  Developed KPI frameworks and reporting structures aligned with business
+
+objectives.
+
+•  Translated functional requirements into scalable analytical datasets.
+
+EDUCATION
+
+Bachelor of Technology (Electronics & Communication Engineering)
+Raghu Engineering College , Visakhapatnam
+Sep 2012 – May 2016

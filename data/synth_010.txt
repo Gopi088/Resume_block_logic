@@ -1,0 +1,42 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+Licenses & Certifications
+AWS Certified Cloud Practitioner, 2021
+Coursera ML Specialization
+
+**Languages**
+English, Hindi, Kannada
+
+WORK EXPERIENCE:
+Data Analyst | Acme Corp
+Nov 2021 - Jan 2023
+- Designed pipelines using Python, reducing cost by 15%
+- Designed pipelines using Python, reducing cost by 13%
+Backend Developer | GOOGLE INDIA
+Jun 2017 - Present
+- Built pipelines using Python, reducing cost by 26%
+- Built pipelines using Python, reducing cost by 48%
+ML Engineer | PROJECTS UNLIMITED
+Jan 2016 - Jan 2018
+- Built pipelines using Python, reducing cost by 31%
+- Migrated pipelines using Python, reducing cost by 36%
+
+Objective
+-----
+Results-driven engineer with 5 years of experience building data products.
+
+EDUCATION
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 8.6
+
+## Achievements
+Employee of the Year, 2020
+Hackathon winner, 2019
+
+## Skills
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership
+
+Selected Work
+Project 0: resume parser (Python)

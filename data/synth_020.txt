@@ -1,0 +1,34 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+SUMMARY
+Results-driven engineer with 5 years of experience building data products.
+
+**Honors & Awards**
+Employee of the Year, 2020
+Hackathon winner, 2019
+
+Selected Work
+Project 0: resume parser (Python)
+Project 1: resume parser (Python)
+
+Employment History
+-----
+Backend Developer | PROJECTS UNLIMITED
+Jun 2020 - Present
+- Designed pipelines using Python, reducing cost by 16%
+- Built pipelines using Python, reducing cost by 52%
+- Led projects across 3 teams
+ML Engineer | STARTUP LABS
+Nov 2018 - Jan 2020
+- Led pipelines using Python, reducing cost by 59%
+- Designed pipelines using Python, reducing cost by 60%
+
+EDUCATION
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 8.2
+
+What I Know
+-----
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership

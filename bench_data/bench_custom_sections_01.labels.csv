@@ -1,0 +1,21 @@
+line_id,text,gold_section,is_header
+1,Maria Santos,contact,0
+2,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,contact,0
+3,,,0
+4,EXPERIENCE,experience,1
+5,Data Analyst | TCS,experience,0
+6,2015-2017,experience,0
+7,"- Built pipelines using Python, cut cost by 22%",experience,0
+8,- Led standups and shipped 9 releases,experience,0
+9,Backend Developer | Startup Labs,experience,0
+10,2015-2017,experience,0
+11,"- Built pipelines using Python, cut cost by 42%",experience,0
+12,- Led standups and shipped 7 releases,experience,0
+13,,,0
+14,Patents:,publications,1
+15,"US1234567: fast resume parser, 2023",publications,0
+16,,,0
+17,Leadership:,other,1
+18,Led a team of 5 engineers,other,0
+19,Mentored 3 interns across 2 teams,other,0
+20,,,0

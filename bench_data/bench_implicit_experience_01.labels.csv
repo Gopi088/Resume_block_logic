@@ -1,0 +1,24 @@
+line_id,text,gold_section,is_header
+1,John Mathew,contact,0
+2,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,contact,0
+3,,,0
+4,Summary:,summary,1
+5,Results-driven engineer with 5 years of experience building data products.,summary,0
+6,,,0
+7,Data Analyst | Globex Inc,experience,0
+8,Jun 2021 - Present,experience,0
+9,"- Built pipelines using Python, cut cost by 49%",experience,0
+10,- Led standups and shipped 3 releases,experience,0
+11,QA Lead | TCS,experience,0
+12,2016 - 2018,experience,0
+13,"- Built pipelines using Python, cut cost by 54%",experience,0
+14,- Led standups and shipped 4 releases,experience,0
+15,,,0
+16,Education:,education,1
+17,"B.Tech Computer Science, VTU",education,0
+18,2014 - 2018 | CGPA 8.4,education,0
+19,,,0
+20,SKILLS,skills,1
+21,"Python, SQL, Docker, Git, Airflow",skills,0
+22,"Communication, Leadership",skills,0
+23,,,0

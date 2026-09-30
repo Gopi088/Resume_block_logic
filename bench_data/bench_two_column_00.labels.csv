@@ -1,0 +1,22 @@
+line_id,text,gold_section,is_header
+1,Jane Doe  |  jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,contact,0
+2,,,0
+3,PROFESSIONAL SUMMARY,summary,1
+4,Results-driven engineer with 5 years of experience building data products.,summary,0
+5,,,0
+6,EXPERIENCE,experience,1
+7,QA Lead | Startup Labs,experience,0
+8,March 2020 to Dec 2021,experience,0
+9,"- Built pipelines using Python, cut cost by 13%  |  - Led standups and shipped 7 releases",experience,0
+10,Data Analyst | Startup Labs,experience,0
+11,"04/2022 - Present  |  - Built pipelines using Python, cut cost by 20%",experience,0
+12,- Led standups and shipped 8 releases,experience,0
+13,,,0
+14,Education,education,1
+15,"B.Tech Computer Science, VTU",education,0
+16,2014 - 2018 | CGPA 8.4,education,0
+17,,,0
+18,Technical Skills:,skills,1
+19,"Python, SQL, Docker, Git, Airflow",skills,0
+20,"Communication, Leadership",skills,0
+21,,,0

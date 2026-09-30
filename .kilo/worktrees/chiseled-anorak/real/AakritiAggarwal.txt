@@ -1,0 +1,177 @@
+AAKRITI AGGARWAL
+SENIOR AI ENGINEER
+
+E-MAIL aggarwalaakriti2k@gmail.com
+MOBILE  +91-6370452824
+GITHUB
+LINKEDIN
+MEDIUM
+
+AI/ML professional with nearly 4 years of experience in designing, developing, and deploying advanced artificial
+intelligence and machine learning solutions. Seeking a challenging role in a forward-thinking organization to leverage
+data-driven insights, drive innovation, and deliver scalable AI solutions that create measurable business impact.
+
+ PROFILE SUMMARY
+
+  Proficient in end-to-end ML lifecycle from data collection and experimentation to API integration and model deployment.
+  An effective communicator with proven skills in working with cross-cultural teams during the project phase; guiding & training
+
+team members and enabling knowledge sharing among the team.
+
+  Adept at collaborating with cross-functional teams to translate business needs into robust AI architectures and measurable outcomes.
+  Demonstrated thought leadership through open-source contributions, technical blogging, and participation in AI research and innovation.
+  Recognized  for  delivering  high  business  impact  through  AI-driven  efficiency  improvements,  automation  solutions,  and
+
+customer-facing innovations.
+
+ SOFT SKILLS
+
+Problem Solving
+
+Collaborator
+
+Communicator
+
+Innovator
+
+Planner
+
+Thinker
+
+ TECHNICAL SKILLS
+
+  AI & Generative AI: GenAI (GPT, Claude, Llama), Fine-tuning, SLM Fine-tuning,
+
+Prompt Engineering, RAG Systems, Agentic Frameworks, Transformers
+
+  AI Security & Compliance: Policy Decision Points (PDPs), Prompt Injection &
+Jailbreak  Protection,  Data  Privacy  &  PII  Masking  (DLP  Rules),  OAuth2/RBAC
+Access Control, IAM
+
+  Programming & Languages: Python, C++, High Level System Design
+  AI/ML Libraries & Tools: PyTorch, Scikit-Learn, Pandas, NumPy, Matplotlib,
+
+Hugging Face, LangChain
+
+  MLOps & Deployment: MLflow, Docker, GitHub Actions, CI/CD, Model Lifecycle
+
+Management, Distributed Inference
+Cloud: AWS (Lambda, Event bridge, Bedrock, CloudTrail)
+
+
+  Databases:  Vector Databases, Elasticsearch, Milvus, DynamoDB, S3
+  Web & API Frameworks: FastAPI, Flask, RESTful APIs
+
+     AWARDS
+  Microsoft MVP (AI) 2025–26: Recognized for outstanding contributions to AI and the developer community.
+
+Certified Technical AI Speaker 2025: Delivered 30+ presentations at top industry conferences and forums.
+
+LinkedIn Top Data Science Voice 2025: Acknowledged for thought leadership in AI and data science.
+
+IBM Watson Q3 Growth Award 2024: Honoured for driving cultural initiatives for German clients and business impact.
+  Published Author 2024: 80+ technical blogs on GenAI, LLMs, RAG, and enterprise AI on Medium.
+  AWS Data Exchange Hackathon 2022: Secured 4th place for innovative solutions.
+  Hackatra Hackathon 2022: Awarded 1st prize for development and execution excellence.
+
+
+IEEE & ICSC Conference Publication 2020: Research paper on DeepFake Detection methodology.
+
+ WORK EXPERIENCE
+
+Jan 2024-Present: IBM Watsonx, Bengaluru as Senior AI Engineer - Band 7B
+Key Result Areas:
+  Architected and deployed scalable Generative AI solutions across multimodal, RAG, and agentic pipelines using WatsonX and open-source
+
+LLMs, drove €6M in client revenue.
+
+  Built an enterprise-scale code-RAG system processing 40+ GB of data, enabling intelligent code-level QA, enhancing developer productivity,
+
+and reducing reliance on senior engineers.
+
+  Re-engineered document enrichment pipelines integrated with Watson Discovery, cutting latency from 3000s to 290s (90% reduction)
+
+
+
+through async parallelization, intelligent caching, and optimized I/O operations.
+Implemented a Policy Decision Point (PDP) within the AI proxy layer to enforce governance and security, enabling policy-based request
+validation, prompt-injection defense, and enterprise-grade AI compliance.
+
+  Developed advanced multi-agent systems for procurement negotiation, supplier management, and complex enterprise workflows using
+
+watsonx Orchestrate, ODM and Coupa.
+
+  Optimized  RAG  systems  with  token-aware  truncation  and  dynamic  context  window  management  to  efficiently  handle  large-scale
+
+enterprise documents.
+Created APIs, microservices, and integration layers to embed AI capabilities into enterprise applications and platforms.
+
+
+
+Jul 2022-Jan 2024: SAP Labs, Bengaluru as Software Developer Associate in AI
+Feb 2022-Jul 2022: SAP Labs as Intern
+
+Key Result Areas:
+
+
+
+
+Spearheaded the design and deployment of an LLM-driven testing automation platform for log analysis, bug tracking, and reporting,
+slashing manual effort by 80%, recognized by MD of SAP Labs India - Sindhu Gangadharan.
+Engineered a proof-of-concept for migrating on-premise systems to a multi-cloud SAP architecture, leveraging LLMs to accelerate
+development timelines by 60%.
+
+Scaled infrastructure for 25,000+ enterprise customers through AI-enabled cloud migration and performance optimization initiatives.
+  Demonstrated the solution to SAP clients, highlighting measurable improvements in cloud adoption and enterprise AI integration.
+
+      Projects & Research
+Open Source Contributions
+Multi-Agent Generator – Python Library | Creator & Maintainer
+  Developed a Python library that translates plain English instructions into fully configured multi-agent AI teams.
+
+Implemented LLM-agnostic support using LiteLLM for compatibility with GPT, Claude, Llama, and other models.
+  Enabled 6+ agentic frameworks for flexible multi-agent architecture design.
+
+  Achieved 4,000+ downloads within six months and earned 100+ GitHub stars, reflecting strong community adoption.
+  Published on PyPI for easy installation and distribution.
+
+Integrated automatic code generation and workflow visualization for streamlined development.
+
+Research Publications
+2020 – IsSwap Deep Fake Detection | IEEE | ICSC | Lead Author and Presenter
+  Developed a robust video analysis pipeline to detect deepfakes across 400+ samples.
+  Applied facial expression analysis using XceptionNet and ResNet50 architectures by using hyperparameter tuning.
+  Presented research at IEEE and ICSC conferences, showcasing novel methodologies for multimedia deepfake identification.
+
+Enterprise AI Systems
+2025 – Educational RAG Platform for CBSE Schools | AI Architecture Design & Implementation
+  Designed and deployed RAG system for an educational NGO, serving 1,000+ students across 4 schools.
+  Architected end-to-end RAG system optimized for CBSE curriculum content.
+  Developed intelligent retrieval mechanisms to provide students and teachers instant access to contextual learning materials.
+
+ EDUCATION
+
+  Bachelor of Technology (Computer Science) from Jaypee Institute of Information Technology, Noida (2018-2022)
+
+      Technical Content & Blogging
+
+Published 80+ articles on Generative AI, LLMs, RAG systems, multi-agent frameworks, and enterprise AI solutions.
+
+Covered GenAI fundamentals, LLM fine-tuning, prompt engineering, system design, AI governance, and cloud deployment.
+  Targeted content for AI practitioners, data scientists, and enterprise architects seeking practical AI implementation guidance.
+
+Personal Projects
+
+Autonomous AI Security Auditor
+Built  an  autonomous  AI  security  auditor  for  AWS  Bedrock,  leveraging  Bedrock  Agents,  Lambda  orchestration,  EventBridge-driven
+scheduled  scans,  and  CloudTrail  analysis  to  detect  policy  misconfigurations,  insecure  prompts,  data-leak  risks,  and  adversarial
+vulnerabilities across GenAI pipelines. Implemented S3-based audit logging, IAM configuration analysis, and DynamoDB-backed model–
+policy mapping to ensure enterprise-grade compliance, traceability, and safety.
+
+IAM Framework for Agentic Systems (In Progress)
+Currently developing an IAM framework for LLM-based agent systems on AWS, adding agent identities, RBAC-style tool permissions,
+policy enforcement (PDP/PEP), and Bedrock Agent integration to enable secure, permission-scoped multi-agent orchestration
+
+AI Evaluation System – IIT Bombay Mentorship
+Mentoring an IIT Bombay student to build a hierarchical AI-agent evaluation system where agents self-assess and escalate low-quality
+outputs. Designed a modular evaluation pipeline using CrewAI and FastAPI, improved reliability over traditional assessment methods.

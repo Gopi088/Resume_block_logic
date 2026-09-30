@@ -1,0 +1,33 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,**Selected Work**,projects
+4,Project 0: resume parser (Python),
+6,**Courses**,certifications
+7,"AWS Certified Cloud Practitioner, 2021",
+8,Coursera ML Specialization,
+10,## Profile,summary_objective
+11,Results-driven engineer with 5 years of experience building data products.,
+13,Employment History,experience
+14,-----,
+15,Data Analyst | TCS,
+16,Nov 2017 - Jan 2019,
+17,"- Led pipelines using Python, reducing cost by 18%",
+18,"- Built pipelines using Python, reducing cost by 25%",
+19,Software Engineer | GOOGLE INDIA,
+20,Mar 2022 - Jan 2024,
+21,"- Automated pipelines using Python, reducing cost by 26%",
+22,"- Built pipelines using Python, reducing cost by 13%",
+23,QA Lead | SKILLS ACADEMY,
+24,Nov 2020 - Jan 2022,
+25,"- Migrated pipelines using Python, reducing cost by 43%",
+26,"- Automated pipelines using Python, reducing cost by 25%",
+27,- Experience with Kubernetes and AWS,
+29,Awards,awards
+30,"Employee of the Year, 2020",
+31,"Hackathon winner, 2019",
+33,Languages:,languages
+34,"English, Hindi, Kannada",
+36,## TECHNICAL SKILLS,skills
+37,"Python, SQL, Docker, Git, Airflow",
+38,"Communication, Leadership",

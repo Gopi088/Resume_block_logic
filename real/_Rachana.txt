@@ -1,0 +1,196 @@
+RACHANA
+
+Senior Business Analyst | Scrum Master | US
+Healthcare
+
+Bangalore, Karnataka, India  |  9686056131  |
+rachanasuvarna91@gmail.com
+
+PROFESSIONAL SUMMARY
+
+Senior Business Analyst and Scrum Master with 9.5 years of experience delivering solutions across US Healthcare, Life Sciences and
+Pharmaceutical environments. Hands-on experience working with both payer and provider business processes, translating business
+needs into clear functional requirements and driving delivery with cross-functional Agile teams. Strong in requirement elicitation,
+BRD/FRD/URS, user stories, acceptance criteria, process modelling, UAT, SQL validation and stakeholder management. Healthcare
+experience includes EHR workflows, HL7, FHIR, HIPAA and X12 EDI transactions including 834, 835 and 837. Experienced in regulated
+environments involving GxP, 21 CFR Part 11 and IQ/OQ/PQ validation activities. Comfortable owning backlogs, facilitating Scrum
+ceremonies, managing risks and supporting releases from requirement definition through production.
+
+CORE COMPETENCIES
+
+• Business Analysis: Requirement Elicitation, Stakeholder Workshops, BRD, FRD, URS, GAP Analysis, Use Cases, User Stories,
+
+Acceptance Criteria, RTM, Process Flows, Wireframes, UAT.
+
+• Agile / Scrum: Scrum Master, Sprint Planning, Backlog Grooming, Backlog Prioritization, Refinement, Sprint Reviews, Retrospectives,
+
+Story Point Estimation, Release Planning and Delivery Tracking.
+
+• US Healthcare – Payer & Provider: Payer and provider workflows, enrollment, eligibility, benefits, claims, reimbursement, provider
+
+information, EHR workflows and healthcare data exchange.
+
+• EDI & Interoperability: X12 EDI, 834 Enrollment, 835 Remittance, 837 Claims, HL7, FHIR, healthcare interfaces, data mapping and
+
+validation.
+
+• Regulatory / Validation: HIPAA, GxP, 21 CFR Part 11, IQ, OQ, PQ, validation documentation, requirements traceability and
+
+compliance-focused delivery.
+
+• Tools: JIRA, Azure DevOps, Trello, SQL, Bizagi, BPMN, MS Visio, Balsamiq, Lucidchart, UML, SDLC documentation.
+
+PROFESSIONAL EXPERIENCE
+
+Senior Business Analyst / Scrum Master | Tieto HealthCare — Bangalore, India | July 2024 – Present
+
+• Work with US healthcare and life sciences stakeholders across payer and provider environments to understand business needs,
+
+define scope and own requirement delivery.
+
+• Lead requirement workshops, interviews, process discussions and interface analysis; document BRDs, FRDs, URS, use cases, user
+
+stories and acceptance criteria.
+
+• Analyze payer and provider workflows covering enrollment, eligibility, benefits, claims, provider information and reimbursement-
+
+related processes.
+
+• Work hands-on with healthcare data exchange requirements involving X12 EDI transactions such as 834 Enrollment, 835 Remittance
+
+and 837 Claims, including business rules, data requirements, validation scenarios and exception handling.
+
+• Work with EHR and interoperability requirements involving HL7 and FHIR, coordinating with technical teams on interface
+
+requirements, data validation and UAT.
+
+• Facilitate Sprint Planning, Backlog Grooming, Sprint Reviews, Retrospectives and requirement refinement; help teams stay focused
+
+on sprint commitments and delivery priorities.
+
+• Manage product and sprint backlogs in JIRA and Azure DevOps, refine PBIs, prioritize requirements and maintain acceptance criteria
+
+with Product Owners and business stakeholders.
+
+• Work closely with developers, QA, UX, architects and business teams to clarify requirements, resolve blockers, assess feasibility and
+
+support sprint execution.
+
+• Use SQL for backend/data validation, requirement verification, defect analysis and UAT support; work with QA to review test
+
+scenarios and resolve requirement-related issues.
+
+• Perform As-Is/To-Be analysis, GAP analysis, workflow modelling and feasibility assessment using BPMN, Bizagi, Visio and UML.
+• Support risk analysis, RFC/CAB activities, change requests and release coordination while maintaining requirement traceability.
+• Work within regulated healthcare and life sciences environments involving HIPAA and GxP requirements, including 21 CFR Part 11
+
+and IQ/OQ/PQ validation activities and supporting documentation.
+
+Senior Business Analyst / Scrum Master | Ignite IPA Pvt Ltd — Pune, India | Nov 2021 – July 2024
+
+• Worked with healthcare and life sciences clients across payer and provider-related processes, gathering requirements and translating
+
+business needs into functional solutions.
+
+• Led stakeholder discussions and prepared user stories, use cases, acceptance criteria, process models, mockups and functional
+
+documentation for product features.
+
+• Partnered with engineering teams during backlog grooming, sprint planning and requirement refinement and supported releases,
+
+bug fixes and change requests.
+
+• Applied Planning Poker/story-point estimation and worked with teams to identify functional and non-functional requirements.
+• Facilitated sprint reviews and retrospectives and worked with customers, Product Owners, UX, architects, developers and testers to
+
+remove roadblocks and improve delivery quality.
+
+• Supported UAT, defect analysis and change-management activities and ensured requirements were understood and validated
+
+through development and testing.
+
+Senior Business Analyst / Business Analyst | Tieto Evry Pvt Ltd — Bangalore, India | Nov 2017 – Oct 2021
+
+• Handled requirement gathering and analysis across application enhancements, working with customers and business users to
+
+understand needs and clarify scope.
+
+• Supported healthcare business processes across payer and provider stakeholders and translated business requirements into clear
+
+functional documentation.
+
+• Prepared and reviewed URDs and BRDs, created RFCs and coordinated change requests through implementation and release.
+• Led backlog grooming, sprint planning and requirement refinement sessions and supported delivery of MVPs and PBIs under
+
+aggressive timelines.
+
+• Acted as the bridge between customers, Product Owners, UX designers, architects, developers and testers to resolve roadblocks and
+
+maintain requirement clarity.
+
+• Created use cases, process models, mockups and workflow diagrams using Bizagi, Balsamiq and MS Visio and supported product
+
+demonstrations.
+
+• Worked with QA teams to review requirements and acceptance criteria, support defect clarification and ensure expected
+
+functionality was delivered.
+
+• End-to-end requirement lifecycle ownership from discovery and stakeholder workshops through development, testing, UAT and
+
+release.
+
+• Backlog ownership and prioritization based on business value, dependencies, delivery timelines and stakeholder priorities.
+• Facilitation of Agile ceremonies and coordination between Product Owners, business stakeholders, developers, QA, UX and
+
+architecture teams.
+
+• Preparation of functional and non-functional requirements, process flows, data requirements, acceptance criteria and supporting
+
+documentation.
+
+• Root-cause analysis and issue clarification using SQL/data validation and collaboration with technical teams.
+• Change management, RFC/CAB coordination, risk tracking, release support and retrospective-driven process improvements.
+
+US HEALTHCARE DOMAIN EXPERTISE
+
+• Payer & Provider Operations: Hands-on exposure to payer and provider workflows, healthcare operations, member/provider
+
+information, eligibility, enrollment, benefits, claims and reimbursement processes.
+
+• Claims & EDI: Hands-on experience with X12 EDI requirements covering 834 Enrollment, 835 Remittance and 837 Claims, including
+
+business rules, data elements, validation and exception scenarios.
+
+• Healthcare Interoperability: HL7 and FHIR-based healthcare interfaces, EHR workflows, data exchange requirements and
+
+backend/data validation.
+
+• Compliance & Quality: HIPAA, GxP and regulated healthcare/life sciences delivery; 21 CFR Part 11 awareness and hands-on
+
+participation in IQ/OQ/PQ validation documentation and activities.
+
+• Testing & UAT: Requirement validation, test-case review, defect triage, UAT coordination, traceability and production issue support.
+
+TOOLS & TECHNOLOGIES
+
+• Agile / Delivery: JIRA, Azure DevOps, Trello, Scrum, Agile, SDLC, backlog and release management.
+• Business Analysis: BRD, FRD, URS, GAP Analysis, Use Cases, User Stories, Acceptance Criteria, UML, BPMN, process modelling,
+
+wireframes and workflow documentation.
+
+• Healthcare: EHR, HL7, FHIR, HIPAA, X12 EDI, 834, 835, 837, GxP, 21 CFR Part 11, IQ/OQ/PQ.
+• Technical: SQL queries, data analysis and backend validation; Bizagi, Balsamiq, MS Visio and Lucidchart.
+
+EDUCATION
+
+Master of Computer Application (MCA) — NMAMIT / Nitte University | 2016
+
+AWARDS & RECOGNITION
+
+• Outstanding Performance Award — Recognized for driving top 5% revenue performance in Q3 2023.
+• Star Performer — Q4 2020.
+
+LANGUAGES
+
+English — Native / Full Professional

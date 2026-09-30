@@ -1,0 +1,15 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,Things I've Built,projects
+4,Project 0: resume parser (Python),
+5,Project 1: resume parser (Python),
+6,Project 2: resume parser (Python),
+8,Languages:,languages
+9,"English, Hindi, Kannada",
+11,Where I Studied,education
+12,-----,
+13,"B.Tech Computer Science, VTU",
+14,2014 - 2018 | CGPA 8.0,
+16,Professional Summary:,summary_objective
+17,Results-driven engineer with 5 years of experience building data products.,

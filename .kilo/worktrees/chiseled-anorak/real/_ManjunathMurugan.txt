@@ -1,0 +1,135 @@
+Manjunath MURUGAN
+Senior Business Analyst | Financial Markets
+
+Noisy-le-Grand, France | 9176398910 | manjunathmurugan50@gmail.com LinkedIn:
+www.linkedin.com/in/profilemanjunathmurugan
+
+Fully Authorized to work in France | Availability – Immediate
+
+SUMMARY
+
+Senior Business Analyst with 4+ years in requirements and Agile delivery, built on 8+ years
+in financial operations. Skilled in eliciting and documenting business and data rules (pricing,
+reference  data,  corporate  actions,  regulatory  reporting  EMIR),  mapping
+field-level
+specifications  and  data  lineage,  defining  acceptance  criteria,  and  maintaining  traceability
+through UAT to release—reducing manual effort and operational risk.
+
+SKILLS
+
+•  Business  Analysis:  Requirements  Gathering,  Business  Requirements  Document
+
+(BRD), User Stories, Business Logic Analysis, Gap and Root Cause Analysis.
+
+•  Methodology: Agile Methodology (Scrum) & Backlog Prioritization.
+•  Domain Expertise: Trade Lifecycle, Reference Data Management, Pricing, Corporate
+actions, regulatory reporting (EMIR), Data Reconciliation and working knowledge of
+clearing, custody and settlement processes.
+
+•  Technical & Data Tools: SQL (Data validation & extraction), Excel (advanced), JIRA,
+
+SharePoint, Confluence, HP ALM, Bloomberg and Refinitiv (Reuters).
+
+•  Standards: ISO 20022 and SSI SWIFT data (MT541, MT543).
+
+PROFESSIONAL EXPERIENCE
+
+Senior Business Analyst | PwC | Chennai | May 2022 - January 2024
+
+•  Led  the  end-to-end  business  analysis  for  the  EMIR  Refit  implementation  for  the
+Exchange-Traded  Derivatives  (ETD)  asset  class,  performing  gap  analysis  against
+newly released DTCC technical specifications.
+
+•  Translated  complex
+
+functional
+specifications,  structured user  stories,  and measurable  Acceptance  Criteria  to  map
+data lineage for engineering teams.
+
+regulatory  updates
+
+into  detailed
+
+field-level
+
+•  Conducted  technical  walkthroughs  of  the  new  reporting  logic  for  Compliance  and
+Business  teams  to  secure  formal  signoffs,  and guided  developers  throughout  Agile
+sprints to ensure compliance with DTCC specs.
+
+•  Partnered  with  the  QA  team  to  review  and  refine  field-level  test  cases  for  robust
+validation,  while  maintaining  dedicated  Confluence  frameworks  to  track  project
+progress and document business rules.
+
+Senior Business Analyst | BNP Paribas ISPL | Chennai | July 2019 - May 2022
+
+•  Drove  BA  scope  for  the  pricing  platform  transformation  with  the  Product  Owner,
+
+delivering high-integrity data feeds to downstream Fund accounting systems.
+
+•  Designed validation rules and control mechanisms to strengthen data governance and
+
+reduce operational risk across pricing workflows.
+
+•  Participated in UAT/NRT: prepared datasets, executed test cases against ACs, and
+
+documented defects with full traceability to user stories.
+
+•  Validated system enhancements by executing SQL queries for data extraction and
+
+validation to ensure functional integrity of financial data.
+
+•  Automated pricing feeds from market data vendors, reducing manual efforts by 25%.
+
+Senior Reference Data Analyst | Barclays Shared Services | Chennai | October
+2015 - June 2019
+
+•  Owned
+
+the
+
+functional
+
+integrity  of  reference  data  and  SSI  setups,  driving
+
+straight-through processing (STP) and directly reducing trade fails.
+
+•  Reconciled  accrued  interest  for  fixed-income  instruments  in  the  static  data  system
+against downstream accounting/settlement systems; corrected day-count and coupon
+setup to prevent settlement/NAV impacts.
+
+•  Resolved data mismatches and managed static data changes for corporate actions in
+
+collaboration with external vendors.
+
+•  Served  as  the  primary  functional  liaison  between  the  Chennai  delivery  centre  and
+
+global business hubs and trained junior analysts.
+
+Senior Associate Intraday Pricing | BNP Paribas GSO | Chennai | September 2011 -
+October 2015
+
+•  Ensured  intraday  prices  for  securities  are  fed  into  downstream  Fund  accounting
+platforms  to  drive  daily  NAV  accounting  and  prevent  discrepancies  in  financial
+reporting.
+
+•  Managed  the  pricing  of  instruments  impacted  by  different  corporate  action  events,
+
+ensuring accurate valuation for downstream fund accounting platforms.
+
+•  Automated  pricing  workflows  and  functioned  as  a  Subject  Matter  Expert  (SME)  for
+
+team transitions between Hub locations.
+
+•  Reduced  manual  errors  by  30%  and  improved  turnaround  time  for  pricing  updates
+
+through enhanced operational efficiency.
+
+EDUCATION
+
+•  MBA (Finance) - SRM University, India – 2011
+•  Bachelor of commerce (B.com) - Madras University, India - 2009
+
+LANGUAGES
+
+•  English - Full Professional Proficiency (C1)
+•  Français - Débutant (cours intensif en cours)

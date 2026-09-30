@@ -1,0 +1,20 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+Licenses & Certifications:
+AWS Certified Cloud Practitioner, 2021
+Coursera ML Specialization
+
+PROFILE
+Results-driven engineer with 5 years of experience building data products.
+
+**TECHNICAL SKILLS**
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership
+
+Languages
+English, Hindi, Kannada
+
+Academic Background
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 7.0

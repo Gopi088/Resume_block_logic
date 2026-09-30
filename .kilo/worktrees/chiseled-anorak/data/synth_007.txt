@@ -1,0 +1,41 @@
+Jane Doe
+jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe
+
+## Languages
+English, Hindi, Kannada
+
+THINGS I'VE BUILT
+Project 0: resume parser (Python)
+
+Profile
+-----
+Results-driven engineer with 5 years of experience building data products.
+
+EMPLOYMENT HISTORY
+QA Lead | Acme Corp
+Mar 2017 - Present
+- Built pipelines using Python, reducing cost by 56%
+- Built pipelines using Python, reducing cost by 43%
+Backend Developer | PROJECTS UNLIMITED
+Mar 2017 - Present
+- Built pipelines using Python, reducing cost by 26%
+- Led pipelines using Python, reducing cost by 28%
+- Skills: Python, SQL, Docker
+ML Engineer | Acme Corp
+Sep 2020 - Present
+- Built pipelines using Python, reducing cost by 57%
+- Designed pipelines using Python, reducing cost by 39%
+
+Where I Studied:
+B.Tech Computer Science, VTU
+2014 - 2018 | CGPA 8.6
+
+Certifications
+-----
+AWS Certified Cloud Practitioner, 2021
+Coursera ML Specialization
+
+TECHNICAL SKILLS
+-----
+Python, SQL, Docker, Git, Airflow
+Communication, Leadership

@@ -1,0 +1,29 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,## Awards,awards
+4,"Employee of the Year, 2020",
+5,"Hackathon winner, 2019",
+7,## Selected Work,projects
+8,Project 0: resume parser (Python),
+10,PROFILE,summary_objective
+11,Results-driven engineer with 5 years of experience building data products.,
+13,Tech Stack,skills
+14,"Python, SQL, Docker, Git, Airflow",
+15,"Communication, Leadership",
+17,PROFESSIONAL EXPERIENCE,experience
+18,ML Engineer | STARTUP LABS,
+19,Mar 2020 - Present,
+20,"- Built pipelines using Python, reducing cost by 15%",
+21,"- Designed pipelines using Python, reducing cost by 15%",
+22,- Experience with Kubernetes and AWS,
+23,Backend Developer | TCS,
+24,Jun 2018 - Jan 2020,
+25,"- Built pipelines using Python, reducing cost by 13%",
+26,"- Automated pipelines using Python, reducing cost by 22%",
+27,- Education platform serving 10k students,
+28,ML Engineer | TCS,
+29,Sep 2018 - Present,
+30,"- Automated pipelines using Python, reducing cost by 25%",
+31,"- Automated pipelines using Python, reducing cost by 12%",
+32,- Education platform serving 10k students,

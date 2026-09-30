@@ -1,0 +1,171 @@
+Levi Arbole
+Email: arbole60@gmail.com | 9823506339
+Location: Ambernath, Thane
+Professional Summary
+Professional with years of experience as Senior Business Analyst in Banking, Finance,
+Insurance, and E-commerce domains. Proven expertise in requirement gathering, process
+improvement, regulatory compliance, and project management. Adept at bridging business
+and technology, managing end-to-end project lifecycles, and ensuring regulatory
+compliance. Skilled in stakeholder engagement, UAT coordination, API integration, and
+documentation (BRD, FRD, SOPs). Known for delivering data-driven insights and improving
+operational efficiency through structured problem-solving and collaboration.
+Core Competencies
+● Requirements Gathering & Analysis
+● Business Requirement document, Functional Requirement Document & Test cases
+scenario and execution.
+● UAT Testing and coordination.
+● Preparing Impact analysis document.
+● Documenting Deployments note for Live Deployment.
+● Project Planning & Delivery
+● Regulatory Compliance (CKYC, RBI, NSDL, CDSL).
+● Cross-functional Collaboration with Team Management and Interpersonal skills.
+● Hands-on experience in JIRA, Load Runner, Service Now MS office.
+● API Integrations and Implementations.
+● Proficiency with Oracle SQL,, Postman Tools.
+● Process walkthrough and creating SOPs and manuals for knowledge sharing.
+● Stakeholders Management and Collaboration
+● Gap Analysis documentation
+● Drive project lifecycle from requirement inception to post-go-live support
+● Workshops, Demos & End-User Training
+● Production Support & Post-Go-Live Monitoring
+● Support production validations, DR drills, and post-release issue triaging
+
+2
+Professional Experience
+Clover Infotech Pvt Ltd – Senior Business Analyst
+Client – HDFC Bank
+July 2025 – June 2026( 11 months )
+● Leading project delivery for key BFSI clients.
+● Liaise with Risk, Compliance, Audit, and Operations teams to understand ORM
+objectives and pain points.
+● Gather feedback from operational users to continuously refine the ORM framework
+and system feature.
+● Define test scenarios and acceptance criteria based on use cases and compliance
+requirements.
+● Document and analyze risk-related processes such as:
+○ Risk & Control Self Assessments (RCSA)
+○ Key Risk Indicators (KRI)
+○ Loss Event Management
+○ Issue and Action Tracking
+● Managing UAT, coordinating with dev teams, and tracking CRs.
+● Collaborating with clients on production issues and
+● audit gap closures.
+● Work with stakeholders (risk, compliance, procurement, IT, legal) to understand
+TPRM needs
+● Gather business, regulatory, and risk requirements
+● Document:
+○ Vendor onboarding requirements
+○ Risk assessment workflows
+○ Due diligence criteria
+● Translate business needs into functional specifications
+● Define and improve risk assessment frameworks
+● Work with TPRM platforms (e.g., ServiceNow)
+● Support:
+○ System implementation
+○ Configuration of workflows
+○ User acceptance testing (UAT)
+● Ensure tools capture correct risk data and reporting outputs
+Wipro Ltd – Senior Business Analyst
+Client - ICICI
+Dec 2022– June 2025 (2y 6mon)
+● Deployed at ICICI Bank Corporate – led 4 major projects.
+
+3
+● Applications handled: PINS (Portfolio investment scheme) (Banking Trading
+application), Barcode Tracking (HMI & Mobile App), Govt. Bidding Scrolls.
+● Handling production issues and closing it within the given TAT and led annual audit
+gap closures.
+● Interacting with stakeholders to enhance processes and ensure compliance and
+regularisation.
+● Driving Multiple Change request at a time and New requirements management
+● Preparation test cases scenarios and executing in UAT environment and Golive with
+the end product.
+● API testing and Integration with core banking systems.
+● Closure of vulnerabilities in the application highlighted by compliance,information
+security groups by collaborating with development along with closure of RBI audit
+observations and adhere to RBI guidelines.
+● Performed data analysis using SQL/Excel to support decision-making.
+
+4
+Tata Consultancy Services (TCS) – Functional Analyst
+Client - SBI
+June 2021 –Dec 2022 ( 1year 6months)
+● In-house hiring by TCS from Nelito systems.
+● Deployed on CKYC Compliance project for SBI; ensured smooth CKYC number
+generation through CERSAI. Drafted and signed off technical documents; coordinated
+development and testing.
+● Handled real-time production issues, API-level debugging, and DR activities.
+● Interact with compliance, legal, and operations teams to identify bank-specific CKYC
+requirement.
+● Prepare Business Requirement Document (BRD) and Functional Specification
+Documents (FSD)
+● Design test cases for different onboarding scenarios (e.g., new customer, update KYC,
+CKYC fetch)
+Nelito Systems (DTS Group) – Functional Analyst
+Client - SBI
+Feb 2021 – Jun 2021(4 months)
+● Involved in CKYC/Trade Finance modules.
+● business and tech teams; addressed ID and API-level issues.
+QualityKiosk Technologies Pvt. Ltd. – Transitions Executive
+Nov 2017 – Feb 2021( 3y 2 mon)
+● Requirement gathering from stakeholders across life,, general insurance segments.
+● Working with systems to streamline claim approvals, automate documentation, and
+reduce TAT.
+● Cater to audit trails, data governance, and compliance reporting observation.
+● Collaborating with developer teams for seamless customer experience.
+● Managed client transitions across BFSI, telecom, and e-commerce domains.
+● Led documentation efforts and implemented automation via UIPath for Insurance
+client Bajaj Allianz call center and Bajaj health insurance Products
+● Conducted GAP analysis, requirement validation, and SLA tracking. Handled projects
+on payment domains like Domestic and international payments (e.g., NEFT, RTGS,
+UPI, SWIFT,).
+● OTP based transactions (credit, debit, prepaid).
+● Monitoring Payment gateways, merchant onboarding, and wallets journeys
+● Collaborating with developers during development and maintained application
+module
+
+5
+Project Highlights
+● Integration of ORM with ServiceNow GRC Module and automatising the Risk
+management , Audit and Compliance experience in the organisation.
+● Trading Application (PINS) – Spearheaded development for seamless NRI onboarding
+and trading experience.
+● Implementing report automation to Broker and Customers and API integration for
+smooth customer onboarding through various channels
+● CKYC Compliance Project for SBI – Enabled integration with CERSAI for 100%
+customer compliance.
+● Implementation of UIPath for Insurance portal of Bajaj Allianz call center in Citrix
+environment and Bajaj Allianz newly launched insurance Products.
+Domain Experience
+● Banking: ICICI Bank, State bank of India, HDFC bank, RAK, ADCB, Bank Muscat,
+BNP Paribas
+● Insurance: SBI Life, HDFC Life, Bajaj Allianz, ICICI Prulife, Aditya Birla, L & T insurance
+● Trading: : ICICI Securities, BTPN (Indonesia) , Axis securities
+● E-commerce: :UAE RTA,Jet airways
+● Regulatory Bodies: NSDL, CDSL
+Technical Skills
+● Tools: JIRA, Service Now,HP LoadRunner, UIPath, Postman, API, Arcos portal,
+● Databases: MySQL, Oracle SQL
+● Operating Systems: Windows, Linux
+Education Qualification
+Degree College/School University/Board Year of Passing Percentage &
+Pointer
+BE Computer PCE, New Panvel Mumbai University 2017 60.00/ 6.75
+Third year of
+Engineering PCE, New Panvel Mumbai University 2016 60.20 / 6.79
+Second year of
+Engineering PCE, New Panvel Mumbai University 2015 52.82 / 5.75
+Diploma in I.T Dr. NYTP, Bhivpuri Mumbai University 2014 74.44
+Road
+
+6
+
+|      |                     |       |       |       |
+| ---- | ------------------- | ----- | ----- | ----- |
+| SSC  | Kendriya Vidyalaya  |       |       |       |
+|      | Ambernath           | CBSE  | 2011  | 67.7  |
+
+Personal Details
+●  Date of Birth: 22nd June 1995
+●  Languages: English, Hindi,
+●  Nationality: Indian

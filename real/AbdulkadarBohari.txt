@@ -1,0 +1,164 @@
+ABDULKADAR BOHARI
+
+Senior Network Engineer
+
+abdulkadar.bohari53@gmail.com  | 7738428753 | Bangalore, India
+
+PROFESSIONAL SUMMARY
+
+Results-driven Senior Network Engineer with 7+ years of progressive experience designing, securing, and optimizing
+enterprise-grade networks across data centers, banking, and government sectors. Deep expertise in routing protocols
+(BGP, OSPF), advanced switching (VLAN, VXLAN), next-generation firewall management (FortiGate, Palo Alto), and
+cloud security (Netskope, Cloudflare). Demonstrated success maintaining 99.9% uptime for mission-critical WANs,
+leading complex network migrations, and delivering scalable, secure infrastructure aligned with business objectives.
+Currently extending cloud and security expertise with AWS, Terraform, and SASE technologies.
+
+CORE COMPETENCIES
+
+✦ BGP / OSPF / Static Routing
+
+✦ Palo Alto / FortiGate / Panorama  ✦ AWS Cloud Infrastructure
+
+✦ VLAN / VXLAN / STP /
+EtherChannel
+
+✦ IPsec / SSL VPN
+
+✦ Netskope SASE / CASB
+
+✦ Terraform IaC
+
+✦ Cloudflare (CDN / DDoS / Zero
+Trust)
+
+✦ Wireshark / Network
+Troubleshooting
+
+✦ Cisco / Juniper / Huawei Devices  ✦ Vulnerability Assessment
+
+✦ JIRA / Incident Management
+
+PROFESSIONAL EXPERIENCE
+
+Senior Network Engineer
+Blackline Systems
+
+July 2025 – Present
+
+•  Joined as Senior Network Engineer contributing to enterprise network architecture and security strategy.
+•  Leveraging advanced expertise in Palo Alto firewalls, Netskope SASE, Cloudflare, and AWS cloud networking.
+•
+Implementing Infrastructure as Code (IaC) using Terraform for network automation and deployment pipelines.
+•  Designing and enforcing Zero Trust network access policies across cloud and on-premise environments.
+•  Collaborating with cross-functional teams to align network security posture with business and compliance
+
+requirements.
+
+Senior Network Engineer
+ESDS Software Solutions
+
+October 2021 – June 2025
+
+•  Managed network operations and security for enterprise WANs serving 100+ clients, maintaining 99.9% uptime
+
+across a high-availability data center environment.
+
+•  Designed and deployed VLAN/VXLAN configurations enabling seamless server connectivity across 50+ nodes,
+
+reducing provisioning time by 30%.
+
+•  Administered FortiGate and Palo Alto next-generation firewalls; authored and enforced security policies including
+
+web filtering, IP filtering, and application control.
+
+•  Configured and managed IPsec VPN tunnels and SSL VPN gateways for secure remote and site-to-site
+
+connectivity for government and private sector clients.
+
+•  Led network assessments and audits to identify vulnerabilities, resulting in measurable improvements to security
+
+posture and compliance adherence.
+
+•  Troubleshot complex Layer 2/3 issues including link failures, packet drops, and link flapping using Wireshark and
+
+performance diagnostic tools.
+
+•  Provided hands-on support for Cisco, Juniper, and Huawei network devices, ensuring optimal performance for
+
+data services.
+
+•  Coordinated with clients and internal teams to resolve critical incidents within SLA, maintaining high client
+
+satisfaction.
+
+Network Support Engineer
+Nexapp Technology Pvt. Ltd.
+
+May 2019 – October 2021
+
+•  Served as primary network support contact, diagnosing and resolving LAN/WAN issues and minimizing business-
+
+impacting downtime.
+
+•  Configured and maintained SSL and IPsec VPN solutions for secure enterprise connectivity across multiple client
+
+sites.
+
+•  Managed Cisco routers and switches, implementing upgrades and proactive maintenance to enhance network
+
+•
+
+reliability.
+Implemented structured network change management processes, reducing unplanned outages by improving
+documentation and runbooks.
+
+Network Engineer Intern
+zCon Solutions
+
+January 2019 – March 2019
+
+•  Monitored network infrastructure health and performance, proactively identifying and escalating anomalies.
+•  Created and managed JIRA tickets for incident tracking; supported real-time network monitoring and basic
+
+remediation tasks.
+
+TECHNICAL SKILLS
+
+•  Routing Protocols: BGP, OSPF, Static Routing
+•  Switching & Overlay: VLAN, VXLAN, STP/RSTP, EtherChannel
+•  Firewalls & Security: Palo Alto NGFW, FortiGate, Panorama, Web/IP Filtering, IPsec VPN, SSL VPN
+•  SASE / Cloud Security: Netskope (CASB, SWG, ZTNA), Cloudflare (CDN, DDoS Mitigation, Zero Trust Access)
+•  Cloud Platforms: AWS (VPC, Transit Gateway, Security Groups, Direct Connect), eNlight Cloud
+•
+•  Network Devices: Cisco (IOS/IOS-XE), Juniper (Junos), Huawei
+•  Troubleshooting Tools: Wireshark, Layer 2/3 diagnostics, Performance Optimization, Log Analysis
+•  Security Practices: Vulnerability Assessment, Firewall Policy Management, Network Audits
+•  Monitoring & ITSM: Industry-standard NMS tools, JIRA, Incident & Change Management
+
+Infrastructure as Code: Terraform (network provisioning, firewall rule automation, cloud deployments)
+
+CERTIFICATIONS
+
+•  CCNA – Cisco Certified Network Associate
+•  CCNP – Cisco Certified Network Professional
+•  PCNSE – Palo Alto Networks Certified Network Security Engineer
+
+EDUCATION
+
+B.E. (Electronics & Telecommunication)
+Trinity College of Engineering  |  CGPA: 60.19%
+
+HSC (Higher Secondary Certificate)
+Poona College of Art & Science  |  60%
+
+SSC (Secondary School Certificate)
+K.R. Public School  |  73.84%
+
+June 2014 – July 2018
+
+April 2014
+
+March 2012
+
+Declaration: I hereby affirm that the information provided above is accurate to the best of my knowledge.
+Place: Bangalore

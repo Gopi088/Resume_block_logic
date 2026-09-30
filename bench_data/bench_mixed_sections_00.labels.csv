@@ -1,0 +1,22 @@
+line_id,text,gold_section,is_header
+1,Maria Santos,contact,0
+2,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,contact,0
+3,,,0
+4,EXPERIENCE,experience,1
+5,Backend Developer | Globex Inc,experience,0
+6,2015-2017,experience,0
+7,"- Built pipelines using Python, cut cost by 41%",experience,0
+8,- Led standups and shipped 2 releases,experience,0
+9,Backend Developer | Infosys Ltd,experience,0
+10,Jan 2019 - Present,experience,0
+11,"- Built pipelines using Python, cut cost by 28%",experience,0
+12,- Led standups and shipped 8 releases,experience,0
+13,,,0
+14,## Skills & Certifications,skills,1
+15,"Python, SQL, Docker, Git, Airflow",skills,0
+16,"Communication, Leadership",skills,0
+17,"AWS Certified Cloud Practitioner, 2021",skills,0
+18,,,0
+19,Awards & Honors:,awards,1
+20,"Employee of the Year, 2020",awards,0
+21,,,0

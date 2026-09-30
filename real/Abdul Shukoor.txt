@@ -1,0 +1,426 @@
+ABDUL SHUKOOR
+
+     P R O F I L E
+
+A SOFTWARE ENGINEER / CO-PILOT DEVELOPER with more than 5 years of  experience in
+SharePoint, PowerApps,  Power Automate, Power BI, Power Automate Desktop, Azure  DeVOps
+designing and implementing solutions, customization, testing and Component libraries,  responsive
+layouts Custom connectors and reusable components Power Automate (Cloud & Desktop Flows)
+Automating workflows between services Approval processes, scheduled and instant flows
+
+    Experience with customization of SharePoint site templates, new templates using master pages and
+
+CSS and developing Canvas PowerApps, Workflows using power automate, and developed automated
+services using Power Automate RPA.
+
+Working knowledge of configuration and custom development SharePoint components including
+webparts-forms, SharePoint API Integrations and custom connectors and Third-party integration.
+
+TECHNICAL PROFILE
+
+  Web Technologies: HTML, CSS, Basic JAVASCRIPT
+
+Database Technologies: SQL Server SSMS, SharePoint, Dataverse
+RPA Power Automate Desktop.
+
+
+
+  Microsoft Technology: Microsoft SharePoint Online, SharePoint - On Prem.
+
+  Microsoft copilot, Ai Builders, Custom Connectors, Power Pages
+
+
+
+PowerApps, Power BI, Power Automate, Power Virtual Agents. (Copilot Studio)
+
+WORK  EXPERIENCE
+
+
+
+
+
+
+
+
+
+I am currently working as a Copilot Specialist at PARAM Info Dubai from
+June 2025.
+
+I Worked as a Copilot Developer at Trigent Software Inc  Bengaluru from
+May 2024 – May 2025
+
+I Worked as a Software Engineer at Novigo Solution Pvt. Ltd. Bengaluru from
+
+April  2022 to April 2024
+
+I worked as a Software Developer at Percoyo. Pvt Ltd Bengaluru. Jan 2021 – Jan
+
+2022 
+
+RESPONSIBILITIES
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copilot Developer,  Designed,  Developed,  and  supported  Power  Platform  applications
+Power Virtual Agents 
+Provided comprehensive design, development, and maintenance for SharePoint online/On-
+prem applications including web portals and web-based solutions.
+Third party integrations with power automate and the custom connectors, AI Builder, Data
+verse, Model Driven Apps,
+Gather  user  activity data  for  Microsoft  SharePoint  sites and  sub-  sites  for  analysis and
+evaluation and use SQL server as Database for Power apps.
+Involved in designing and implementing virtual SharePoint environments for development
+and testing.
+Developed POC’s with various requirements with Canvas apps and workflows.
+Performed  SharePoint  administrative  design  and  maintain  servers  SharePoint
+database.
+Responsible for design methodology and project documentaries.
+Developing Copilot Bots, Power Pages.
+
+Using power agents developed chatbots, and automated replies.
+
+
+  Made DAX queries, visual reports, KPI scorecards, and dashboards in Power BI desktop
+
+RS version.
+Developing Power Automate Desktop processes, Excel automation, Web Automation, Ui
+Automation, Environment variables and many Automations.
+Scheduled Cloud flows and automated flows are integrated with power automate desktop.
+Azure Devops Creating Pipeline and releasees for Power platform packages from one environment
+to another.
+Error handling and business and system exceptions.
+
+
+
+
+
+
+
+
+      Solution Architecture
+
+C O N T A C T
+
+9591351660
+
+abdulshukoor465@gmail.com
+
+  abdul-shukoor-80951919b
+
+  Bangalore, Karnataka
+
+India
+
+SKILLS
+
+Web Technologies: HTML,
+CSS, Basic JavaScript
+
+Database Technologies:
+SharePoint Online/ON- Prem,
+SQL Server, Dataverse
+
+Microsoft Power
+Platform: Power Apps,
+Power Automate Power
+BI, Power Virtual Agents,
+Copilot Studio, Power
+Pages
+
+Power Automate Desktop,
+Excel Automation, Ui
+automation, Web
+Automation, Browser
+Automation
+
+EDUCATION
+
+ISLAMIAH IT (VTU)
+Electronics & Communication
+Engineering
+
+Aug 2015 – Sep 2021
+
+CGPA - 6.8 &
+Bangalore, Karnataka
+
+LANGUAGES
+
+ENGLISH ---------------------------------- 100%
+HINDI -----------------------------------  90%
+URDU
+
+100%
+
+CERTIFICATIONS
+
+Office Master in
+Power BI Advance
+
+Microsoft Security
+Awareness
+Program
+
+AWARDS
+
+Novigo Champion award
+
+
+
+
+Design and implement end-to-end Power Platform solutions with a focus on security, scalability, performance, and maintainability.
+Integrate Power Apps and Power Automate with enterprise systems such as Azure services, SQL Server, SharePoint, SAP, and third-party
+connectors.
+
+Technical Leadership
+
+
+
+
+Lead and guide Power Platform Copilot at development teams.
+Performed code reviews, enforce best practices, and establish coding standards and architectural guidelines.
+
+      Governance & Compliance
+
+Implemented Copilot at Center of Excellence (CoE) strategies.
+
+
+  Worked on data security, compliance, environment governance, and access control policies.
+
+      Data Modelling & Integration
+
+
+
+
+Architect complex Dataverse data models, including relationships, security roles, and business rules.
+Design integrations with external data sources using standard and custom connectors.
+
+      Stakeholder Collaboration
+
+  Work closely with business stakeholders to gather requirements and translate them into clear technical specifications and solution designs.
+
+
+Act as a bridge between business teams and technical delivery.
+
+     Application Lifecycle Management (ALM)
+
+
+
+
+Establish and manage CI/CD pipelines using Azure DevOps for Power Platform solutions.
+Support environment strategy, solution packaging, versioning, deployment, and release management
+
+PROJECTS
+
+Projects Worked in Param Info                                                     June 2025 - Feb 2026
+
+1. Government Relations Kiosk Automation (Power Apps & Power Automate).
+
+                 Built a Power Apps Canvas App for SAP ID–based login, video call initiation, and call-not-received scenarios.
+
+   Implemented automated logging of events (Login, Video Call Started, Send Note) with timestamp accuracy.
+   Integrated Power Automate for email notifications and audit logging to SharePoint.
+
+              2. MOBARO Results Data Processing Automation
+                Created SDD for email-driven automation to process MOBARO results.
+
+   Designed Power Automate flow to: Filter emails by subject ([EXTERNAL] Results data) Ignore already-processed emails (Loaded: logic).
+
+              3. Risk Assessment Framework (2026) – Power Apps Solution. And Copilot Bot Risk Bot.
+
+              4. Arabic Contract Automation Solution for Arabic Contract Processing Automation.
+
+               5. IT Loan Devices Tracking System
+                Designed SDD for IT asset / loan device tracking.
+
+  Implemented Power Apps solution with Department-based filtering.
+
+              6. Email-Driven Data Extraction & Excel Automation
+                 Delivered for extracting data from email links, PDFs, and attachments. Designed multiple automation patterns: SharePoint file links.
+
+7. Machine Availability & RPA Alerting Framework
+
+                 Authored for machine availability monitoring for Power Automate Desktop bots.
+
+.8. Access Governance & Environment Management (ATD Production)
+
+                     Documented for Production environment access requests
+.
+               9. Copilot. Bots Risk Bot, Hr Bot, Employee Bot.
+
+               10. Created Power pages for different requirements, I connect, DataMAG,Hover Lift..
+
+Projects Worked on Epiroc Client
+
+Internal RPA applications for Epiroc Client
+
+June 2024 - Jan 2025
+
+
+
+
+
+
+
+
+
+Epiroc App- Details of RPA & other tools Jira Statistics
+Copilot Bots Digital Bot, Data Surveillance Bot
+RPA demo APP- marketing App.
+Teams Planner integration with Power automate desktop.
+RPA yearly and Automation in production survey.
+Business Voice Actions KPI.
+Jira extract for PBI.
+
+
+
+
+       Power Automate Desktop Flows Epiroc Client
+
+                    May 2024 – Jan 2025
+
+
+
+
+
+
+
+
+
+
+Download client URLs Power Automate desktop Using Ui & WEB automation.
+Downloading Open orders using web automation.
+API Integration data analytics Portal.
+Copilot Bots 
+SAP data interfaces.
+Ui web recording for form data.
+Excel automation for invoice details.
+OCR for data classification.
+
+Projects Worked on Novigo solutions.                                              May 2022 – April - 2024
+
+Transfer Request App
+
+April 22- Sep 22
+
+  Multiple approvals for varying amounts, and each permission is contingent on the amount
+when item requests are made. The ability to integrate with Excel to load data into forms.
+File  extraction and archiving for PDFs.
+
+COI (Conflicts of Interest) App
+
+Sep 22- Jan 23
+
+  Developing official documentation and providing information on conflicts of interest, policy
+renewals, and approvals, several forms with a responsive app that requires consent for every
+request.
+
+SharePoint Environment Testing
+  Verifying the workflows and sites, examining the pages and web applications, and checking
+the database. Keeping track of the lists, verifying the APIs, and managing several servers and
+setups. Verifying the online application and workflows.
+
+May 23
+
+Timesheet App
+
+Oct 23 - Dec 23
+
+
+
+completing a monthly time sheet, obtaining approvals, and, if chosen, populating dynamic
+calendar selection dates for holidays and weekends
+
+Power Automate
+
+Sep 23 – Feb 24
+
+
+
+
+
+
+Power automates RPA bot connection with WhatsApp.
+Obtaining patient, practitioner, and multiple option backend data from Epic FHIR, API’s
+along with WhatsApp front end and power automate, will automate appointment scheduling.
+Choosing places and leaving voice messages.
+
+
+Power Pages                                                                                         Sep 23 – Feb 24
+
+Power Pages and Power Automate RPA, including bot integration with WhatsApp.
+I have worked on solutions that retrieve patient, practitioner, and multi-option backend data from,
+integrating it with SAP end and Power Automate to SQL Server
+
+Power Automate Desktop Flows
+
+Sep 23 – Feb 24
+
+
+
+Automatic Web Form Filling, automate to find text in the PDF files content into Excel List
+through Power Automate Desktop, Reminder to Stretch with Logging
+
+Power BI (Dashboard &Reports)
+
+Nov 23
+
+
+
+Sales Dashboard, Expense Reports, Employee Onboarding, Marketing Dashboard, Hospital  
+
+
+
+Power Virtual Agents (Copilot Studio)
+
+Nov 23
+
+
+
+Sales Bot, Expense Bot, Employee Onboarding Bot.
+
+POC’s
+
+
+
+Help Desk, Site Inspection, Budget Tracker, Inventory Management app Sales Order App.
+
+SQL Server
+
+
+
+In our Power Apps application, we've integrated SQL Server as our primary data source. This
+allows us to store and retrieve data efficiently using the SQL Server database management
+system if we want to insert or delete the data that we have also done in SQL.
+
+           Project In Percoyo                                                               March -2021 - March 2022
+
+SharePoint Online/On -Perm developing web apps and sites and customizing MASTER  pages.
+
+
+  Maintaining Servers and cleaning the dB and archives.
+
+
+
+
+
+
+Power Virtual Agents Bots.
+Creating Lists and connecting the API integration with third party apps.
+Exceptional handling of RPA desktop.
+Parent flows and major Web extractions.
+For Percoyo 6 months on SharePoint and 6 months on biocurators clients.

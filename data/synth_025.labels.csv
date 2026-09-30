@@ -1,0 +1,30 @@
+line_id,text,header_type
+0,Jane Doe,
+1,jane.doe@mail.com | +91 98765 43210 | linkedin.com/in/janedoe,
+3,**Achievements**,awards
+4,"Employee of the Year, 2020",
+5,"Hackathon winner, 2019",
+7,**Tech Stack**,skills
+8,"Python, SQL, Docker, Git, Airflow",
+9,"Communication, Leadership",
+11,## Qualifications,education
+12,"B.Tech Computer Science, VTU",
+13,2014 - 2018 | CGPA 7.0,
+15,SELECTED WORK,projects
+16,Project 0: resume parser (Python),
+17,Project 1: resume parser (Python),
+18,Project 2: resume parser (Python),
+20,## Experience,experience
+21,ML Engineer | PROJECTS UNLIMITED,
+22,Mar 2018 - Present,
+23,"- Automated pipelines using Python, reducing cost by 24%",
+24,"- Designed pipelines using Python, reducing cost by 58%",
+25,QA Lead | STARTUP LABS,
+26,Nov 2016 - Present,
+27,"- Led pipelines using Python, reducing cost by 41%",
+28,"- Automated pipelines using Python, reducing cost by 52%",
+29,"- Skills: Python, SQL, Docker",
+30,Backend Developer | GOOGLE INDIA,
+31,Mar 2017 - Present,
+32,"- Migrated pipelines using Python, reducing cost by 19%",
+33,"- Automated pipelines using Python, reducing cost by 13%",

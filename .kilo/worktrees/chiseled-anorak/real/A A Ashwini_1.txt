@@ -1,0 +1,160 @@
+# A A ASHWINI
+
+**SUMMARY**
+
+* 7 years of professional level IT experience in various areas of expertise, seeking to leverage my technical, professional and domain knowledge in field of Data Science.
+* Working with large data sets - specific focus on data extraction, transformation, scraping, cleansing and data presentation.
+* Experience in Supervised and Unsupervised Machine Learning such as Regression, Classification, Clustering, Text mining, Bagging and Boosting techniques.
+* Understanding of Mathematical, Statistical and Theoretical basis of Machine Learning algorithms.
+* Knowledge on Statistical Machine learning models.
+* Experience with analytical programming languages, tools, and libraries (Python, SQL)
+* Understanding of Machine Learning Life Cycle - feature engineering, model training, model validation, deployment, and performance monitoring.
+* Understanding business problems and formulating them as data science problems.
+* Strong background in Statistical modeling: Probability Distribution, Business Decisions, Hypothesis Testing, Correlation, Regression, Confusion matrix, ROC.
+* Knowledge on various time series forecasting models: Seasonality and Trend.
+* Usage of CVAT tool for data annotations.
+* Knowledge and Hands-on experience on GenAI concepts, usage of RAG with LLMs and Gen AI frameworks like Langchain etc.
+* Knowledge of using Azure Machine learning studio and AI studio for training and finetuning of LLM models.
+
+# SKILLS
+
+* Scripting Languages: SQL
+* Programming Languages: Python Programming, R programming
+* Domain knowledge: FMCG, SCM, CPG, Insurance Services
+* Source control: MS Azure, GIT hub
+
+# WORK EXPERIENCE
+
+* Sonata Software Ltd : Dec 2023- till now
+* Tiger Analytics : May 2022 – Nov 2023
+* Tech Mahindra : July 2018- May 2022
+
+# PROJECTS and POCs:
+
+## POC: 1
+
+**Title: Intelligent Document Question Answering using RAG Details:**
+
+* Objective of the project is to ask questions (that are not included in the training data) about the document without finetuning the LLM and get the relevant answers
+* In this POC, I have used Langchain Framework and Chroma DB as vector database and llama-3-70B-Instruct model by meta.
+* All the coding and developmental activities are done with python programming integrated with VS Code, ensuring
+
+modularity and ease of experimentation.
+
+* Approach:
+  + Questions are processed through a retrieval step to fetch relevant documents from the vector store.
+  + Retrieved context is passed to the LLM to generate precise answers, even for queries not seen during training.
+  + No model fine-tuning was performed, demonstrating the power of RAG in zero-shot scenarios.
+* Outcome:
+
+Successfully demonstrated the feasibility of using RAG with state-of-the-art LLMs for intelligent document Q&A, paving the way for scalable enterprise applications in knowledge management and automation.
+
+## Project: 1
+
+**Client Name: Microsoft Role:** Senior Digital Engineer **Duration: Dec-23 to Dec-24 Roles & Responsibilities**
+
+* Acted as a trusted advisor to customers by providing expert guidance on Azure Cloud services, addressing technical queries, and delivering tailored cloud solutions aligned with business objectives.
+* Analyzed customer business use cases and designed end-to-end cloud architecture using Azure services to meet performance, scalability, and cost-efficiency requirements.
+* Hands-on experience with Azure Machine Learning services, including AutoML, ML pipelines, compute instances/clusters, and environment configurations for streamlined model training and deployment.
+* Managed and configured Azure Blob Storage, implementing best practices for data management, security, and access patterns based on diverse customer use cases.
+* Assisted customers in setting up Managed Virtual Networks (VNet), and provided in-depth knowledge transfer sessions on custom VNet configurations and integration strategies.
+* Worked extensively with Azure OpenAI services to support customers in building and fine-tuning large language model (LLM) solutions for various business applications.
+
+## Project: 2
+
+**Client Name: KELLOGS Role:** Senior Analyst in DS **Duration: Apr-23 to Nov-23 Roles & Responsibilities**
+
+* Responsible for analysing and providing the required insights for the following 3 KPIs:
+* Creating funnels using the data to calculate Recruit, Retain and Reclaim:
+  1. Performed data collection, data preparation, extraction of required fields and data exploration
+  2. Extracted the attributes required for value calculations of Funnels
+* Observe and forecast the trend:
+  1. Collecting previous 3-year data and checking for trends in 3R values
+* Forecasting goals for 3Rs:
+  1. Collecting previous 3-year data, check for seasonality and forecast 3R values for next year using time- series forecasting
+* All the development activities have been carried through Jupyter Notebook (python programming)
+* Deployment is carried on using AWS S3 and EC2.
+
+## Project: 3
+
+**Client Name: Johnson Brothers Role:** Senior Analyst in DS **Duration: Oct-22 to Mar-23**
+
+## Roles & Responsibilities
+
+* Built a Machine learning model to forecast sales on various products
+* Data collected from client Database
+* Performed various EDA checks such as missing/incomplete data, Datatype checks and corrections, ACF, PACF, correlation checks, Statistical feature creation: Log, Lag, FFT (as applicable)
+* Forecasting was done at different levels
+* Various forecasting models have been checked and finally decided to use Prophet model
+* Compared the results with existing model and exhibited 15% more accurate model
+* Used Azure Machine learning studio to carry the development activities
+* Python programming language is used for all developmental activities
+
+## Project: 4
+
+**Client Name: Signet Role:** Senior Analyst in DS
+
+## Duration: Jun-22 to Sep-22 Roles & Responsibilities
+
+* Involved in data collection of Engagement rings that are trending
+* Collected Data via scraping and manually from various social platforms such as Instagram, Twitter, and YouTube
+* Annotated the data using CVAT
+
+## Project: 5
+
+**Client Name: PepsiCo Role:** Software Engineer
+
+## Duration: Apr-21 to May-22 Roles & Responsibilities
+
+* Worked on generation of medium, low, and high-level alerts for different KPIs.
+* Alerts on below scenarios:
+
+Scenario 1: Shipments currently delayed (past due); alerts will be graded based on no. of days past due Scenario 2: Shipments planned in the immediate future at risk of delay
+
+* Alert based on latest sales velocity (e.g., last 3-4 weeks) and demand gap
+* Alert based on significant difference between planned orders (Baseline) & optimizer recommended allocations
+* Forecasted sales velocity based on the past 3-year data using Time Series models
+* R programming is used for developmental activities
+* Azure Devops is used as Scrum platform
+
+## Project: 6
+
+**Client Name: TDC group Role:** Software Engineer **Duration: Mar-20 to Feb-21 Roles & Responsibilities**
+
+* Worked to maximize the no. of 5G connections in different places of Denmark and predict which area might take more connections in future.
+* Collected the existing data from the customer and divided clusters based on different attributes
+* Used different clustering algorithms such as K-Means, DBSCAN Clustering etc.
+* 200 clusters were taken, and prediction algorithms were applied on them to predict which area might take more connections in future.
+* Used prediction algorithms such as Decision tree, Random Forest, Naive Bayes, Ensemble techniques etc.
+* Python programming is used for developmental activities
+
+## Project: 7
+
+**Client Name: PepsiCo**
+
+**Role:** Associate Software Engineer
+
+## Duration: Dec-18 to Jan-20 Roles & Responsibilities
+
+* Gathering the requirements from the client and preparing required documents.
+* Extracted the data from database and generated reports by using Tableau Desktop
+* Extracted the data from non-database sources and generated reports by using Tableau Desktop
+* Developed different types of visualizations reports like bar charts and line charts.
+* Developed the reference lines in reports by using Parameters.
+* Publishing the reports to Tableau server.
+* Created data visualizations with different charts.
+* Deploying graphical visualizations in dashboards to create effective views of data such as: Line Charts, Bar Charts, Pie Charts, Tree Maps, Heat Maps, etc.
+
+## EDUCATION
+
+B.E in CIVIL Engineering from GITAM School of Technology 2013-2017
+
+## CONTACT DETAILS
+
+Ph: +91-7893183736
+
+Email: aaashwini21@gmail.com
+
+**DATE: 17-09-2025**
+
+**Kavali, AP**
