@@ -18,6 +18,7 @@
     backendUp: false,
     isFixture: true,  // true until the recruiter parses a real file/tab
     lastAutoUrl: "",
+    activeTab: null,  // {id, url} — refreshed on every tab switch
   };
 
   var el = {
@@ -76,7 +77,10 @@
   // panel opens, and follow the recruiter when they switch to another resume.
   if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
     chrome.runtime.onMessage.addListener(function (msg) {
-      if (msg && msg.type === "OPEN_RESUME_TAB" && msg.url) onOpenTabUrl(msg.url);
+      if (msg && msg.type === "OPEN_RESUME_TAB" && msg.url) {
+        state.activeTab = { id: msg.id != null ? msg.id : null, url: msg.url };
+        onOpenTabUrl(msg.url);
+      }
     });
   }
   loadFixture();
@@ -95,7 +99,9 @@
       if (typeof chrome === "undefined" || !chrome.tabs) return;
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         var url = tabs && tabs[0] && tabs[0].url;
-        if (url && RESUME_URL_RE.test(url)) analyzeTabUrl(url);
+        if (!url) return;
+        state.activeTab = { id: tabs[0].id != null ? tabs[0].id : null, url: url };
+        if (RESUME_URL_RE.test(url)) analyzeTabUrl(url);
       });
     } catch (e) { /* stay on fixture */ }
   }
@@ -444,28 +450,29 @@
     btn.addEventListener("click", function () {
       // Copy the search phrase synchronously (user gesture) so Ctrl+F works
       // even where the viewer ignores the text fragment.
+      var phrase = fragmentPhrase(it);
       try {
-        var phrase = fragmentPhrase(it);
         if (phrase && navigator.clipboard) navigator.clipboard.writeText(phrase).catch(function () {});
       } catch (e) { /* clipboard unavailable */ }
+      // Navigate SYNCHRONOUSLY in the click: the text fragment survives only
+      // on navigations tied to the user gesture; any async hop strips it.
+      var cached = state.activeTab;
+      if (cached && cached.url && /^https?:|^file:/i.test(cached.url) && cached.id != null) {
+        btn.disabled = true;
+        btn.textContent = "Finding…";
+        syncJump(cached, it, phrase, function (res) {
+          btn.disabled = false;
+          btn.textContent = "View in Resume";
+          jumpStatus(status, res);
+        });
+        return;
+      }
       btn.disabled = true;
       btn.textContent = "Finding…";
       highlightInOpenTab(it, function (res) {
         btn.disabled = false;
         btn.textContent = "View in Resume";
-        status.hidden = false;
-        // The button only ever highlights the open resume tab. Nothing from
-        // the resume is rendered in the panel and no backend page is opened.
-        if (res.ok && res.via === "fragment") {
-          status.textContent = res.page
-            ? "Jumped to page " + res.page + " in the resume tab."
-            : "Jumped to the passage in the resume tab.";
-        } else if (res.ok) {
-          status.textContent = "Highlighted in the open resume tab.";
-        } else {
-          status.textContent = "That passage isn’t in the active tab. " +
-            "Click Parse resume and upload the file that’s open, then try again.";
-        }
+        jumpStatus(status, res);
       });
     });
 
@@ -540,7 +547,7 @@
     // Then the date range as written, then the excerpt's first line.
     var ev = it.evidence || {};
     var headWords = uniqueWords(
-      wordsOf(it.title || "", 10).concat(wordsOf(it.organization || "", 10)), 10);
+      wordsOf(it.title || "", 6).concat(wordsOf(it.organization || "", 6)), 6);
     if (headWords.length >= 2 && /[a-zA-Z]{3,}/.test(headWords.join(" "))) {
       return headWords.join(" ");
     }
@@ -556,23 +563,57 @@
     return null;
   }
 
-  function fragmentNavigate(tab, it, cb) {
-    var ev = it.evidence || {};
-    var phrase = fragmentPhrase(it);
-    if (!tab.url || !/^https?:|^file:/i.test(tab.url)) {
-      return cb({ ok: false, reason: "not-found" });
-    }
+  function evidenceUrl(tabUrl, page, phrase) {
     // Force a real (re)load: same-document hash edits are ignored by the PDF
     // viewer, so a cache-busting query makes it process the fragment fresh.
     // #page=N lands the viewer on the evidence page; :~:text= highlights
     // when the words match. Existing query strings (signed URLs) are kept.
-    var page = (ev.pages && ev.pages.length) ? (ev.pages[0] + 1) : null;
-    var base = tab.url.split("#")[0];
+    var base = tabUrl.split("#")[0];
     var url = base + (base.indexOf("?") === -1 ? "?" : "&") + "evjump=" + Date.now() +
       (page ? "#page=" + page : "#");
     if (phrase) url += ":~:text=" + encodeURIComponent(phrase);
+    return url;
+  }
+
+  function evidencePage(it) {
+    var ev = it.evidence || {};
+    return (ev.pages && ev.pages.length) ? (ev.pages[0] + 1) : null;
+  }
+
+  function syncJump(cached, it, phrase, cb) {
+    // Called synchronously inside the click: the text fragment survives only
+    // on navigations tied to the user gesture.
     try {
-      chrome.tabs.update(tab.id, { url: url }, function () {
+      chrome.tabs.update(cached.id,
+        { url: evidenceUrl(cached.url, evidencePage(it), phrase) }, function () {
+          if (chrome.runtime.lastError) return cb({ ok: false, reason: "not-found" });
+          cb({ ok: true, via: "fragment", page: evidencePage(it) });
+        });
+    } catch (e) { cb({ ok: false, reason: "not-found" }); }
+  }
+
+  function jumpStatus(status, res) {
+    status.hidden = false;
+    if (res.ok && res.via === "fragment") {
+      status.textContent = res.page
+        ? "Jumped to page " + res.page + " in the resume tab."
+        : "Jumped to the passage in the resume tab.";
+    } else if (res.ok) {
+      status.textContent = "Highlighted in the open resume tab.";
+    } else {
+      status.textContent = "That passage isn’t in the active tab. " +
+        "Click Parse resume and upload the file that’s open, then try again.";
+    }
+  }
+
+  function fragmentNavigate(tab, it, cb) {
+    var phrase = fragmentPhrase(it);
+    if (!tab.url || !/^https?:|^file:/i.test(tab.url)) {
+      return cb({ ok: false, reason: "not-found" });
+    }
+    var page = evidencePage(it);
+    try {
+      chrome.tabs.update(tab.id, { url: evidenceUrl(tab.url, page, phrase) }, function () {
         if (chrome.runtime.lastError) return cb({ ok: false, reason: "not-found" });
         cb({ ok: true, via: "fragment", page: page });
       });

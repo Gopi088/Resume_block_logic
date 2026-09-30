@@ -27,7 +27,7 @@ function notifyOpenTab() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     try {
       if (tabs && tabs[0] && tabs[0].url) {
-        chrome.runtime.sendMessage({ type: "OPEN_RESUME_TAB", url: tabs[0].url }).catch(function () {});
+        chrome.runtime.sendMessage({ type: "OPEN_RESUME_TAB", url: tabs[0].url, id: tabs[0].id }).catch(function () {});
       }
     } catch (e) { /* side panel not open */ }
   });
