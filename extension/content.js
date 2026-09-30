@@ -304,6 +304,23 @@
     btn.setAttribute("aria-label", "Open Resume Timeline Review");
     btn.setAttribute("aria-expanded", "false");
 
+    // Inline style fallback - guarantees size even if CSS variables fail
+    btn.style.width = "160px";
+    btn.style.height = "160px";
+    btn.style.borderRadius = "50%";
+    btn.style.background = "linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)";
+    btn.style.boxShadow = "0 4px 16px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 24px rgba(59,130,246,0.35)";
+    btn.style.border = "2px solid rgba(255,255,255,0.25)";
+    btn.style.cursor = "pointer";
+    btn.style.display = "flex";
+    btn.style.alignItems = "center";
+    btn.style.justifyContent = "center";
+    btn.style.transition = "transform 150ms ease, box-shadow 150ms ease, filter 150ms ease";
+    btn.style.outline = "none";
+    btn.style.border = "none";
+    btn.style.padding = "0";
+    btn.style.position = "relative";
+
     var iconWrap = document.createElement("span");
     iconWrap.className = "ct-icon";
     iconWrap.innerHTML = ICON_DOCUMENT;
