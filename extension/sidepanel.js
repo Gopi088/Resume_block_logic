@@ -525,18 +525,28 @@
       .filter(function (w) { return /[A-Za-z0-9]/.test(w); }).slice(0, n);
   }
 
+  function uniqueWords(list, n) {
+    var seen = {}, out = [];
+    list.forEach(function (w) {
+      var k = w.toLowerCase();
+      if (!seen[k]) { seen[k] = true; out.push(w); }
+    });
+    return out.slice(0, n);
+  }
+
   function fragmentPhrase(it) {
-    // Most reliable anchor first: the date range as written ("Feb 2025 –
-    // Present" → "Feb 2025 Present") appears verbatim in the resume. Then the
-    // item title, then the excerpt's first line.
+    // Most reliable anchor first: title + org sit on one contiguous header
+    // line in the resume ("Senior Business Analyst | BNP Paribas ISPL").
+    // Then the date range as written, then the excerpt's first line.
     var ev = it.evidence || {};
+    var headWords = uniqueWords(
+      wordsOf(it.title || "", 10).concat(wordsOf(it.organization || "", 10)), 10);
+    if (headWords.length >= 2 && /[a-zA-Z]{3,}/.test(headWords.join(" "))) {
+      return headWords.join(" ");
+    }
     var dateWords = wordsOf(ev.raw_range || "", 8);
     if (dateWords.length >= 2 && /[a-zA-Z]{3,}/.test(dateWords.join(" "))) {
       return dateWords.join(" ");
-    }
-    var titleWords = wordsOf(it.title || "", 6);
-    if (titleWords.length >= 3 && /[a-zA-Z]{3,}/.test(titleWords.join(" "))) {
-      return titleWords.join(" ");
     }
     var firstLine = ((ev.excerpt || "").split("\n").filter(function (l) { return l.trim(); })[0] || "");
     var lineWords = wordsOf(firstLine, 8);
@@ -552,12 +562,14 @@
     if (!tab.url || !/^https?:|^file:/i.test(tab.url)) {
       return cb({ ok: false, reason: "not-found" });
     }
-    // Page-anchored jump: #page=N always lands the viewer on the evidence
-    // page (text fragments alone silently no-op in the PDF viewer when the
-    // text layer differs by a dash or space). The :~:text= part highlights
-    // when it matches.
+    // Force a real (re)load: same-document hash edits are ignored by the PDF
+    // viewer, so a cache-busting query makes it process the fragment fresh.
+    // #page=N lands the viewer on the evidence page; :~:text= highlights
+    // when the words match. Existing query strings (signed URLs) are kept.
     var page = (ev.pages && ev.pages.length) ? (ev.pages[0] + 1) : null;
-    var url = tab.url.split("#")[0] + (page ? "#page=" + page : "#");
+    var base = tab.url.split("#")[0];
+    var url = base + (base.indexOf("?") === -1 ? "?" : "&") + "evjump=" + Date.now() +
+      (page ? "#page=" + page : "#");
     if (phrase) url += ":~:text=" + encodeURIComponent(phrase);
     try {
       chrome.tabs.update(tab.id, { url: url }, function () {
