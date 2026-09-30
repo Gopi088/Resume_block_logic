@@ -266,6 +266,54 @@
     return { kind: "none" };
   }
 
+  /* Field sanity gate: invalid fields are never displayed. A row whose
+     title AND employer are both invalid is treated as unclassified. */
+  var TITLE_PHRASES = /^(served as|worked (as|on|with)|responsible for|providing|provided)\b/i;
+  // Single action verbs only count when followed by a lowercase word
+  // ("Managed treasury" invalid, but "Lead Analyst" stays valid).
+  function startsVerbSentence(t) {
+    var m = /^(managed|led|developed|ensured|performed|owned|handled)\s+(\S)/i.exec(t);
+    return !!m && /[a-z]/.test(m[2].charAt(0));
+  }
+  function isValidTitle(title) {
+    var t = String(title || "").trim();
+    if (!t) return false;
+    if (/^[•*\-–—\d]/.test(t)) return false;                    // bullet/numbered fragment
+    if (/[….;:]$/.test(t)) return false;                        // truncated or sentence-ended
+    var words = t.split(/\s+/);
+    if (words.length > 8) return false;                         // sentences, not titles
+    if (words.length > 5 && /\b(and|&)\s+[a-z]+\w*ing\b/.test(t)) return false; // gerund clause
+    if (TITLE_PHRASES.test(t) || startsVerbSentence(t)) return false;
+    return true;
+  }
+  function normPlace(s) {
+    return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+  var COMPANY_WORDS = /\b(pvt|ltd|inc|corp|llc|llp|gmbh|pty|technologies|technology|systems|solutions|services|group|bank|banks|university|college|school|institute|limited|company|associates|partners|consultancy|infotech|software)\b/i;
+  function isValidEmployer(org, location) {
+    var o = String(org || "").trim();
+    if (!o) return false;
+    if (location && normPlace(o) === normPlace(location)) return false; // equals location
+    var segs = o.replace(/[.;:]+$/, "").split(/\s*,\s*/);
+    if (segs.length >= 2 && !COMPANY_WORDS.test(o)) return false;        // place chain
+    return true;
+  }
+  /* Sanitize one timeline event for display. Returns null when both fields
+     are invalid (caller moves the entry to "Other text found"). */
+  function sanitizeRow(ev) {
+    var titleOk = isValidTitle(ev.title);
+    var orgOk = isValidEmployer(ev.organization, ev.location);
+    if (!titleOk && !orgOk) return null;
+    return {
+      title: titleOk ? String(ev.title).trim() : null,
+      employer: orgOk ? String(ev.organization).trim() : null,
+      uncertain: Number(ev.confidence) < CONF_MEDIUM || !titleOk || !orgOk,
+      reasons: (Number(ev.confidence) < CONF_MEDIUM ? ["Low confidence"] : [])
+        .concat(!titleOk ? ["Title unclear"] : [])
+        .concat(!orgOk ? ["Employer unclear"] : [])
+    };
+  }
+
   global.CareerTimeline = {
     CONF_HIGH: CONF_HIGH, CONF_MEDIUM: CONF_MEDIUM, GAP_MIN_MONTHS: GAP_MIN_MONTHS,
     classifyConfidence: classifyConfidence,
@@ -281,6 +329,9 @@
     progressionTag: progressionTag,
     computeGaps: computeGaps,
     trustLevel: trustLevel,
-    anchorKind: anchorKind
+    anchorKind: anchorKind,
+    isValidTitle: isValidTitle,
+    isValidEmployer: isValidEmployer,
+    sanitizeRow: sanitizeRow
   };
 })(typeof window !== "undefined" ? window : globalThis);

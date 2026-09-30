@@ -142,3 +142,45 @@ describe("anchors (fixture 6)", () => {
     assert.equal(dangling.kind, "page");
   });
 });
+
+describe("field sanity gate", () => {
+  it("accepts clean titles", () => {
+    for (const t of ["Software Developer", "Programmer", "Data Analyst",
+                     "Lead Analyst", "Assistant Manager", "Sr. Manager"]) {
+      assert.equal(T.isValidTitle(t), true, t);
+    }
+  });
+  it("rejects bullet fragments", () => {
+    assert.equal(T.isValidTitle("Served as a key Business Analyst at Australia's largest fund"), false);
+    assert.equal(T.isValidTitle("Worked as Software UI developer for a User project"), false);
+    assert.equal(T.isValidTitle("Providing 24/7 escalation of Production interruptions"), false);
+    assert.equal(T.isValidTitle("Responsible for incident management"), false);
+    assert.equal(T.isValidTitle("Managed treasury operations including margin monitoring"), false);
+    assert.equal(T.isValidTitle("Production support monitoring of application and addressing the issues"), false); // >8 words
+    assert.equal(T.isValidTitle("Assistant Manager (Data Analyst and Business Intelligence) Project Description…"), false);
+    assert.equal(T.isValidTitle("Something ended."), false);
+    assert.equal(T.isValidTitle("• Led sessions"), false);
+    assert.equal(T.isValidTitle(""), false);
+    assert.equal(T.isValidTitle(null), false);
+  });
+  it("rejects city/state/country employers and location matches", () => {
+    assert.equal(T.isValidEmployer("Sydney, NSW, Australia", "Sydney, NSW, Australia"), false);
+    assert.equal(T.isValidEmployer("Pune, Maharashtra, India", "Pune"), false);
+    assert.equal(T.isValidEmployer("Chennai, Tamil Nadu, India", null), false);
+    assert.equal(T.isValidEmployer("Tata Consultancy Services", "Pune, Maharashtra, India"), true);
+    assert.equal(T.isValidEmployer("Akal Information System Pvt Ltd, New Delhi", null), true);
+    assert.equal(T.isValidEmployer("NISG DELHI", null), true);
+    assert.equal(T.isValidEmployer("", null), false);
+  });
+  it("sanitizeRow nulls double-invalid rows for the Other group", () => {
+    const bad = T.sanitizeRow({ title: "Served as a key Business Analyst at a fund",
+      organization: "Sydney, NSW, Australia", location: "Sydney, NSW, Australia", confidence: 0.85 });
+    assert.equal(bad, null);
+    const half = T.sanitizeRow({ title: "Production support monitoring of application and addressing the issues",
+      organization: "Tata Consultancy Services", location: "Pune", confidence: 0.9 });
+    assert.equal(half.employer, "Tata Consultancy Services");
+    assert.equal(half.title, null);
+    assert.equal(half.uncertain, true);
+    assert.deepEqual(half.reasons, ["Title unclear"]);
+  });
+});

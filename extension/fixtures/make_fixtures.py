@@ -215,4 +215,32 @@ _evs[2]["evidence"]["end_line"] = None
 _evs[2]["evidence"]["pages"] = [2]
 json.dump(_f6, open(os.path.join(OUT, "f6.json"), "w"), ensure_ascii=False)
 print("f6 anchors mutated")
+# F7 — Sydney/Pune/Chennai mirror: bullet-fragment titles, city-as-org rows.
+build("f7", [
+    J("experience", "IT Support Analyst Level 2", "Tata Consultancy Services", "2018-05-01", "2019-12-31",
+      raw="May 2018 – Dec 2019", conf=0.9, page=0, loc="Pune, Maharashtra, India",
+      lines=["IT Support Analyst Level 2 | Tata Consultancy Services", "Pune, Maharashtra, India", "May 2018 – Dec 2019"]),
+    J("experience", "Production support monitoring of application and addressing the issues reported for transactions",
+      "Pune, Maharashtra, India", "2020-01-01", "2023-01-31",
+      raw="Jan 2020 – Jan 2023", conf=0.85, page=0, loc="Pune, Maharashtra, India",
+      lines=["Production support monitoring of application", "Pune, Maharashtra, India", "Jan 2020 – Jan 2023"]),
+    J("experience", "Served as a key Business Analyst at Australia's largest wealth management fund",
+      "Sydney, NSW, Australia", "2024-02-01", "2025-08-31",
+      raw="Feb 2024 – Aug 2025", conf=0.8, page=1, loc="Sydney, NSW, Australia",
+      lines=["Served as a key Business Analyst", "Sydney, NSW, Australia", "Feb 2024 – Aug 2025"]),
+    J("experience", "Providing 24/7 escalation of Production service interruptions and changes",
+      "Chennai, Tamil Nadu, India", "2020-06-01", "2022-12-31",
+      raw="Jun 2020 – Dec 2022", conf=0.75, page=1, loc="Chennai, Tamil Nadu, India",
+      lines=["Providing 24/7 escalation", "Chennai, Tamil Nadu, India", "Jun 2020 – Dec 2022"]),
+    J("experience", "Software UI Developer", "Brightline Systems", "2016-11-01", "2017-04-30",
+      raw="Nov 2016 – Apr 2017", conf=0.9, page=0, loc="Chennai, Tamil Nadu, India",
+      lines=["Software UI Developer | Brightline Systems", "Nov 2016 – Apr 2017"]),
+    J("experience", "Senior Software UI Developer", "Brightline Systems", "2017-05-01", "2018-04-30",
+      raw="May 2017 – Apr 2018", conf=0.9, page=0, loc="Chennai, Tamil Nadu, India",
+      lines=["Senior Software UI Developer | Brightline Systems", "May 2017 – Apr 2018"]),
+    J("education", "BSc Computer Science", "State University", "2012-09-01", "2016-06-30",
+      raw="2012 – 2016", conf=0.9, gran=("year", "year"), page=0,
+      lines=["BSc Computer Science, State University, 2016"]),
+], {"percent": 82, "label": "Accurate", "trust_rate": 0.8},
+    candidate={"name": "Ankur Sharma", "sha256": "fixf7"})
 print("done")
