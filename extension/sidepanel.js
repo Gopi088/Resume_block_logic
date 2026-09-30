@@ -448,11 +448,13 @@
     status.hidden = true;
 
     btn.addEventListener("click", function () {
-      // Copy the search phrase synchronously (user gesture) so Ctrl+F works
+      // Copy the search phrases synchronously (user gesture) so Ctrl+F works
       // even where the viewer ignores the text fragment.
-      var phrase = fragmentPhrase(it);
+      var phrases = fragmentPhrases(it);
       try {
-        if (phrase && navigator.clipboard) navigator.clipboard.writeText(phrase).catch(function () {});
+        if (phrases.length && navigator.clipboard) {
+          navigator.clipboard.writeText(phrases[0]).catch(function () {});
+        }
       } catch (e) { /* clipboard unavailable */ }
       // Navigate SYNCHRONOUSLY in the click: the text fragment survives only
       // on navigations tied to the user gesture; any async hop strips it.
@@ -460,7 +462,7 @@
       if (cached && cached.url && /^https?:|^file:/i.test(cached.url) && cached.id != null) {
         btn.disabled = true;
         btn.textContent = "Finding…";
-        syncJump(cached, it, phrase, function (res) {
+        syncJump(cached, it, phrases, function (res) {
           btn.disabled = false;
           btn.textContent = "View in Resume";
           jumpStatus(status, res);
@@ -541,37 +543,42 @@
     return out.slice(0, n);
   }
 
-  function fragmentPhrase(it) {
-    // Most reliable anchor first: title + org sit on one contiguous header
-    // line in the resume ("Senior Business Analyst | BNP Paribas ISPL").
-    // Then the date range as written, then the excerpt's first line.
+  function fragmentPhrases(it) {
+    // Up to three independent anchors — the viewer highlights the first one
+    // that matches, so a single mismatched phrase can't sink the jump.
+    // Title/org header words first (one contiguous header line in the PDF),
+    // then the date range as written, then the excerpt's first line.
     var ev = it.evidence || {};
-    var headWords = uniqueWords(
-      wordsOf(it.title || "", 6).concat(wordsOf(it.organization || "", 6)), 6);
-    if (headWords.length >= 2 && /[a-zA-Z]{3,}/.test(headWords.join(" "))) {
-      return headWords.join(" ");
+    var out = [];
+    function take(words) {
+      if (words.length >= 2 && /[a-zA-Z]{3,}/.test(words.join(" ")) && out.length < 3) {
+        var p = words.join(" ");
+        if (out.indexOf(p) === -1) out.push(p);
+      }
     }
-    var dateWords = wordsOf(ev.raw_range || "", 8);
-    if (dateWords.length >= 2 && /[a-zA-Z]{3,}/.test(dateWords.join(" "))) {
-      return dateWords.join(" ");
-    }
+    take(uniqueWords(wordsOf(it.title || "", 6).concat(wordsOf(it.organization || "", 6)), 6));
+    take(wordsOf(ev.raw_range || "", 8));
     var firstLine = ((ev.excerpt || "").split("\n").filter(function (l) { return l.trim(); })[0] || "");
-    var lineWords = wordsOf(firstLine, 8);
-    if (lineWords.length >= 3 && /[a-zA-Z]{3,}/.test(lineWords.join(" "))) {
-      return lineWords.join(" ");
-    }
-    return null;
+    take(wordsOf(firstLine, 8));
+    return out;
   }
 
-  function evidenceUrl(tabUrl, page, phrase) {
+  function fragmentPhrase(it) {
+    return fragmentPhrases(it)[0] || null;
+  }
+
+  function evidenceUrl(tabUrl, page, phrases) {
     // Force a real (re)load: same-document hash edits are ignored by the PDF
     // viewer, so a cache-busting query makes it process the fragment fresh.
-    // #page=N lands the viewer on the evidence page; :~:text= highlights
-    // when the words match. Existing query strings (signed URLs) are kept.
+    // #page=N lands the viewer on the evidence page; every :~:text= anchor
+    // is tried and the first match highlights. Existing query strings
+    // (signed URLs) are kept.
     var base = tabUrl.split("#")[0];
     var url = base + (base.indexOf("?") === -1 ? "?" : "&") + "evjump=" + Date.now() +
       (page ? "#page=" + page : "#");
-    if (phrase) url += ":~:text=" + encodeURIComponent(phrase);
+    (phrases || []).forEach(function (p, i) {
+      url += (i === 0 ? ":~:text=" : "&text=") + encodeURIComponent(p);
+    });
     return url;
   }
 
@@ -580,12 +587,12 @@
     return (ev.pages && ev.pages.length) ? (ev.pages[0] + 1) : null;
   }
 
-  function syncJump(cached, it, phrase, cb) {
+  function syncJump(cached, it, phrases, cb) {
     // Called synchronously inside the click: the text fragment survives only
     // on navigations tied to the user gesture.
     try {
       chrome.tabs.update(cached.id,
-        { url: evidenceUrl(cached.url, evidencePage(it), phrase) }, function () {
+        { url: evidenceUrl(cached.url, evidencePage(it), phrases) }, function () {
           if (chrome.runtime.lastError) return cb({ ok: false, reason: "not-found" });
           cb({ ok: true, via: "fragment", page: evidencePage(it) });
         });
@@ -607,13 +614,13 @@
   }
 
   function fragmentNavigate(tab, it, cb) {
-    var phrase = fragmentPhrase(it);
-    if (!tab.url || !/^https?:|^file:/i.test(tab.url)) {
+    var phrases = fragmentPhrases(it);
+    if (!tab.url || !/^https?:|^file:/i.test(tab.url) || !phrases.length) {
       return cb({ ok: false, reason: "not-found" });
     }
     var page = evidencePage(it);
     try {
-      chrome.tabs.update(tab.id, { url: evidenceUrl(tab.url, page, phrase) }, function () {
+      chrome.tabs.update(tab.id, { url: evidenceUrl(tab.url, page, phrases) }, function () {
         if (chrome.runtime.lastError) return cb({ ok: false, reason: "not-found" });
         cb({ ok: true, via: "fragment", page: page });
       });
