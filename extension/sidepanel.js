@@ -737,17 +737,17 @@
     var done = function (ok, viaPage) {
       if (ok) {
         if (li) markShowing(li);
-        announce(viaPage ? "Resume opened at the matching page." : "Showing in resume.");
+        announce(viaPage ? "Resume opened at the matching passage." : "Showing in resume.");
       } else if (ak.kind === "text" && ak.pages && ak.pages.length) {
         pageJump(ak.pages[0], function (ok2) {
           if (ok2) {
             if (li) markShowing(li);
-            announce("Resume opened at the matching page.");
+            announce("Resume opened at the matching passage.");
           } else {
             if (li) inlineMessage(li, "Couldn't locate this in the resume");
             announce("Couldn't locate this in the resume.");
           }
-        });
+        }, anchorQuote(it));
       } else {
         if (li) inlineMessage(li, "Couldn't locate this in the resume");
         announce("Couldn't locate this in the resume.");
@@ -756,10 +756,34 @@
     if (ak.kind === "text" && texts.length) {
       sendToTab(texts, done);
     } else if (ak.pages && ak.pages.length) {
-      pageJump(ak.pages[0], function (ok) { done(ok, true); });
+      pageJump(ak.pages[0], function (ok) { done(ok, true); }, anchorQuote(it));
     } else {
       done(false);
     }
+  }
+
+  /* Best exact-portion quote for a text fragment: cleaned words from the
+     evidence's own first substantial source line (closest to the viewer's
+     text layer — markdown/table artifacts stripped). Falls back to the date
+     range as written. */
+  function anchorQuote(it) {
+    var ev = it.evidence || {};
+    var ids = ev.line_ids || [];
+    for (var i = 0; i < ids.length; i++) {
+      var ln = state.linesById[ids[i]];
+      var t = ln && ln.display_text ? String(ln.display_text) : "";
+      var words = [];
+      if (typeof wordsOf === "function") {
+        words = wordsOf(t, 12);
+      } else {
+        words = t.replace(/\s+/g, " ").trim().split(" ").slice(0, 12);
+      }
+      if (words.length >= 3 && /[a-zA-Z]{3,}/.test(words.join(" "))) {
+        return words.join(" ");
+      }
+    }
+    if (ev.raw_range) return String(ev.raw_range).trim();
+    return null;
   }
 
   function sendToTab(texts, cb) {
@@ -799,14 +823,16 @@
     send(false);
   }
 
-  function pageJump(pageIndex, cb) {
+  function pageJump(pageIndex, cb, quote) {
     try {
       if (typeof chrome === "undefined" || !chrome.tabs) return cb(false);
       var tabId = (state.activeTab && state.activeTab.id != null) ? state.activeTab.id : null;
       var go = function (id, url) {
         if (url == null || !/^https?:|^file:/i.test(url)) return cb(false);
         var base = url.split("#")[0];
-        chrome.tabs.update(id, { url: base + "#page=" + (pageIndex + 1) }, function () {
+        var frag = "#page=" + (pageIndex + 1);
+        if (quote) frag += ":~:text=" + encodeURIComponent(quote);
+        chrome.tabs.update(id, { url: base + frag }, function () {
           cb(!(chrome.runtime.lastError));
         });
       };
