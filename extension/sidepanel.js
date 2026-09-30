@@ -613,10 +613,15 @@
   }
 
   function fragmentPhrases(it) {
+    // Every anchor rides along; the viewer highlights the first match, so a
+    // single mismatched phrase can't sink the jump. Header words first (one
+    // contiguous line in the PDF), then dates, excerpt line, and finally the
+    // longest rare word alone ("AACHIEVEMENTS", "EEDUCATION") — single words
+    // survive any punctuation the parser normalized away.
     var ev = it.evidence || {};
     var out = [];
-    function take(words) {
-      if (words.length >= 2 && /[a-zA-Z]{3,}/.test(words.join(" ")) && out.length < 3) {
+    function take(words, min) {
+      if (words.length >= (min || 2) && /[a-zA-Z]{3,}/.test(words.join(" ")) && out.length < 4) {
         var p = words.join(" ");
         if (out.indexOf(p) === -1) out.push(p);
       }
@@ -625,6 +630,11 @@
     take(wordsOf(ev.raw_range || "", 8));
     var firstLine = ((ev.excerpt || "").split("\n").filter(function (l) { return l.trim(); })[0] || "");
     take(wordsOf(firstLine, 8));
+    var rare = "";
+    wordsOf((it.title || "") + " " + (it.organization || ""), 12).forEach(function (w) {
+      if (/^[A-Za-z]{7,}$/.test(w) && w.length > rare.length) rare = w;
+    });
+    if (rare) take([rare], 1);
     return out;
   }
 
