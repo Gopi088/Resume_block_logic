@@ -398,14 +398,11 @@
         btn.disabled = false;
         btn.textContent = "View in Resume";
         status.hidden = false;
-        if (found) {
-          status.textContent = "Highlighted in the open resume tab.";
-        } else {
-          // Fallback only: show the exact source inline (panel stays minimal).
-          status.innerHTML = "Couldn’t reach the open tab — open the resume file in a tab first " +
-            "(for file:// URLs enable “Allow access to file URLs” on the extension card). " +
-            "Exact source:<br/>" + excerptHtml(ev);
-        }
+        // Nothing from the resume is rendered in the panel: the highlight
+        // lands in the open resume tab, period.
+        status.textContent = found
+          ? "Highlighted in the open resume tab."
+          : "Open the resume file in the active tab, then try again. (For file:// URLs, enable “Allow access to file URLs” on the extension card.)";
       });
     });
 
@@ -417,16 +414,13 @@
     return wrap;
   }
 
-  function excerptHtml(ev) {
-    var html = esc(ev.excerpt);
-    if (ev.raw_range) {
-      html = html.replace(esc(ev.raw_range), "<mark>" + esc(ev.raw_range) + "</mark>");
-    }
-    var meta = [];
-    if (ev.pages && ev.pages.length) meta.push("page " + ev.pages.map(function (p) { return p + 1; }).join(", "));
-    if (ev.start_line) meta.push(ev.start_line + (ev.end_line && ev.end_line !== ev.start_line ? "–" + ev.end_line : ""));
-    return '<span class="evidence">' + html +
-      '<span class="evidence-meta">Exact source · ' + esc(meta.join(" · ")) + "</span></span>";
+  function sendToTab(tabId, texts, cb) {
+    try {
+      chrome.tabs.sendMessage(tabId, { type: "HIGHLIGHT_RESUME_EVIDENCE", texts: texts }, function (resp) {
+        if (chrome.runtime.lastError) return cb(false);
+        cb(!!(resp && resp.found));
+      });
+    } catch (e) { cb(false); }
   }
 
   function highlightInOpenTab(it, cb) {
@@ -441,12 +435,13 @@
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         if (!tabs || !tabs[0] || tabs[0].id == null) return cb(false);
         var tabId = tabs[0].id;
-        // Inject the highlighter first (content scripts don't cover every tab),
-        // then ask it to jump to the exact passage — never page top.
-        chrome.scripting.executeScript({ target: { tabId: tabId }, files: ["content.js"] }, function () {
-          chrome.tabs.sendMessage(tabId, { type: "HIGHLIGHT_RESUME_EVIDENCE", texts: texts }, function (resp) {
+        // The highlighter may already be present (declared content script);
+        // otherwise inject it on demand, then jump to the exact passage.
+        sendToTab(tabId, texts, function (ok) {
+          if (ok) return cb(true);
+          chrome.scripting.executeScript({ target: { tabId: tabId }, files: ["content.js"] }, function () {
             if (chrome.runtime.lastError) return cb(false);
-            cb(!!(resp && resp.found));
+            sendToTab(tabId, texts, cb);
           });
         });
       });

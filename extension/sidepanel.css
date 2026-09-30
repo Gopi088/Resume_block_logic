@@ -75,10 +75,7 @@ body {
   background: none; border: 0; padding: 7px 10px; cursor: pointer; text-align: left; font: inherit; color: inherit;
 }
 .item-dates { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
-.item-title {
-  font-weight: 600; flex: 1; min-width: 0;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+.item-title { font-weight: 600; flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .chev { color: var(--muted); flex-shrink: 0; }
 
 .item-body { display: none; border-top: 1px solid var(--line); padding: 8px 10px 10px; }
@@ -86,14 +83,7 @@ body {
 .detail-row { margin: 2px 0; font-size: 12px; }
 .detail-row .k { color: var(--muted); }
 
-/* fallback excerpt: only shown when the open tab can't be highlighted */
-.evidence {
-  background: var(--wash); border: 1px solid var(--line);
-  border-radius: var(--radius); padding: 6px 8px; margin: 6px 0;
-  font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere;
-}
-.evidence mark { background: #fff3c4; padding: 0 1px; }
-.evidence-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+/* fallback status line only — resume text is never rendered in the panel */
 
 /* ---- the single resume review note (mandatory) ---- */
 #resumeReview {

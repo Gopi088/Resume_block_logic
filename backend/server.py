@@ -366,6 +366,10 @@ def _entry_title(text: str, org: str | None = None, raw_range: str | None = None
     seg = re.sub(r"^(company\s*-\s*)", "", seg, flags=re.I)
     seg = re.sub(r"^[^A-Za-z]+", "", seg).strip()
     seg = re.sub(r"\s+", " ", seg)
+    if org and len(seg) < len(org):
+        # A fragment shorter than the org line (e.g. "Bachelor of") hides the
+        # real content — the org line is the more complete label.
+        return _word_truncate(org, 80)
     if len(seg) >= 3:
         return _word_truncate(seg, 80)
     if org:

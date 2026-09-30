@@ -57,9 +57,10 @@ the extension). API contracts (`timeline`, `entries`, `entry_dates`,
   Notes POST to `/api/notes/{sha}` (item `resume`, kept in
   `backend/notes_store.json`) so every recruiter sees them; offline they stay
   on-device with an honest notice.
-- View in Resume highlights the exact passage in the open resume tab (content
-  script injected on demand — never page top). Only if the tab can't be reached
-  (e.g. PDF viewer, file URLs without permission) does a small exact-source
-  excerpt appear inline; the whole resume is never dumped into the panel.
+- View in Resume highlights the exact passage in the open resume tab (declared
+  content script for http/https + on-demand injection elsewhere — never page
+  top). Nothing from the resume is rendered in the panel; if the tab can't be
+  reached (PDF viewer limits, file URLs without permission), a one-line
+  instruction appears instead of an excerpt.
 - States: loading, empty, error/offline-backend, low-confidence hint,
   evidence-unavailable (gaps are derived absences — stated explicitly).
