@@ -142,8 +142,8 @@
         --ct-glow: rgba(59, 130, 246, 0.35);
         --ct-glow-hover: rgba(59, 130, 246, 0.5);
         --ct-badge-red: #EF4444;
-        --ct-size: 64px;
-        --ct-icon-size: 30px;
+        --ct-size: 72px;
+        --ct-icon-size: 34px;
         --ct-radius: 50%;
         --ct-transition: 180ms;
       }
