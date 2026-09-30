@@ -400,15 +400,13 @@
         status.hidden = false;
         // The button only ever highlights the open resume tab. Nothing from
         // the resume is rendered in the panel and no backend page is opened.
-        if (res.ok) {
+        if (res.ok && res.via === "fragment") {
+          status.textContent = "Jumped to the passage in the resume tab.";
+        } else if (res.ok) {
           status.textContent = "Highlighted in the open resume tab.";
-        } else if (res.reason === "pdf-viewer") {
-          status.textContent = "Chrome’s PDF viewer can’t be highlighted by any extension — " +
-            "open the resume as text or HTML to use this.";
         } else {
-          status.textContent = "Couldn’t find that passage in the active tab — " +
-            "open the resume file in a tab, then try again. " +
-            "(For file:// URLs, reload the tab after enabling “Allow access to file URLs”.)";
+          status.textContent = "That passage isn’t in the active tab. " +
+            "Click Parse resume and upload the file that’s open, then try again.";
         }
       });
     });
@@ -456,14 +454,36 @@
         var tab = tabs[0];
         sendToTab(tab.id, texts, function (ok) {
           if (ok) return cb({ ok: true });
-          cb({ ok: false, reason: looksLikePdf(tab.url) ? "pdf-viewer" : "not-found" });
+          // Scripting failed (PDF viewer blocks all extensions) or the text
+          // isn't in this tab: jump via a text fragment in the same tab.
+          fragmentNavigate(tab, it, cb);
         });
       });
     } catch (e) { cb({ ok: false, reason: "error" }); }
   }
 
-  function looksLikePdf(url) {
-    return !!url && /\.pdf([?#]|$)/i.test(url);
+  function fragmentPhrase(it) {
+    // First ~8 words of the evidence's first line — stable anchor text the
+    // browser can find, including inside Chrome's PDF viewer.
+    var ev = it.evidence || {};
+    var firstLine = ((ev.excerpt || "").split("\n").filter(function (l) { return l.trim(); })[0] || "");
+    var words = firstLine.replace(/[*_|#>`]/g, " ").split(/\s+/).filter(Boolean).slice(0, 8);
+    if (words.length < 3 || !/[a-zA-Z]{3,}/.test(words.join(" "))) return null;
+    return words.join(" ");
+  }
+
+  function fragmentNavigate(tab, it, cb) {
+    var phrase = fragmentPhrase(it);
+    if (!phrase || !tab.url || !/^https?:|^file:/i.test(tab.url)) {
+      return cb({ ok: false, reason: "not-found" });
+    }
+    var url = tab.url.split("#")[0] + "#:~:text=" + encodeURIComponent(phrase);
+    try {
+      chrome.tabs.update(tab.id, { url: url }, function () {
+        if (chrome.runtime.lastError) return cb({ ok: false, reason: "not-found" });
+        cb({ ok: true, via: "fragment" });
+      });
+    } catch (e) { cb({ ok: false, reason: "not-found" }); }
   }
 
   /* ---------------- helpers ---------------- */
