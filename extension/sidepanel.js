@@ -351,16 +351,24 @@
       var li = document.createElement("li");
       li.innerHTML = esc(state.note.note) +
         '<div class="by">Reviewed · ' + esc(fmtTime(state.note.at)) + "</div>";
+      // Revisions are explicit: the box stays empty for the next recruiter
+      // unless someone taps Edit on the saved record.
+      var edit = document.createElement("button");
+      edit.className = "link-btn";
+      edit.textContent = "Edit";
+      edit.title = "Load this note into the box to revise it";
+      edit.addEventListener("click", function () {
+        el.resumeNote.value = state.note ? state.note.note : "";
+        el.resumeNoteError.hidden = true;
+        el.resumeNote.focus();
+      });
+      li.appendChild(edit);
       el.savedNotes.appendChild(li);
       el.actionNote.textContent = "✓ Reviewed";
       el.actionNote.className = "action-note done";
       el.markReviewedBtn.className = "btn done";
       el.markReviewedBtn.textContent = "✓ Update review";
-      // Update opens the previous note for editing — never an empty box.
-      // (Guarded so typing is never overwritten by a re-render.)
-      if (el.resumeNote.value !== state.note.note) {
-        el.resumeNote.value = state.note.note;
-      }
+      el.resumeNote.value = "";
     } else {
       el.actionNote.textContent = "⚠ Resume needs review";
       el.actionNote.className = "action-note todo";
