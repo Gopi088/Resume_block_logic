@@ -604,22 +604,11 @@
       return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
     });
 
-    // Uncertainty: one signal. Dots below 30%, a single notice line at/above.
-    var rowCount = kept.length + eduItems.length;
-    var uncertainCount = kept.filter(function (k) { return k.uncertain; }).length +
-      eduItems.filter(function (e) {
+    // Uncertainty: a small amber dot on uncertain rows.
+    var showDots = kept.some(function (k) { return k.uncertain; }) ||
+      eduItems.some(function (e) {
         return Number(e.confidence) < T.CONF_MEDIUM || precFor(e).inferred;
-      }).length;
-    var showDots = uncertainCount > 0 && uncertainCount / Math.max(1, rowCount) < 0.3;
-    var oldNotice = document.getElementById("timelineNotice");
-    if (oldNotice) oldNotice.parentNode.removeChild(oldNotice);
-    if (uncertainCount > 0 && !showDots) {
-      var notice = document.createElement("p");
-      notice.id = "timelineNotice";
-      notice.className = "muted";
-      notice.textContent = "Some details couldn't be read clearly. Check against the resume.";
-      el.timeline.parentNode.insertBefore(notice, el.timeline);
-    }
+      });
     kept.forEach(function (k) {
       if (k.uncertain) state.flaggedIds.push("row-" + k.ev.entry_id);
     });
