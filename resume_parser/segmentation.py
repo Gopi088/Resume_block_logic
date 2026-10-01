@@ -60,6 +60,18 @@ from .models import (
 
 # Display cleaning --------------------------------------------------------------
 
+# Private-use characters commonly used as bullet markers in PDF extraction
+_BULLET_PUA_CHARS = {
+    "\uf0b7",  # ● (common bullet)
+    "\uf0a7",  # ▪
+    "\uf020",  # another bullet variant
+    "\u2022",  # • (standard bullet, but sometimes in PUA)
+    "\u25cf",  # ●
+    "\u25aa",  # ▪
+    "\u25e6",  # ◦
+    "\u2043",  # ⁃
+}
+
 def display_text(raw_normalized: str) -> str:
     """Display-only cleanup: drop control/format/private-use chars (PDF icon
     fonts, form-feeds). Internal spacing and punctuation are preserved."""
@@ -70,7 +82,26 @@ def display_text(raw_normalized: str) -> str:
     return out.rstrip(" \t")
 
 
+def _is_bullet_marker_only(text: str) -> bool:
+    """Check if text consists only of bullet-like private-use characters (and whitespace).
+    
+    These are structural bullet markers from PDF extraction, not blank lines.
+    """
+    stripped = text.strip()
+    if not stripped:
+        return False
+    # All non-whitespace chars must be known bullet PUA chars
+    return all(ch in _BULLET_PUA_CHARS or ch.isspace() for ch in stripped)
+
+
 def is_display_blank(normalized: str) -> bool:
+    """Check if a line is blank for display purposes.
+    
+    Lines that are only bullet markers (private-use bullet chars) are NOT blank -
+    they are structural bullet indicators.
+    """
+    if _is_bullet_marker_only(normalized):
+        return False
     return display_text(normalized).strip() == ""
 
 
