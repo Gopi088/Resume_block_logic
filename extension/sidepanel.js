@@ -42,6 +42,8 @@
     name: document.getElementById("candName"),
     snapRole: document.getElementById("snapRole"),
     snapTotals: document.getElementById("snapTotals"),
+    attentionCard: document.getElementById("attentionCard"),
+    attentionList: document.getElementById("attentionList"),
     timelineToggle: document.getElementById("timelineToggle"),
     timelineToggleLabel: document.getElementById("timelineToggleLabel"),
     timelineChev: document.getElementById("timelineChev"),
@@ -658,12 +660,58 @@
     el.otherCount.textContent = other.length ? "· " + other.length : "";
     other.forEach(function (o) { el.otherList.appendChild(renderOtherRow(o)); });
 
+    renderAttention(r.gaps || [], other, r.undated || []);
+
     var hasContent = kept.length || eduItems.length || other.length;
     el.empty.hidden = !!hasContent;
     if (!hasContent) {
       el.snapshot.hidden = true;
       el.timelineWrap.hidden = true;
     }
+  }
+
+  function renderAttention(gaps, other, undated) {
+    // Visible card above the timeline button: unidentified gaps and
+    // sections the timeline couldn't place. Display only, no actions.
+    el.attentionList.innerHTML = "";
+    function addRow(main, sub) {
+      var li = document.createElement("li");
+      li.className = "attention-row";
+      var m = document.createElement("span");
+      m.className = "attention-main";
+      m.textContent = main;
+      li.appendChild(m);
+      if (sub) {
+        var s = document.createElement("span");
+        s.className = "attention-sub muted";
+        s.textContent = sub;
+        li.appendChild(s);
+      }
+      el.attentionList.appendChild(li);
+    }
+    (gaps || []).forEach(function (g) {
+      var m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      function ym(s) {
+        s = String(s || "").slice(0, 7);
+        if (!/^\d{4}-\d{2}$/.test(s)) return String(s || "");
+        return m[parseInt(s.slice(5, 7), 10) - 1] + " " + s.slice(0, 4);
+      }
+      var months = g.months != null ? g.months
+        : (g.gap_months_approx != null ? Math.round(g.gap_months_approx) : 0);
+      addRow("Gap · " + T.durationWords(months),
+        ym(g.startYm || g.start_date) + " – " + ym(g.endYm || g.end_date));
+    });
+    (other || []).forEach(function (o) {
+      var ev = o.ev || {};
+      addRow(ev.raw_range || T.fmtRange(ev, precFor(ev)).text, "Unclear entry");
+    });
+    (undated || []).forEach(function (u) {
+      if (!u || u.section === "contact") return;
+      var t = (u.title || "").trim();
+      addRow(t || "Unclear entry", t ? null : "No dates found");
+    });
+    el.attentionCard.hidden = el.attentionList.children.length === 0;
   }
 
   function rowIdFor(it) {
