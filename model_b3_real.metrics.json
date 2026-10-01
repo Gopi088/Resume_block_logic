@@ -1,0 +1,487 @@
+{
+ "run": 2,
+ "best_config": [
+  2.0,
+  1,
+  5000
+ ],
+ "splits": {
+  "train": [
+   "A A Ashwini",
+   "A A Ashwini_1",
+   "A Fairoz",
+   "A Lokhande",
+   "A Madhavi",
+   "AakritiAggarwal",
+   "Aarunis",
+   "AbdulkadarBohari",
+   "_Jagat Khulbe",
+   "_Jayesh Yadav-CV",
+   "_LikithRaju - Copy",
+   "_ManjunathMurugan_1",
+   "_Rachana",
+   "_SURESHBABUS"
+  ],
+  "val": [
+   "A Suribhotla",
+   "_Levi Arbole",
+   "_ShaikSuhana"
+  ],
+  "test": [
+   "A.Bhargava",
+   "Aadarsh",
+   "Abdul Shukoor"
+  ]
+ },
+ "new_test": {
+  "eval_accuracy": 0.4166666666666667,
+  "eval_macro_precision": 0.6414965986394557,
+  "eval_macro_recall": 0.5333333333333333,
+  "eval_macro_f1": 0.44841991341991344,
+  "eval_per_class": {
+   "awards": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 2
+   },
+   "certifications": {
+    "precision": 1.0,
+    "recall": 0.6666666666666666,
+    "f1": 0.8,
+    "support": 3
+   },
+   "education": {
+    "precision": 0.8,
+    "recall": 0.6666666666666666,
+    "f1": 0.7272727272727273,
+    "support": 6
+   },
+   "experience": {
+    "precision": 0.19047619047619047,
+    "recall": 1.0,
+    "f1": 0.32,
+    "support": 4
+   },
+   "languages": {
+    "precision": 1.0,
+    "recall": 0.3333333333333333,
+    "f1": 0.5,
+    "support": 3
+   },
+   "projects": {
+    "precision": 1.0,
+    "recall": 0.06666666666666667,
+    "f1": 0.125,
+    "support": 15
+   },
+   "skills": {
+    "precision": 0.5,
+    "recall": 1.0,
+    "f1": 0.6666666666666666,
+    "support": 3
+   }
+  },
+  "eval_confusion_matrix": {
+   "labels": [
+    "awards",
+    "certifications",
+    "education",
+    "experience",
+    "languages",
+    "projects",
+    "skills"
+   ],
+   "matrix": [
+    [
+     0,
+     0,
+     0,
+     2,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     2,
+     1,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     4,
+     2,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     4,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     1,
+     1,
+     0,
+     1
+    ],
+    [
+     0,
+     0,
+     0,
+     12,
+     0,
+     1,
+     2
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     3
+    ]
+   ]
+  }
+ },
+ "old_test": {
+  "eval_accuracy": 0.25,
+  "eval_macro_precision": 0.2424242424242424,
+  "eval_macro_recall": 0.17878787878787877,
+  "eval_macro_f1": 0.18686868686868685,
+  "eval_per_class": {
+   "awards": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 2
+   },
+   "certifications": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 3
+   },
+   "education": {
+    "precision": 1.0,
+    "recall": 0.3333333333333333,
+    "f1": 0.5,
+    "support": 6
+   },
+   "experience": {
+    "precision": 0.6666666666666666,
+    "recall": 0.5,
+    "f1": 0.5714285714285714,
+    "support": 4
+   },
+   "languages": {
+    "precision": 0.5,
+    "recall": 0.6666666666666666,
+    "f1": 0.5714285714285714,
+    "support": 3
+   },
+   "other": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 0
+   },
+   "projects": {
+    "precision": 0.3333333333333333,
+    "recall": 0.13333333333333333,
+    "f1": 0.19047619047619047,
+    "support": 15
+   },
+   "publications": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 0
+   },
+   "skills": {
+    "precision": 0.16666666666666666,
+    "recall": 0.3333333333333333,
+    "f1": 0.2222222222222222,
+    "support": 3
+   },
+   "summary": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 0
+   },
+   "volunteering": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 0
+   }
+  },
+  "eval_confusion_matrix": {
+   "labels": [
+    "awards",
+    "certifications",
+    "education",
+    "experience",
+    "languages",
+    "other",
+    "projects",
+    "publications",
+    "skills",
+    "summary",
+    "volunteering"
+   ],
+   "matrix": [
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     1,
+     1,
+     0
+    ],
+    [
+     0,
+     0,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     0,
+     0,
+     2,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     2,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     2,
+     0,
+     1,
+     0,
+     1,
+     2,
+     1,
+     4,
+     4,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   ]
+  }
+ },
+ "val_metrics": {
+  "eval_accuracy": 0.6818181818181818,
+  "eval_macro_precision": 0.7682539682539682,
+  "eval_macro_recall": 0.7121212121212122,
+  "eval_macro_f1": 0.7260606060606062,
+  "eval_per_class": {
+   "education": {
+    "precision": 0.6666666666666666,
+    "recall": 0.6666666666666666,
+    "f1": 0.6666666666666666,
+    "support": 3
+   },
+   "experience": {
+    "precision": 0.8888888888888888,
+    "recall": 0.7272727272727273,
+    "f1": 0.8,
+    "support": 11
+   },
+   "projects": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "support": 1
+   },
+   "skills": {
+    "precision": 0.2857142857142857,
+    "recall": 0.5,
+    "f1": 0.36363636363636365,
+    "support": 4
+   },
+   "summary": {
+    "precision": 1.0,
+    "recall": 0.6666666666666666,
+    "f1": 0.8,
+    "support": 3
+   }
+  },
+  "eval_confusion_matrix": {
+   "labels": [
+    "education",
+    "experience",
+    "projects",
+    "skills",
+    "summary"
+   ],
+   "matrix": [
+    [
+     2,
+     0,
+     0,
+     1,
+     0
+    ],
+    [
+     0,
+     8,
+     0,
+     3,
+     0
+    ],
+    [
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     1,
+     1,
+     0,
+     2,
+     0
+    ],
+    [
+     0,
+     0,
+     0,
+     1,
+     2
+    ]
+   ]
+  }
+ },
+ "coverage": {
+  "blocks": 40,
+  "missing": 0,
+  "low_conf": 38,
+  "other_unknown": 0,
+  "b4_escalated": 38
+ }
+}

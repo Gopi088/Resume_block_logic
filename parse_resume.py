@@ -12,7 +12,7 @@ validation when a model is supplied) -> B5 LLM fallback for escalated blocks (--
 Usage:
     python parse_resume.py <resume-path> [--compact] [--eval] [--no-text] [--blocks-only]
                            [--model MODEL_PATH] [--min-confidence X] [--min-margin Y]
-                           [--llm anthropic] [--llm-model MODEL_ID]
+                           [--llm {anthropic,nvidia}] [--llm-model MODEL_ID]
 
 Usage:
     python parse_resume.py <resume-path> [--compact] [--eval] [--no-text] [--blocks-only]
@@ -26,18 +26,30 @@ Usage:
     --model        Path to trained B3 classifier model (.pkl)
     --min-confidence B4 confidence floor (default 0.5)
     --min-margin   B4 top1-top2 margin floor (default 0.15)
-    --llm          B5 provider for escalated blocks (currently: anthropic).
-                   Requires --model. Needs e.g. ANTHROPIC_API_KEY in env.
-    --llm-model    B5 model id (default claude-haiku-4-5-20251001)
+    --llm          B5 provider for escalated blocks: anthropic or nvidia.
+                   Requires OPENROUTER_API_KEY / ANTHROPIC_API_KEY or NVIDIA_API_KEY.
+    --llm-model    B5 model id (OpenRouter defaults to anthropic/claude-haiku-4.5)
 
 stdout is always pure JSON (pipe-safe). Exit code is 0 on success, 1 on failure.
 """
 
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
+# Auto-re-exec inside project venv if running with system Python lacking dependencies
+_venv_py = Path(__file__).resolve().parent / "venv" / "bin" / "python"
+if _venv_py.exists() and sys.executable != str(_venv_py):
+    try:
+        import numpy
+        import sklearn
+    except ImportError:
+        os.execv(str(_venv_py), [str(_venv_py)] + sys.argv)
+
 import argparse
 import json
-import sys
 
 from resume_parser.classification import SectionClassifier, classify_blocks
 from resume_parser.conversion import convert_file
@@ -49,7 +61,7 @@ from resume_parser.evaluation import evaluate_document
 from resume_parser.final_sections import build_final_sections
 from resume_parser.models import LLMConfig, ValidationPolicy
 from resume_parser.normalization import normalize_document
-from resume_parser.resolution import AnthropicLLMClient, resolve_escalated
+from resume_parser.resolution import AnthropicLLMClient, NvidiaNIMLLMClient, OpenRouterLLMClient, resolve_escalated
 from resume_parser.segmentation import display_text, paginate, segment_document
 from resume_parser.validation import validate_classification
 
@@ -57,16 +69,28 @@ from resume_parser.validation import validate_classification
 def _run_llm_fallback(seg, val_result, provider: str, model: str | None):
     """B5 provider dispatch. Unknown providers and missing credentials raise
     actionably (caught by the caller into llm_error, never a silent skip)."""
-    if provider != "anthropic":
-        raise RuntimeError(f"unknown B5 provider {provider!r} (supported: anthropic)")
-    cfg = LLMConfig(model=model) if model else LLMConfig()
-    return resolve_escalated(seg, val_result, AnthropicLLMClient(cfg), cfg)
+    if provider not in {"anthropic", "nvidia", "openrouter"}:
+        raise RuntimeError(f"unknown B5 provider {provider!r} (supported: anthropic, nvidia, openrouter)")
+    if provider == "nvidia":
+        default_model = NvidiaNIMLLMClient.DEFAULT_MODEL
+        cfg = LLMConfig(model=model or default_model, provider=provider)
+        client = NvidiaNIMLLMClient(cfg)
+    elif provider == "openrouter":
+        default_model = OpenRouterLLMClient.DEFAULT_MODEL
+        cfg = LLMConfig(model=model or default_model, provider=provider)
+        client = OpenRouterLLMClient(cfg)
+    else:
+        default_model = LLMConfig().model
+        cfg = LLMConfig(model=model or default_model, provider=provider)
+        client = AnthropicLLMClient(cfg)
+    return resolve_escalated(seg, val_result, client, cfg)
 
 
 def build_output(path: str, include_eval: bool, include_text: bool,
                  blocks_only: bool, model_path: str | None = None,
                  min_confidence: float = 0.5, min_margin: float = 0.15,
-                 llm_provider: str | None = None, llm_model: str | None = None) -> dict:
+                 llm_provider: str | None = None, llm_model: str | None = None,
+                 llm_verify_all: bool = False) -> dict:
     converted = convert_file(path)          # B0: MarkItDown, typed errors on failure
     doc = normalize_document(converted)     # B1: conservative normalization
     seg = segment_document(doc)             # B2: structural candidate blocks
@@ -104,7 +128,8 @@ def build_output(path: str, include_eval: bool, include_text: bool,
             out["classification"] = cls_result.model_dump()
             out["integrity_b3"] = cls_result.integrity.model_dump()
             policy = ValidationPolicy(confidence_threshold=min_confidence,
-                                      margin_threshold=min_margin)
+                                      margin_threshold=min_margin,
+                                      llm_verify_all=llm_verify_all)
             val_result = validate_classification(seg, cls_result, policy)
             out["validation"] = val_result.model_dump()
             out["integrity_b4"] = val_result.integrity.model_dump()
@@ -167,21 +192,39 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--eval", action="store_true", help="Include evaluation summary")
     ap.add_argument("--no-text", action="store_true", help="Omit full text blobs")
     ap.add_argument("--blocks-only", action="store_true", help="Omit per-line appendix")
-    ap.add_argument("--model", type=str, help="Path to trained B3 classifier model (.pkl)")
+    default_model = str(Path(__file__).resolve().parent / "model_b3_real.pkl")
+    ap.add_argument("--model", type=str, default=default_model if Path(default_model).exists() else None,
+                    help="Path to trained B3 classifier model (.pkl)")
     ap.add_argument("--min-confidence", type=float, default=0.5,
                     help="B4 confidence floor (default 0.5)")
     ap.add_argument("--min-margin", type=float, default=0.15,
                     help="B4 top1-top2 margin floor (default 0.15)")
-    ap.add_argument("--llm", type=str, default=None,
-                    help="B5 provider for escalated blocks (currently: anthropic)")
+    ap.add_argument("--llm", choices=["anthropic", "nvidia", "openrouter"], default=None,
+                    help="B5 provider for escalated blocks: Anthropic, NVIDIA NIM, or OpenRouter")
     ap.add_argument("--llm-model", type=str, default=None,
-                    help="B5 model id (default from LLMConfig)")
+                    help="B5 model id (NVIDIA default: nvidia/nemotron-3-ultra-550b-a55b, OpenRouter default: nvidia/nemotron-3-ultra-550b-a55b)")
+    ap.add_argument("--verify-all", action="store_true",
+                    help="Send every block to B5 for LLM verification (requires --llm)")
     a = ap.parse_args(argv)
+    if not a.llm:
+        if os.environ.get("NVIDIA_API_KEY"):
+            a.llm = "nvidia"
+        elif os.environ.get("OPENROUTER_API_KEY"):
+            a.llm = "openrouter"
+        elif os.environ.get("ANTHROPIC_API_KEY"):
+            a.llm = "anthropic"
+
+    if a.llm and not a.llm_model:
+        if a.llm == "nvidia" or a.llm == "openrouter":
+            a.llm_model = "nvidia/nemotron-3-ultra-550b-a55b"
+
+    verify_all = a.verify_all or bool(a.llm)
     try:
         out = build_output(a.resume, include_eval=a.eval, include_text=not a.no_text,
                            blocks_only=a.blocks_only, model_path=a.model,
                            min_confidence=a.min_confidence, min_margin=a.min_margin,
-                           llm_provider=a.llm, llm_model=a.llm_model)
+                           llm_provider=a.llm, llm_model=a.llm_model,
+                           llm_verify_all=a.verify_all)
     except PipelineError as e:
         sys.stdout.write(json.dumps({"ok": False, "error": {"code": e.code, "message": e.message,
                                                               "detail": e.detail}}, indent=2) + "\n")

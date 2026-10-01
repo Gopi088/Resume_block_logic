@@ -287,9 +287,12 @@ class BlockClassification(BaseModel):
     source_line_ids: list[str]  # B1 line IDs this classification covers
     start_line_index: int
     end_line_index: int
-    # For mixed blocks: individual semantic spans (optional, for future B3 enhancement)
+    # B3 inferred semantic spans; empty only for legacy/imported classifications.
     semantic_spans: list["SemanticSpan"] = Field(default_factory=list)
     classification_status: str = "classified"  # classified, low_confidence, mixed, boilerplate_excluded
+    cosine_similarity: float | None = None
+    matches_schema: bool | None = None
+    schema_section: str | None = None
 
 
 class SemanticSpan(BaseModel):
@@ -304,13 +307,18 @@ class SemanticSpan(BaseModel):
     start_line_index: int
     end_line_index: int
     section: SectionLabel
-    confidence: float = Field(ge=0.0, le=1.0)
+    confidence: float = Field(ge=0.0, le=1.0)  # raw B3 predict_proba for section
     text: str  # The actual text content of this span
+    source_line_ids: list[str] = Field(default_factory=list)
+    feature_context: list[str] = Field(default_factory=list)
+    semantic_name: str | None = None
+    cosine_similarity: float | None = None
+    matches_schema: bool | None = None
 
 
 class ClassificationResult(BaseModel):
     """B3 output: semantic classifications for all candidate blocks."""
-    model_config = {"frozen": True}
+    model_config = {"frozen": True, "protected_namespaces": ()}
     
     document_id: str
     classifications: list[BlockClassification]
@@ -346,6 +354,7 @@ class ValidationPolicy(BaseModel):
 
     confidence_threshold: float = Field(default=0.5, ge=0.0, le=1.0)
     margin_threshold: float = Field(default=0.15, ge=0.0, le=1.0)
+    llm_verify_all: bool = False
     # Sections expected at most once per resume (document knowledge, not a
     # classifier). Repeats are escalated, never relabelled.
     singleton_sections: tuple[SectionLabel, ...] = (
@@ -406,11 +415,23 @@ class LLMConfig(BaseModel):
     provider: str = "anthropic"
     model: str = "claude-haiku-4-5-20251001"
     max_tokens: int = Field(default=2000, gt=0)
-    timeout_seconds: float = Field(default=60.0, gt=0)
+    timeout_seconds: float = Field(default=120.0, gt=0)
+    transport_retries: int = Field(default=2, ge=0, le=5)
     # Safety cap: at most this many escalated blocks per document per call.
     # Excess blocks stay explicitly unresolved, never silently dropped.
     max_escalated_blocks: int = Field(default=100, gt=0)
     prompt_version: str = "1.0"
+
+
+class SemanticSpanResolution(BaseModel):
+    """B5 verification of a single B3 semantic span."""
+    model_config = {"frozen": True}
+
+    start_line_id: str
+    end_line_id: str
+    section: SectionLabel
+    confidence: float = Field(ge=0.0, le=1.0)
+    reason: str = ""
 
 
 class BlockResolution(BaseModel):
@@ -429,6 +450,7 @@ class BlockResolution(BaseModel):
     b4_reasons: list[str] = Field(default_factory=list)  # why it was escalated
     model: str = ""
     prompt_version: str = "1.0"
+    span_resolutions: list[SemanticSpanResolution] = Field(default_factory=list)
 
 
 class LLMResolutionResult(BaseModel):
@@ -498,6 +520,8 @@ class FinalBlockSection(BaseModel):
     start_line_index: int
     end_line_index: int
     text: str  # B2 block display text, verbatim
+    semantic_spans: list[SemanticSpan] = Field(default_factory=list)
+    span_resolutions: list[SemanticSpanResolution] = Field(default_factory=list)
 
 
 class FinalSectionOutput(BaseModel):

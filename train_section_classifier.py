@@ -29,14 +29,18 @@ from resume_parser.segmentation import segment_document
 
 
 def load_segmentation_results(seg_dir: Path) -> dict[str, any]:
-    """Load SegmentationResult objects from JSON files in a directory."""
+    """Load SegmentationResult objects from JSON files in a directory.
+
+    Files are expected to be SegmentationResult.model_dump_json() output
+    keyed by filename stem == document_id.
+    """
+    from resume_parser.models import SegmentationResult
+
     results = {}
     for json_file in seg_dir.glob("*.json"):
-        with open(json_file) as f:
-            data = json.load(f)
-        # Reconstruct SegmentationResult (simplified - in production use proper deserialization)
-        # For now, we'll use the bootstrap dataset
-        pass
+        data = json.loads(json_file.read_text(encoding="utf-8"))
+        seg = SegmentationResult.model_validate(data)
+        results[seg.document_id] = seg
     return results
 
 
@@ -112,6 +116,10 @@ def main(argv: list[str] | None = None) -> int:
         dataset,
         tfidf_params=tfidf_params,
         lr_params=lr_params,
+        train_ratio=a.train_ratio,
+        val_ratio=a.val_ratio,
+        test_ratio=a.test_ratio,
+        seed=a.seed,
     )
     
     # Save model

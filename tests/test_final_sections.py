@@ -95,7 +95,7 @@ def test_accepted_blocks_trusted_with_ml_label():
     assert final.trust_rate == 1.0
 
 
-def test_resolved_blocks_take_llm_label():
+def test_llm_disagreement_is_reported_and_does_not_overwrite_ml():
     _, seg = _chain(MULTI)
     assert len(seg.blocks) >= 2
     cls = _fake_cls(seg, [_spec(SectionLabel.EXPERIENCE, 0.9, [(SectionLabel.SKILLS, 0.05)])
@@ -110,12 +110,27 @@ def test_resolved_blocks_take_llm_label():
     final = build_final_sections(seg, cls, val, llm)
     assert final.integrity.passed, final.integrity.violations
     s = final.get_section(bid)
-    assert s.source == FinalSource.LLM_RESOLVED and s.trusted
-    assert s.final_section == SectionLabel.PROJECTS and s.confidence == 0.9
-    assert s.ml_section == SectionLabel.SKILLS  # ML signal preserved alongside
-    assert s.llm_reason == "built things"
+    assert s.source == FinalSource.ML_UNRESOLVED and not s.trusted
+    assert s.final_section == SectionLabel.SKILLS
+    assert s.ml_section == SectionLabel.SKILLS
+    assert s.llm_reason == "llm_conflicts_with_ml_preserved_unresolved"
     assert final.get_section(seg.blocks[0].block_id).source == FinalSource.ML_ACCEPTED
 
+
+
+def test_llm_agreement_can_verify_low_confidence_ml():
+    _, seg = _chain(MULTI)
+    cls = _fake_cls(seg, [_spec(SectionLabel.EXPERIENCE, 0.9, [(SectionLabel.SKILLS, 0.05)])
+                          if i != 1 else
+                          _spec(SectionLabel.SKILLS, 0.3, [(SectionLabel.PROJECTS, 0.1)])
+                          for i in range(len(seg.blocks))])
+    val = validate_classification(seg, cls)
+    bid = seg.blocks[1].block_id
+    llm = _resolve(seg, val, {bid: {"section": "skills", "confidence": 0.9, "reason": "same label"}})
+    final = build_final_sections(seg, cls, val, llm)
+    section = final.get_section(bid)
+    assert section.source == FinalSource.LLM_RESOLVED and section.trusted
+    assert section.final_section == SectionLabel.SKILLS
 
 def test_unresolved_without_llm_keeps_ml_untrusted():
     _, seg = _chain(MULTI)
@@ -237,7 +252,7 @@ def test_merge_tamper_detected():
     tampered2 = [s.model_copy(update={"final_section": SectionLabel.OTHER}) if s.block_id == bid else s
                  for s in good.sections]
     rep2 = build_final_integrity(seg, cls, val, llm, tampered2)
-    assert not rep2.passed and any("llm_resolved final" in v for v in rep2.violations)
+    assert not rep2.passed and any("ml_unresolved final" in v for v in rep2.violations)
 
 
 def test_trusted_flag_consistency():

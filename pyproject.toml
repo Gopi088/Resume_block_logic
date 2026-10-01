@@ -3,7 +3,7 @@ name = "resume-timeline-parser-backend"
 version = "0.1.0"
 description = "Resume Timeline Parser backend: B0 conversion + B1 normalization"
 requires-python = ">=3.11"
-dependencies = ["markitdown[all]", "pydantic>=2.0"]
+dependencies = ["markitdown[all]", "pydantic>=2.0", "numpy", "scikit-learn"]
 
 [project.optional-dependencies]
 dev = ["pytest"]

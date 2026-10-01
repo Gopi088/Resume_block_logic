@@ -30,7 +30,7 @@ from resume_parser.classification import (
     train_section_classifier,
 )
 from resume_parser.conversion import convert_bytes
-from resume_parser.models import SECTION_LABELS, SectionLabel
+from resume_parser.models import AlternativePrediction, SECTION_LABELS, SectionLabel
 from resume_parser.normalization import normalize_document
 from resume_parser.segmentation import segment_document
 from train_section_classifier import main as train_cli
@@ -326,6 +326,55 @@ def test_unknown_other_taxonomy_and_status_invariant(trained):
             assert c.predicted_section in SectionLabel
 
 
+
+def test_b3_splits_headingless_summary_to_experience_with_exact_coverage():
+    from resume_parser.classification import classify_blocks
+    text = ("SUMMARY\nExperienced business analyst with more than eight years of IT delivery experience.\n"
+            "Senior Business Analyst - Wealth\nTata Consultancy Services\n"
+            "02/2024 – 08/2025\nSydney, NSW, Australia\n"
+            "Served as key analyst coordinating requirements with developers and stakeholders.\n")
+    _, seg = _chain(text)
+    assert len(seg.blocks) == 1  # B2 remains structural; it does not assign sections.
+
+    class ContextProbe:
+        pipeline = True
+        metadata = {}
+        def predict(self, texts, return_alternatives=3):
+            out = []
+            for value in texts:
+                if "work experience employment history" in value:
+                    out.append((SectionLabel.EXPERIENCE, 0.72,
+                                [AlternativePrediction(section=SectionLabel.SUMMARY, confidence=0.12)]))
+                else:
+                    out.append((SectionLabel.SUMMARY, 0.81,
+                                [AlternativePrediction(section=SectionLabel.EXPERIENCE, confidence=0.09)]))
+            return out
+
+    result = classify_blocks(seg, ContextProbe())
+    spans = result.classifications[0].semantic_spans
+    assert [span.section for span in spans] == [SectionLabel.SUMMARY, SectionLabel.EXPERIENCE]
+    assert "Senior Business Analyst - Wealth" not in spans[0].text
+    assert "Senior Business Analyst - Wealth" in spans[1].text
+    assert spans[1].feature_context  # generic employment evidence was supplied to B3.
+    assigned = [line for span in spans for line in span.source_line_ids]
+    assert assigned == seg.blocks[0].line_ids
+    assert len(assigned) == len(set(assigned))
+    assert result.integrity.checks["semantic_spans_cover_each_block_exactly_once"]
+
+
+def test_explicit_technical_skills_heading_uses_ml_and_real_probability(trained):
+    from resume_parser.classification import classify_blocks
+    text = ("TECHNICAL SKILLS\nProduct Management: Roadmap Ownership, Backlog Prioritization\n"
+            "Tools & Technologies: JIRA, SQL, Power BI, Excel\n")
+    _, seg = _chain(text)
+    result = classify_blocks(seg, trained[0])
+    span = result.classifications[0].semantic_spans[0]
+    assert span.section == SectionLabel.SKILLS
+    assert span.semantic_name == "TECHNICAL_SKILLS"
+    assert "technical skills" in span.feature_context
+    assert 0.0 <= span.confidence <= 1.0
+    assert span.source_line_ids == seg.blocks[0].line_ids
+
 def test_rare_unseen_vocabulary_no_crash(trained):
     clf, _, _ = trained
     s, c, alts = clf.predict_single("Xylophone quantum zebrafish antidisestablishmentarianism floccinaucinihilipilification")
@@ -362,16 +411,20 @@ def test_no_heading_resume():
     assert res.integrity.passed
 
 
-def test_mixed_candidate_block_baseline_documented():
-    """v1 assigns ONE block-level label (documented baseline). The model must
-    support spans (semantic_spans field) for future span detection."""
+def test_mixed_candidate_block_emits_provenance_spans():
+    """B2 stays structural while B3 preserves intra-block semantic spans."""
     clf = SectionClassifier()
     clf.train(*TrainingDataset(_tiny_docs()).get_texts_and_labels()[:2])
-    _, seg = _chain("John Doe\njohn@x.com\nSoftware Engineer\nABC Ltd\n")
+    text = ("John Doe\njohn@email.com\nBangalore\nSenior Software Engineer\n"
+            "ABC Technologies\n2022 – 2024\nDeveloped APIs for the payments platform\n")
+    _, seg = _chain(text)
     assert len(seg.blocks) == 1
     res = classify_blocks(seg, clf)
     c = res.classifications[0]
-    assert c.semantic_spans == []  # span detection: future work, not silent majority
+    assert len(c.semantic_spans) >= 2
+    assigned = [lid for span in c.semantic_spans for lid in span.source_line_ids]
+    assert assigned == seg.blocks[0].line_ids
+    assert len(assigned) == len(set(assigned))
     assert c.source_line_ids == seg.blocks[0].line_ids  # nothing dropped
 
 
@@ -475,3 +528,46 @@ def test_error_types_survive_exception_protocol():
     rt = pickle.loads(pickle.dumps(Farrell))
     assert (rt.code, rt.detail, rt.violations) == (
         "INTEGRITY_VIOLATION", "d", ("v1",))
+
+
+def test_spaced_section_heading_and_month_comma_employment_date_are_recognized():
+    from resume_parser.classification import _canonical_heading, _employment_shape
+
+    assert _canonical_heading("S K I L L S") == SectionLabel.SKILLS
+    assert _canonical_heading("M A J O R  P R O J E C T S") == SectionLabel.PROJECTS
+    lines = [
+        "Data Scientist", "Dozee, Bangalore", "June, 2022- August,2023",
+        "The work involves building statistical models and developed a pipeline.",
+    ]
+    assert _employment_shape(lines, 0)
+
+
+def test_cosine_similarity_and_schema_mapping():
+    from resume_parser.classification import (
+        compute_cosine_similarity,
+        is_schema_section,
+        get_schema_field_name,
+    )
+    # Schema check
+    assert is_schema_section(SectionLabel.EXPERIENCE)
+    assert is_schema_section("education")
+    assert not is_schema_section("random_nonexistent")
+    assert get_schema_field_name(SectionLabel.EXPERIENCE) == "workExperience"
+    assert get_schema_field_name(SectionLabel.EDUCATION) == "education"
+    assert get_schema_field_name(SectionLabel.CONTACT) == "personalInfo"
+
+    # Cosine similarity heuristic check
+    sim = compute_cosine_similarity(
+        "Software Engineer at Google from 2020 to 2023. Built scalable microservices.",
+        SectionLabel.EXPERIENCE,
+    )
+    assert isinstance(sim, float)
+    assert 0.0 <= sim <= 1.0
+    assert sim > 0.05
+    # Unrelated section should have lower similarity
+    sim_unrelated = compute_cosine_similarity(
+        "Software Engineer at Google from 2020 to 2023. Built scalable microservices.",
+        SectionLabel.LANGUAGES,
+    )
+    assert sim > sim_unrelated
+

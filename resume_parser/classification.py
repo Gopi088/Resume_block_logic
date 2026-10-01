@@ -13,11 +13,10 @@ Model: TF-IDF (word n-grams 1-2) + Logistic Regression (balanced class weights)
 Features: Text content + structural features from B2
 
 Implementation status (v1 baseline):
-- Block-level classification IS implemented (one label per candidate block).
-- Semantic span detection is NOT yet inferred: the data model supports spans
-  (BlockClassification.semantic_spans, LabelledBlock.semantic_spans, multi-row
-  CSV annotations), but inference assigns a single block-level label. Mixed
-  blocks are therefore labelled as a whole in v1; span splitting is future work.
+- Block-level classification remains available for compatibility.
+- B3 also infers contiguous semantic spans within a B2 block using explicit
+  section headings and generic employment-shape context, then classifies each
+  span with the same ML model. B2 remains structural-only.
 - The v1 model uses TF-IDF TEXT features only. extract_semantic_features /
   extract_structural_features are implemented, tested helpers reserved for a
   future fusion stage; the `feature_weight` plumbing is stored but inactive.
@@ -39,6 +38,7 @@ import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+import re
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -616,6 +616,255 @@ class SectionClassifier:
 # B3 Classification Pipeline
 # ============================================================
 
+_SPAN_HEADING_ALIASES = {
+    SectionLabel.CONTACT: {
+        "contact", "contact details", "contact information", "personal details",
+        "personal info", "personal information", "social links", "contact me",
+    },
+    SectionLabel.SUMMARY: {
+        "summary", "professional summary", "profile", "career summary", "objective",
+        "career objective", "executive summary", "about me",
+    },
+    SectionLabel.EXPERIENCE: {
+        "experience", "work experience", "professional experience", "employment",
+        "employment history", "work history", "career history",
+    },
+    SectionLabel.EDUCATION: {
+        "education", "academic background", "educational background", "qualifications",
+        "academics",
+    },
+    SectionLabel.SKILLS: {
+        "skills", "technical skills", "technology skills", "technology & skills",
+        "technical expertise", "core skills", "core competencies", "competencies",
+        "tools & technologies", "tools and technologies", "keyskills", "key skills",
+        "technical proficiencies", "areas of expertise",
+    },
+    SectionLabel.PROJECTS: {
+        "projects", "key projects", "major projects", "project experience", "project details",
+        "personal projects", "projects and pocs", "projects & pocs", "proof of concepts",
+    },
+    SectionLabel.CERTIFICATIONS: {
+        "certifications", "certification", "certificates", "licenses & certifications",
+        "certifications & licenses", "courses & certifications",
+    },
+    SectionLabel.AWARDS: {
+        "awards", "honors", "honours", "honors & awards", "honors-awards",
+        "achievements", "achievements & awards", "achievements & certifications",
+    },
+    SectionLabel.LANGUAGES: {
+        "languages", "language", "languages known",
+    },
+    SectionLabel.INTERESTS: {
+        "interests", "hobbies", "hobbies & interests", "extra curricular",
+        "extra curricular activities", "extracurricular activities", "activities",
+    },
+    SectionLabel.VOLUNTEERING: {
+        "volunteering", "volunteer experience", "community service",
+    },
+    SectionLabel.PUBLICATIONS: {
+        "publications", "published works", "research papers",
+    },
+    SectionLabel.REFERENCES: {
+        "references", "referees",
+    },
+}
+_HEADING_TO_SECTION = {alias: label for label, aliases in _SPAN_HEADING_ALIASES.items() for alias in aliases}
+_COMPACT_HEADING_TO_SECTION = {re.sub(r"[^a-z0-9]", "", alias): label
+                              for alias, label in _HEADING_TO_SECTION.items()}
+
+SCHEMA_SECTION_MAP = {
+    SectionLabel.CONTACT: "personalInfo",
+    SectionLabel.SUMMARY: "summary",
+    SectionLabel.EXPERIENCE: "workExperience",
+    SectionLabel.EDUCATION: "education",
+    SectionLabel.SKILLS: "technicalSkills",
+    SectionLabel.PROJECTS: "personalProjects",
+    SectionLabel.CERTIFICATIONS: "certificationsTraining",
+    SectionLabel.AWARDS: "awards",
+    SectionLabel.LANGUAGES: "languages",
+    SectionLabel.PUBLICATIONS: "publications",
+    SectionLabel.VOLUNTEERING: "volunteering",
+    SectionLabel.INTERESTS: "interests",
+    SectionLabel.REFERENCES: "references",
+    SectionLabel.OTHER: "other",
+    SectionLabel.UNKNOWN: "unknown",
+}
+
+SCHEMA_PROTOTYPE_TEXTS: dict[str, str] = {
+    SectionLabel.CONTACT.value: (
+        "contact personal information name email phone mobile address linkedin github website portfolio city country"
+    ),
+    SectionLabel.SUMMARY.value: (
+        "summary professional summary executive profile about me career objective background qualifications expertise"
+    ),
+    SectionLabel.EXPERIENCE.value: (
+        "experience work experience professional employment history job career title company role responsibilities duties developed built managed led"
+    ),
+    SectionLabel.EDUCATION.value: (
+        "education academic background degree university college school bachelor master phd b tech m tech b sc b e graduated gpa coursework"
+    ),
+    SectionLabel.SKILLS.value: (
+        "skills technical skills programming languages tools technologies frameworks libraries database cloud infrastructure competencies"
+    ),
+    SectionLabel.PROJECTS.value: (
+        "projects personal key major project developed designed implemented application system architecture github repository"
+    ),
+    SectionLabel.CERTIFICATIONS.value: (
+        "certifications certified certificates licenses credentials training accreditation foundation course completed"
+    ),
+    SectionLabel.AWARDS.value: (
+        "awards honors honours recognition achievement winner excellence scholarship dean list distinction"
+    ),
+    SectionLabel.LANGUAGES.value: (
+        "languages language english spanish french hindi german fluent native proficient conversational bilingual"
+    ),
+    SectionLabel.PUBLICATIONS.value: (
+        "publications published paper papers journal conference research proceedings article author co-author ieee"
+    ),
+    SectionLabel.VOLUNTEERING.value: (
+        "volunteering volunteer community service charity outreach non-profit social cause"
+    ),
+    SectionLabel.INTERESTS.value: (
+        "interests hobbies activities sports music photography reading travel gaming"
+    ),
+    SectionLabel.REFERENCES.value: (
+        "references referee available upon request professional recommendation"
+    ),
+}
+
+
+def is_schema_section(label: SectionLabel | str) -> bool:
+    """Return True if label belongs to the standard canonical resume schema."""
+    val = label.value if isinstance(label, SectionLabel) else str(label)
+    return val in {
+        SectionLabel.CONTACT.value, SectionLabel.SUMMARY.value, SectionLabel.EXPERIENCE.value,
+        SectionLabel.EDUCATION.value, SectionLabel.SKILLS.value, SectionLabel.PROJECTS.value,
+        SectionLabel.CERTIFICATIONS.value, SectionLabel.AWARDS.value, SectionLabel.LANGUAGES.value,
+        SectionLabel.PUBLICATIONS.value, SectionLabel.VOLUNTEERING.value, SectionLabel.INTERESTS.value,
+        SectionLabel.REFERENCES.value,
+    }
+
+
+def get_schema_field_name(label: SectionLabel | str) -> str:
+    """Map SectionLabel to standard schema field name (e.g. experience -> workExperience)."""
+    key = label if isinstance(label, SectionLabel) else (
+        SectionLabel(str(label)) if str(label) in [s.value for s in SectionLabel] else None
+    )
+    return SCHEMA_SECTION_MAP.get(key, "customSections") if key else "customSections"
+
+
+def compute_cosine_similarity(text: str, section: SectionLabel | str, vectorizer=None) -> float:
+    """Compute semantic cosine similarity between block text and section prototype in TF-IDF space."""
+    if not text or not text.strip():
+        return 0.0
+    sec_val = section.value if isinstance(section, SectionLabel) else str(section)
+    proto = SCHEMA_PROTOTYPE_TEXTS.get(sec_val)
+    if not proto:
+        return 0.0
+    if vectorizer is not None:
+        try:
+            from sklearn.metrics.pairwise import cosine_similarity as sk_cosine
+            vecs = vectorizer.transform([text, proto])
+            sim = float(sk_cosine(vecs[0], vecs[1])[0][0])
+            return round(max(0.0, min(1.0, sim)), 4)
+        except Exception:
+            pass
+    # Fallback heuristic if vectorizer is not fitted
+    w1 = set(re.findall(r"\w+", text.lower()))
+    w2 = set(re.findall(r"\w+", proto.lower()))
+    if not w1 or not w2:
+        return 0.0
+    denom = (len(w1) * len(w2)) ** 0.5
+    return round(float(len(w1 & w2) / denom), 4) if denom > 0 else 0.0
+
+_ROLE_LINE_RE = re.compile(r"\b(engineer|developer|analyst|manager|consultant|architect|lead|director|specialist|administrator|designer|intern|officer|executive|associate|scientist|coordinator|product owner|scrum master)\b", re.I)
+_EMPLOYMENT_DATE_RE = re.compile(r"(?:\b\d{1,2}[/-](?:19|20)\d{2}\b|\b(?:19|20)\d{2}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*,?\s*\d{4})\s*(?:-|–|—|to)\s*(?:\b\d{1,2}[/-](?:19|20)\d{2}\b|\b(?:19|20)\d{2}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*,?\s*\d{4}|present|current)", re.I)
+_COMPANY_CUE_RE = re.compile(r"\b(ltd|limited|inc|corp|corporation|llc|llp|technologies|systems|services|bank|consulting|university|college)\b", re.I)
+_BULLET_LINE_RE = re.compile(r"^\s*(?:[•●▪◦*-]|\d+[.)])\s*")
+
+
+def _canonical_heading(text: str) -> SectionLabel | None:
+    normalized = re.sub(r"[^a-z0-9& ]+", " ", text.lower()).strip()
+    normalized = re.sub(r"\s+", " ", normalized)
+    normalized = re.sub(r"\s*:\s*$", "", normalized)
+    return (_HEADING_TO_SECTION.get(normalized)
+            or _COMPACT_HEADING_TO_SECTION.get(re.sub(r"[^a-z0-9]", "", normalized)))
+
+
+def _looks_like_heading(text: str) -> bool:
+    value = text.strip().rstrip(":")
+    return bool(value) and len(value) <= 70 and (value.isupper() or _canonical_heading(text) is not None)
+
+
+def _employment_shape(lines: list[str], index: int) -> bool:
+    """Recognize an employment-shaped sequence, not a resume-specific title."""
+    title = lines[index].strip()
+    if not _ROLE_LINE_RE.search(title) or len(title) > 120 or _BULLET_LINE_RE.match(title):
+        return False
+    context = lines[index + 1:index + 7]
+    joined = " ".join(context)
+    has_date = bool(_EMPLOYMENT_DATE_RE.search(joined))
+    has_company = any(_COMPANY_CUE_RE.search(line) for line in context[:4])
+    has_location = any("," in line and len(line.split()) <= 8 for line in context[:5])
+    has_responsibility = (
+        any(_BULLET_LINE_RE.match(line) for line in context[1:])
+        or any(re.match(r"(?:responsibilities|duties)\b", line.strip(), re.I) for line in context)
+        or any(re.search(r"\b(served|led|managed|developed|delivered|analyzed|analysed|built|provided|supported|coordinated|collaborated|worked)\b", line, re.I)
+               for line in context[2:])
+    )
+    return has_date and (has_company or has_location) and has_responsibility
+
+
+def _semantic_chunks(block: CandidateBlock) -> list[tuple[int, int, list[str]]]:
+    """Return contiguous display-line spans using structural cues in B3.
+
+    B2 remains content-agnostic. The model sees each inferred span separately;
+    an employment-shaped line is only a feature cue and never sets its label.
+    """
+    lines = [line.text for line in block.display_lines]
+    if not lines:
+        return []
+    headings = [(i, _canonical_heading(line)) for i, line in enumerate(lines)
+                if _looks_like_heading(line) and _canonical_heading(line) is not None]
+    cuts: dict[int, list[str]] = {}
+    for i, label in headings:
+        tokens = {
+            SectionLabel.CONTACT: ["contact", "personal details", "email phone mobile location address"],
+            SectionLabel.SUMMARY: ["summary", "professional profile", "career objective"],
+            SectionLabel.EXPERIENCE: ["work experience", "employment history", "job responsibilities"],
+            SectionLabel.EDUCATION: ["education", "academic background", "degree institution"],
+            SectionLabel.SKILLS: ["technical skills", "tools technologies", "competencies", "keyskills"],
+            SectionLabel.PROJECTS: ["project experience", "projects portfolio"],
+            SectionLabel.CERTIFICATIONS: ["professional certifications", "licenses credentials"],
+            SectionLabel.AWARDS: ["awards", "honors", "recognition", "achievements"],
+            SectionLabel.LANGUAGES: ["languages", "proficiency"],
+            SectionLabel.INTERESTS: ["hobbies", "interests", "activities", "extracurricular"],
+            SectionLabel.VOLUNTEERING: ["volunteer", "community service"],
+            SectionLabel.PUBLICATIONS: ["publications", "published research"],
+            SectionLabel.REFERENCES: ["references", "referee"],
+        }.get(label, [])
+        cuts[i] = tokens
+    # A heading-less job can begin inside a summary/contact block. Require a
+    # role line plus company/date/location and responsibility evidence nearby.
+    preceding_heading = headings[-1] if headings else (-1, None)
+    if preceding_heading[1] != SectionLabel.EXPERIENCE:
+        start_after = preceding_heading[0] + 1
+        exp_start = next((i for i in range(max(1, start_after), len(lines))
+                          if _employment_shape(lines, i)), None)
+        if exp_start is not None:
+            cuts[exp_start] = ["work experience employment history job role company dates responsibilities"]
+    if not cuts:
+        return [(0, len(lines), [])]
+    starts = sorted(cuts)
+    chunks = []
+    if starts[0] > 0:
+        chunks.append((0, starts[0], []))
+    for n, start in enumerate(starts):
+        end = starts[n + 1] if n + 1 < len(starts) else len(lines)
+        chunks.append((start, end, cuts[start]))
+    return [(a, b, ctx) for a, b, ctx in chunks if a < b]
+
+
 def classify_blocks(
     seg_result: SegmentationResult,
     classifier: SectionClassifier,
@@ -651,12 +900,65 @@ def classify_blocks(
             ),
         )
     
-    # Get predictions
+    # Preserve the whole-block prediction for compatibility and also classify
+    # B3 semantic spans. Context tokens are generic, explicit evidence passed
+    # into the existing ML model; labels and probabilities still come from it.
     predictions = classifier.predict(texts, return_alternatives=return_alternatives)
-    
-    # Build classification results with provenance
+    span_inputs = []
+    chunks_by_block = []
+    for block in blocks_to_classify:
+        chunks = _semantic_chunks(block)
+        chunks_by_block.append(chunks)
+        for start, end, context in chunks:
+            source_text = "\n".join(d.text for d in block.display_lines[start:end])
+            span_inputs.append((source_text, context))
+    span_predictions = classifier.predict(
+        [((" ".join(context) + " ") if context else "") + source for source, context in span_inputs],
+        return_alternatives=return_alternatives,
+    ) if span_inputs else []
+
     classifications = []
-    for block, (predicted, confidence, alternatives) in zip(blocks_to_classify, predictions):
+    span_cursor = 0
+    pipeline_obj = getattr(classifier, "pipeline", None)
+    named_steps = getattr(pipeline_obj, "named_steps", None)
+    tfidf_step = named_steps.get("tfidf") if isinstance(named_steps, dict) else None
+
+    for block, (predicted, confidence, alternatives), chunks in zip(blocks_to_classify, predictions, chunks_by_block):
+        semantic_spans = []
+        for start, end, context in chunks:
+            source_text = span_inputs[span_cursor][0]
+            span_label, span_confidence, _span_alternatives = span_predictions[span_cursor]
+            span_cursor += 1
+            source_ids = [lid for d in block.display_lines[start:end] for lid in d.source_line_ids]
+            indices = [int(lid[1:]) for lid in source_ids if lid.startswith("L") and lid[1:].isdigit()]
+            span_cos = compute_cosine_similarity(source_text, span_label, tfidf_step)
+            span_schema = is_schema_section(span_label)
+            semantic_spans.append(SemanticSpan(
+                start_line_id=source_ids[0], end_line_id=source_ids[-1],
+                start_line_index=min(indices), end_line_index=max(indices),
+                section=span_label, confidence=span_confidence, text=source_text,
+                source_line_ids=source_ids, feature_context=context,
+                semantic_name=("PROFESSIONAL_SUMMARY" if span_label == SectionLabel.SUMMARY
+                               and re.search(r"professional\s+summary", block.display_lines[start].text.strip(), re.I)
+                               else "PERSONAL_INFO" if span_label == SectionLabel.CONTACT
+                               else "TECHNICAL_SKILLS" if span_label == SectionLabel.SKILLS
+                               and re.search(r"technical\s+skills|technology\s*(?:&|and)\s*skills|technical\s+expertise|tools\s*(?:&|and)\s*technologies", block.display_lines[start].text.strip(), re.I)
+                               else span_label.name.upper()),
+                cosine_similarity=span_cos,
+                matches_schema=span_schema,
+            ))
+        # With one semantic span, its ML score is the block's operative score:
+        # it includes any generic heading/entry-shape context above. Mixed
+        # blocks retain the separate whole-block prediction for compatibility.
+        if len(semantic_spans) == 1:
+            predicted, confidence, alternatives = span_predictions[span_cursor - 1]
+
+        cos_candidates = [s.cosine_similarity for s in semantic_spans if s.cosine_similarity is not None]
+        block_cos = (round(float(np.mean(cos_candidates)), 4) if cos_candidates
+                     else compute_cosine_similarity(block.text, predicted, tfidf_step))
+        block_matches_schema = is_schema_section(predicted)
+        schema_field = get_schema_field_name(predicted)
+
         cls = BlockClassification(
             block_id=block.block_id,
             document_id=seg_result.document_id,
@@ -666,17 +968,65 @@ def classify_blocks(
             source_line_ids=block.line_ids,
             start_line_index=block.start_line_index,
             end_line_index=block.end_line_index,
+            semantic_spans=semantic_spans,
             classification_status="classified" if confidence >= 0.5 else "low_confidence",
+            cosine_similarity=block_cos,
+            matches_schema=block_matches_schema,
+            schema_section=schema_field,
         )
         classifications.append(cls)
     
     # Integrity check
     integrity = build_classification_integrity(seg_result, classifications)
     
+    expected_line_ids = [lid for block in seg_result.blocks for lid in block.line_ids]
+    assigned_line_ids = [lid for cls in classifications for span in cls.semantic_spans
+                         for lid in span.source_line_ids]
+    model_metadata = dict(classifier.metadata)
+    span_confidences = [(span.section.value, span.confidence)
+                        for cls in classifications for span in cls.semantic_spans]
+    by_section_confidence: dict[str, list[float]] = {}
+    for label, value in span_confidences:
+        by_section_confidence.setdefault(label, []).append(value)
+    
+    all_cos_values = [cls.cosine_similarity for cls in classifications if cls.cosine_similarity is not None]
+    schema_matched_blocks = sum(1 for cls in classifications if cls.matches_schema)
+
+    model_metadata["raw_confidence_summary"] = {
+        "spanCount": len(span_confidences),
+        "averageRawConfidence": (sum(value for _, value in span_confidences) / len(span_confidences)
+                                 if span_confidences else None),
+        "highCount": sum(value >= 0.75 for _, value in span_confidences),
+        "mediumCount": sum(0.5 <= value < 0.75 for _, value in span_confidences),
+        "lowCount": sum(value < 0.5 for _, value in span_confidences),
+        "perSectionAverageRawConfidence": {
+            label: {"count": len(values), "average": sum(values) / len(values)}
+            for label, values in by_section_confidence.items()
+        },
+        "calibrationStatus": "RAW_UNCALIBRATED_NO_GOLD_VALIDATION_SET",
+    }
+    model_metadata["schema_compliance"] = {
+        "totalBlocks": len(classifications),
+        "schemaMatchedBlocks": schema_matched_blocks,
+        "schemaMatchRate": round(100.0 * schema_matched_blocks / max(len(classifications), 1), 2),
+        "schemaMatchAccuracy": f"{round(100.0 * schema_matched_blocks / max(len(classifications), 1), 1)}%",
+        "meanCosineSimilarity": round(float(np.mean(all_cos_values)), 4) if all_cos_values else 0.0,
+    }
+    model_metadata["semantic_span_coverage"] = {
+        "total_meaningful_lines": len(expected_line_ids),
+        "assigned_lines": len(set(assigned_line_ids)),
+        "missing_lines": len(set(expected_line_ids) - set(assigned_line_ids)),
+        "missing_line_ids": sorted(list(set(expected_line_ids) - set(assigned_line_ids))),
+        "duplicate_assignments": len(assigned_line_ids) - len(set(assigned_line_ids)),
+        "unassigned_lines": len(set(expected_line_ids) - set(assigned_line_ids)),
+        "coverage_percent": (100.0 if expected_line_ids and assigned_line_ids == expected_line_ids
+                              else 100.0 if not expected_line_ids else
+                              100.0 * len(set(expected_line_ids) & set(assigned_line_ids)) / len(expected_line_ids)),
+    }
     return ClassificationResult(
         document_id=seg_result.document_id,
         classifications=classifications,
-        model_metadata=classifier.metadata,
+        model_metadata=model_metadata,
         integrity=integrity,
     )
 
@@ -722,6 +1072,19 @@ def build_classification_integrity(
     if not confidence_ok:
         violations.append("Some confidences outside [0, 1] range")
     
+    # Semantic spans must partition each B2 block's meaningful source lines
+    # exactly once and in document order. This proves span-level coverage.
+    blocks_by_id = {b.block_id: b for b in seg_result.blocks}
+    span_coverage_ok = True
+    for c in classifications:
+        block = blocks_by_id.get(c.block_id)
+        span_ids = [lid for span in c.semantic_spans for lid in span.source_line_ids]
+        if block is None or not span_ids or span_ids != block.line_ids or len(span_ids) != len(set(span_ids)):
+            span_coverage_ok = False
+    checks["semantic_spans_cover_each_block_exactly_once"] = span_coverage_ok
+    if not span_coverage_ok:
+        violations.append("Semantic spans do not partition B2 line coverage exactly once.")
+
     # Alternatives have valid confidences
     alt_conf_ok = all(
         0.0 <= a.confidence <= 1.0
@@ -746,20 +1109,31 @@ def train_section_classifier(
     tfidf_params: dict[str, Any] | None = None,
     lr_params: dict[str, Any] | None = None,
     feature_weight: float = 0.0,
+    train_ratio: float = 0.7,
+    val_ratio: float = 0.15,
+    test_ratio: float = 0.15,
+    seed: int = 42,
 ) -> tuple[SectionClassifier, dict[str, Any]]:
     """Complete training pipeline with resume-level splits.
-    
+
     Args:
         dataset: Labelled training data
         tfidf_params: TF-IDF vectorizer parameters
         lr_params: Logistic Regression parameters
         feature_weight: Weight for additional features (0 = text only)
-    
+        train_ratio: Train split ratio (by resume)
+        val_ratio: Validation split ratio (by resume)
+        test_ratio: Test split ratio (by resume)
+        seed: Random seed for reproducible splits
+
     Returns:
         (trained classifier, training metadata)
     """
     # Split by resume (critical: no leakage)
-    train_ds, val_ds, test_ds = dataset.split_by_resume()
+    train_ds, val_ds, test_ds = dataset.split_by_resume(
+        train_ratio=train_ratio, val_ratio=val_ratio,
+        test_ratio=test_ratio, seed=seed,
+    )
     
     # Get texts and labels
     train_texts, train_labels, train_groups = train_ds.get_texts_and_labels()

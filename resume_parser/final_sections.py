@@ -69,6 +69,8 @@ def build_final_sections(
                 start_line_index=block.start_line_index,
                 end_line_index=block.end_line_index,
                 text=block.text,
+                semantic_spans=list(cls.semantic_spans) if cls else [],
+                span_resolutions=[],
             ))
             continue
 
@@ -86,8 +88,13 @@ def build_final_sections(
                 start_line_index=cls.start_line_index,
                 end_line_index=cls.end_line_index,
                 text=block.text,
+                semantic_spans=list(cls.semantic_spans) if cls else [],
+                span_resolutions=list(resolution.span_resolutions) if resolution else [],
             ))
-        elif resolution is not None and resolution.resolved:
+        elif resolution is not None and resolution.resolved \
+                and (resolution.resolved_section == cls.predicted_section
+                     or val_result.policy.llm_verify_all) \
+                and len({span.section for span in cls.semantic_spans}) <= 1:
             sections.append(FinalBlockSection(
                 block_id=block.block_id, document_id=seg.document_id,
                 final_section=resolution.resolved_section,
@@ -101,9 +108,18 @@ def build_final_sections(
                 start_line_index=cls.start_line_index,
                 end_line_index=cls.end_line_index,
                 text=block.text,
+                semantic_spans=list(cls.semantic_spans) if cls else [],
+                span_resolutions=list(resolution.span_resolutions) if resolution else [],
             ))
         else:
-            llm_reason = resolution.reason if resolution is not None else REASON_LLM_NOT_RUN
+            if resolution is None:
+                llm_reason = REASON_LLM_NOT_RUN
+            elif resolution.resolved and resolution.resolved_section != cls.predicted_section:
+                llm_reason = "llm_conflicts_with_ml_preserved_unresolved"
+            elif resolution.resolved and len({span.section for span in cls.semantic_spans}) > 1:
+                llm_reason = "mixed_block_requires_span_level_resolution"
+            else:
+                llm_reason = resolution.reason
             sections.append(FinalBlockSection(
                 block_id=block.block_id, document_id=seg.document_id,
                 final_section=cls.predicted_section, confidence=cls.confidence,
@@ -116,6 +132,8 @@ def build_final_sections(
                 start_line_index=cls.start_line_index,
                 end_line_index=cls.end_line_index,
                 text=block.text,
+                semantic_spans=list(cls.semantic_spans) if cls else [],
+                span_resolutions=list(resolution.span_resolutions) if resolution else [],
             ))
 
     n_unresolved = sum(1 for s in sections if not s.trusted)

@@ -48,6 +48,8 @@ REASON_UNKNOWN = "unknown_section"
 REASON_CONTINUATION = "continuation_label_mismatch"
 REASON_DUPLICATE = "duplicate_singleton_section"
 REASON_MISSING = "missing_classification"
+REASON_MIXED_SPANS = "mixed_semantic_spans"
+REASON_SPAN_LOW_CONFIDENCE = "low_confidence_semantic_span"
 
 
 def _margin(classification: BlockClassification) -> tuple[float, SectionLabel | None, float]:
@@ -87,6 +89,8 @@ def _verdict_for_block(
 
     reasons: list[str] = []
     margin, runner_up, runner_conf = _margin(classification)
+    if policy.llm_verify_all:
+        reasons.append("full_llm_verification")
 
     if classification.confidence < policy.confidence_threshold:
         reasons.append(REASON_LOW_CONFIDENCE)
@@ -94,6 +98,11 @@ def _verdict_for_block(
         reasons.append(REASON_NARROW_MARGIN)
     if classification.classification_status == "low_confidence":
         reasons.append(REASON_B3_STATUS)
+    span_labels = {span.section for span in classification.semantic_spans}
+    if len(span_labels) > 1:
+        reasons.append(REASON_MIXED_SPANS)
+    if any(span.confidence < policy.confidence_threshold for span in classification.semantic_spans):
+        reasons.append(REASON_SPAN_LOW_CONFIDENCE)
     if classification.predicted_section == SectionLabel.UNKNOWN:
         reasons.append(REASON_UNKNOWN)
     if block.is_continuation and previous_label is not None \
@@ -124,6 +133,12 @@ def _verdict_for_block(
             "margin_threshold": policy.margin_threshold,
             "is_continuation": block.is_continuation,
             "previous_block_label": previous_label.value if previous_label else None,
+            "semantic_spans": [
+                {"section": span.section.value, "ml_confidence": span.confidence,
+                 "start_line_id": span.start_line_id, "end_line_id": span.end_line_id,
+                 "text": span.text, "feature_context": list(span.feature_context)}
+                for span in classification.semantic_spans
+            ],
         },
     )
 

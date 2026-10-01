@@ -20,11 +20,13 @@ from resume_parser.models import (
     ClassificationResult,
     IntegrityReport,
     LLMConfig,
+    SemanticSpan,
     SectionLabel,
 )
 from resume_parser.normalization import normalize_document
 from resume_parser.resolution import (
     AnthropicLLMClient,
+    NvidiaNIMLLMClient,
     ScriptedLLMClient,
     build_resolution_prompt,
     parse_resolution_response,
@@ -145,6 +147,80 @@ def test_prompt_contains_limited_context():
     assert "SKILLS" in items[1]["text"]
     assert "Reply with ONLY a JSON object" in client.prompts[0]
 
+
+
+def test_mixed_semantic_spans_are_sent_and_verified_individually():
+    _, seg = _chain("SUMMARY\nProfile summary text.\nSenior Analyst\nTCS Ltd\n2022 - 2024\nManaged operations.\n")
+    assert len(seg.blocks) == 1
+    block = seg.blocks[0]
+    ids = block.line_ids
+    split_at = 2
+    from resume_parser.models import BlockClassification, ClassificationResult, IntegrityReport
+    cls = BlockClassification(
+        block_id=block.block_id, document_id=seg.document_id,
+        predicted_section=SectionLabel.SUMMARY, confidence=0.42,
+        alternatives=[AlternativePrediction(section=SectionLabel.EXPERIENCE, confidence=0.38)],
+        source_line_ids=list(ids), start_line_index=block.start_line_index,
+        end_line_index=block.end_line_index, classification_status="low_confidence",
+        semantic_spans=[
+            SemanticSpan(start_line_id=ids[0], end_line_id=ids[1],
+                         start_line_index=0, end_line_index=1,
+                         section=SectionLabel.SUMMARY, confidence=0.78,
+                         text="SUMMARY\nProfile summary text.", source_line_ids=ids[:split_at]),
+            SemanticSpan(start_line_id=ids[split_at], end_line_id=ids[-1],
+                         start_line_index=2, end_line_index=len(ids)-1,
+                         section=SectionLabel.EXPERIENCE, confidence=0.39,
+                         text="Senior Analyst\nTCS Ltd\n2022 - 2024\nManaged operations.",
+                         source_line_ids=ids[split_at:]),
+        ],
+    )
+    cls_result = ClassificationResult(document_id=seg.document_id, classifications=[cls],
+        model_metadata={}, integrity=IntegrityReport(passed=True, violations=[], checks={}))
+    val = validate_classification(seg, cls_result)
+    body = {"section": "summary", "confidence": 0.75, "reason": "mixed block",
+            "span_verifications": [
+                {"start_line_id": ids[0], "end_line_id": ids[1],
+                 "section": "summary", "confidence": 0.92, "reason": "profile prose"},
+                {"start_line_id": ids[2], "end_line_id": ids[-1],
+                 "section": "experience", "confidence": 0.88, "reason": "job dates and duties"},
+            ]}
+    result = resolve_escalated(seg, val, ScriptedLLMClient({block.block_id: body}), LLMConfig())
+    resolution = result.get_resolution(block.block_id)
+    assert resolution and resolution.resolved
+    assert len(resolution.span_resolutions) == 2
+    assert [r.section for r in resolution.span_resolutions] == [SectionLabel.SUMMARY, SectionLabel.EXPERIENCE]
+
+
+def test_mixed_semantic_span_response_must_cover_every_candidate_range():
+    _, seg = _chain("SUMMARY\nProfile text.\nSenior Analyst\nTCS Ltd\n2022 - 2024\nManaged operations.\n")
+    block = seg.blocks[0]
+    ids = block.line_ids
+    from resume_parser.models import BlockClassification, ClassificationResult, IntegrityReport
+    cls = BlockClassification(
+        block_id=block.block_id, document_id=seg.document_id,
+        predicted_section=SectionLabel.SUMMARY, confidence=0.42,
+        alternatives=[AlternativePrediction(section=SectionLabel.EXPERIENCE, confidence=0.38)],
+        source_line_ids=list(ids), start_line_index=block.start_line_index,
+        end_line_index=block.end_line_index, classification_status="low_confidence",
+        semantic_spans=[
+            SemanticSpan(start_line_id=ids[0], end_line_id=ids[1], start_line_index=0,
+                         end_line_index=1, section=SectionLabel.SUMMARY, confidence=0.78,
+                         text="summary", source_line_ids=ids[:2]),
+            SemanticSpan(start_line_id=ids[2], end_line_id=ids[-1], start_line_index=2,
+                         end_line_index=len(ids)-1, section=SectionLabel.EXPERIENCE, confidence=0.39,
+                         text="experience", source_line_ids=ids[2:]),
+        ],
+    )
+    cls_result = ClassificationResult(document_id=seg.document_id, classifications=[cls],
+        model_metadata={}, integrity=IntegrityReport(passed=True, violations=[], checks={}))
+    val = validate_classification(seg, cls_result)
+    response = {"section": "summary", "confidence": 0.75, "reason": "block",
+                "span_verifications": [{"start_line_id": ids[0], "end_line_id": ids[1],
+                                         "section": "summary", "confidence": 0.9}]}
+    result = resolve_escalated(seg, val, ScriptedLLMClient({block.block_id: response}), LLMConfig())
+    resolution = result.get_resolution(block.block_id)
+    assert resolution and not resolution.resolved
+    assert resolution.reason == "llm_invalid_answer"
 
 def test_parse_valid_and_fences():
     entries, invalid, err = parse_resolution_response(
@@ -281,8 +357,74 @@ def test_config_validation():
 
 def test_anthropic_client_requires_key(monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
     with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
         AnthropicLLMClient(LLMConfig())
+
+
+def test_anthropic_client_routes_openrouter_key(monkeypatch):
+    import sys
+    import types
+    captured = {}
+    class FakeMessages:
+        def create(self, **kwargs):
+            captured["request"] = kwargs
+            return types.SimpleNamespace(content=[types.SimpleNamespace(text="ok")])
+    class FakeAnthropic:
+        def __init__(self, **kwargs):
+            captured["client"] = kwargs
+            self.messages = FakeMessages()
+    monkeypatch.setitem(sys.modules, "anthropic", types.SimpleNamespace(Anthropic=FakeAnthropic))
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-only-key")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    client = AnthropicLLMClient(LLMConfig())
+    assert client.complete("test") == "ok"
+    assert captured["client"]["base_url"] == "https://openrouter.ai/api"
+    assert captured["request"]["model"] == "anthropic/claude-haiku-4.5"
+
+
+def test_nvidia_nim_client_uses_nvidia_endpoint(monkeypatch):
+    import io
+    import json
+    import urllib.request
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-only-key")
+    captured = {}
+    def fake_urlopen(request, timeout):
+        captured["url"] = request.full_url
+        captured["headers"] = request.headers
+        captured["body"] = json.loads(request.data)
+        return io.BytesIO(json.dumps({"choices": [{"message": {"content": "{}"}}]}).encode())
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    client = NvidiaNIMLLMClient(LLMConfig(model=NvidiaNIMLLMClient.DEFAULT_MODEL, provider="nvidia"))
+    assert client.complete("test prompt") == "{}"
+    assert captured["url"] == NvidiaNIMLLMClient.BASE_URL
+    assert captured["headers"]["Authorization"] == "Bearer test-only-key"
+    assert captured["body"]["model"] == NvidiaNIMLLMClient.DEFAULT_MODEL
+    assert captured["body"]["chat_template_kwargs"]["enable_thinking"] is False
+    assert "extra_body" not in captured["body"]
+
+
+def test_nvidia_nim_retries_temporary_overload(monkeypatch):
+    import email.message
+    import io
+    import json
+    import urllib.error
+    import urllib.request
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-only-key")
+    monkeypatch.setattr("time.sleep", lambda _: None)
+    calls = {"count": 0}
+    def fake_urlopen(request, timeout):
+        calls["count"] += 1
+        if calls["count"] < 3:
+            headers = email.message.Message()
+            headers["Retry-After"] = "0"
+            raise urllib.error.HTTPError(request.full_url, 503, "busy", headers, io.BytesIO(b"overloaded"))
+        return io.BytesIO(json.dumps({"choices": [{"message": {"content": "{}"}}]}).encode())
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    client = NvidiaNIMLLMClient(LLMConfig(model=NvidiaNIMLLMClient.DEFAULT_MODEL, provider="nvidia"))
+    assert client.complete("test prompt") == "{}"
+    assert calls["count"] == 3
 
 
 def test_unknown_provider_rejected():
@@ -320,6 +462,8 @@ def test_cli_wiring_llm_error_without_key(tmp_path, monkeypatch):
         LabelledBlock, LabelledDocument, SectionClassifier, TrainingDataset)
 
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
     clf = SectionClassifier()
     docs = []
     for i in range(2):
@@ -340,6 +484,66 @@ def test_cli_wiring_llm_error_without_key(tmp_path, monkeypatch):
     out = build_output(str(resume), include_eval=False, include_text=False,
                        blocks_only=True, model_path=str(model_path),
                        llm_provider="anthropic", llm_model=None)
-    assert "llm_error" in out and "ANTHROPIC_API_KEY" in out["llm_error"]["message"]
+    assert "llm_error" in out and "OPENROUTER_API_KEY" in out["llm_error"]["message"]
     assert "classification" in out and "validation" in out  # B3+B4 intact
     json.dumps(out)
+
+
+def test_nvidia_nim_retries_read_timeout(monkeypatch):
+    import io
+    import json
+    import urllib.request
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-only-key")
+    monkeypatch.setattr("time.sleep", lambda _: None)
+    calls = {"count": 0}
+
+    def fake_urlopen(request, timeout):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise TimeoutError("The read operation timed out")
+        return io.BytesIO(json.dumps({"choices": [{"message": {"content": "{}"}}]}).encode())
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    client = NvidiaNIMLLMClient(LLMConfig(model=NvidiaNIMLLMClient.DEFAULT_MODEL, provider="nvidia"))
+    assert client.complete("test prompt") == "{}"
+    assert calls["count"] == 2
+
+
+def test_parse_resolution_response_with_raw_newlines():
+    text = """```json
+{
+  "B000001": {
+    "section": "experience",
+    "confidence": 0.88,
+    "reason": "This is a reason
+with raw literal newline
+inside the string"
+  }
+}
+```"""
+    entries, invalid, err = parse_resolution_response(text)
+    assert not err
+    assert "B000001" in entries
+    assert entries["B000001"]["section"] == SectionLabel.EXPERIENCE
+    assert entries["B000001"]["confidence"] == 0.88
+
+
+def test_openrouter_client_uses_openrouter_endpoint(monkeypatch):
+    import io
+    import json
+    import urllib.request
+    from resume_parser.resolution import OpenRouterLLMClient
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-openrouter-key")
+    captured = {}
+    def fake_urlopen(request, timeout):
+        captured["url"] = request.full_url
+        captured["headers"] = request.headers
+        captured["body"] = json.loads(request.data)
+        return io.BytesIO(json.dumps({"choices": [{"message": {"content": "{}"}}]}).encode())
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    client = OpenRouterLLMClient(LLMConfig(model="nvidia/nemotron-3-ultra-550b-a55b", provider="openrouter"))
+    assert client.complete("test prompt") == "{}"
+    assert captured["url"] == OpenRouterLLMClient.BASE_URL
+    assert captured["headers"]["Authorization"] == "Bearer test-openrouter-key"
+    assert captured["body"]["model"] == "nvidia/nemotron-3-ultra-550b-a55b"
+

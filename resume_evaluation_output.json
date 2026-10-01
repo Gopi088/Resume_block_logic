@@ -1,0 +1,741 @@
+{
+  "resume": {
+    "personalInfo": {
+      "name": "A.BHARGAVA",
+      "email": "arunbhargava.nic@gmail.com",
+      "phone": "9557824150",
+      "location": "Bengaluru, Karnataka 560100",
+      "dateOfBirth": "05/07/93"
+    },
+    "summary": {
+      "text": "Senior analyst with extensive experience in client management, data analysis, data modeling, and client relationship management. Proficient in various software. Demonstrated expertise in industry-specific tasks. Highly skilled at driving successful outcomes through strategic decision-making."
+    },
+    "workExperience": [
+      {
+        "title": "Company",
+        "company": "Mantra Softech Pvt.",
+        "years": "08/2024 – Present",
+        "description": [
+          "Mantra Softech Pvt.",
+          "Ltd.",
+          "Ahemdabad ,Gujarat",
+          "Sr. Manager(Data Analysis and Business Intelligence)",
+          "Project Description – Bio-metric Project (Airport & Banking)",
+          "Face and Fingerprint Authentication",
+          "Analyzed data from multiple sources to identify trends and patterns.",
+          "Developed complex financial models for forecasting and budgeting purposes.",
+          "Prepared presentations on analysis results for management team.",
+          "Analyzed large datasets to identify trends, patterns and correlations for",
+          "business insights.",
+          "Design and maintain enterprise data models (conceptual, logical, and",
+          "physical) in Erwin, ensuring alignment with business requirements and",
+          "database architecture standards.",
+          "Develop and optimize physical database models in Erwin, including defining",
+          "tables, relationships, indexes, and constraints for improved performance and",
+          "scalability.",
+          "Implemented Tableau dashboards for real-time tracking of key performance",
+          "metrics.",
+          "Designed, developed, and maintained ETL pipelines in Azure Data Factory",
+          "(ADF) to integrate data from multiple sources (on-premises and cloud).",
+          "Utilized SQL queries to efficiently extract, transform, and load data into",
+          "databases.",
+          "Monitor changes in laws, regulations, and guidelines issued by regulators and",
+          "update internal policies accordingly.",
+          "Prepare and submit accurate and timely regulatory reports",
+          "Collaborated with BI teams to integrate Azure-based data into Power BI",
+          "dashboards and reports.",
+          "Translated raw data into meaningful information using statistical techniques.",
+          "Designed automated ETL processes for efficient data extraction,",
+          "transformation and loading in order to improve accuracy and reliability of",
+          "reporting systems.",
+          "Collaborated with stakeholders across the organization to understand their",
+          "needs from a data perspective."
+        ]
+      },
+      {
+        "title": "NISG DELHI , Client",
+        "years": "02/2023 – 08/2024",
+        "description": [
+          "Unique Identification",
+          "Authority of India",
+          "(Meity)",
+          "Delhi, India",
+          "Senior Analyst (Data Analysis and Business Intelligence)",
+          "Project Description – Insurance Domain Finger Minutiae Record - Finger Image",
+          "Record (FMR-FIR) Modality.",
+          "FMR-FIR – The Unique Identification Authority of India (UIDAI) has rolled out",
+          "an in-house Artificial Intelligence/Machine Learning (AI/ML) technology-",
+          "based Finger Minutiae Record – Finger Image Record (FMR-FIR) modality.",
+          "This technology, specifically designed to enhance Aadhaar Enabled Payment",
+          "(AePS) transactions, aims to tackle fraudulent activities, including the misuse of",
+          "cloned fingerprints.",
+          "Analyzed data from multiple sources to identify trends and patterns.",
+          "Developed complex financial models for forecasting and budgeting purposes.",
+          "Prepared presentations on analysis results for management team.",
+          "Analyzed large datasets to identify trends, patterns and correlations for",
+          "business insights.",
+          "Implemented Tableau dashboards for real-time tracking of key performance",
+          "metrics.",
+          "Utilized SQL queries to efficiently extract, transform, and load data into",
+          "databases.",
+          "Maintain documentation to support reported figures and regulatory",
+          "submissions.",
+          "Develop and optimize physical database models in Erwin, including defining",
+          "tables, relationships, indexes, and constraints for improved performance and",
+          "scalability.",
+          "Act as a liaison between the organization and regulatory authorities.",
+          "Track and review project implementation progress against approved timelines,",
+          "budgets, and deliverables.",
+          "Translated raw data into meaningful information using statistical techniques.",
+          "Designed automated ETL processes for efficient data extraction, transformation",
+          "and loading in order to improve accuracy and reliability of reporting systems.",
+          "Collaborated with stakeholders across the organization to understand their",
+          "needs from a data perspective & fraudent activities.",
+          "Maintained documentation of all the processes related to Data Analysis."
+        ]
+      },
+      {
+        "title": "Project Planning Consultant (Data Analyst and Business Intelligence)",
+        "company": "NETWORK LTD.",
+        "years": "07/2022 - 02/2023",
+        "description": [
+          "NISG DELHI, Client -",
+          "Project Overview:",
+          "BHARAT",
+          "Managed data flow, analyzed network performance, and optimized connectivity",
+          "BROADBAND",
+          "for rural and undeserved areas while working on the Bharat Broadband Network",
+          "NETWORK LTD.",
+          "Limited (BBNL) project under the Digital India initiative.",
+          "Delhi, India",
+          "Represented clients at Planning Appeals and Public Inquiries when necessary.",
+          "Analyzed large datasets to uncover valuable business insights through trend,",
+          "pattern, and correlation identification.",
+          "Prepare regular monitoring reports, dashboards, and presentations for senior",
+          "management.",
+          "Use Erwin for end-to-end data modeling, including conceptual, logical, and",
+          "physical designs, ensuring alignment with enterprise architecture and business",
+          "objectives.",
+          "Coordinate with contractors, consultants, and stakeholders to resolve",
+          "implementation bottlenecks.",
+          "Developed dashboards with Tableau to monitor key performance indicators.",
+          "Provided data-driven solutions to support decision making.",
+          "Leveraged SQL queries to extract, transform and load data into databases.",
+          "Optimized existing database structures for better performance on analytics",
+          "tasks.",
+          "Maintained documentation of all the processes related to Data Analysis.",
+          "Collaborated with stakeholders across the organization to understand their",
+          "needs from a data perspective.",
+          "Built visualizations that enabled users to quickly interpret results from complex",
+          "analyses."
+        ]
+      },
+      {
+        "title": "Assistant Manager (Data Analyst and Business Intelligence)",
+        "company": "EXL Service India Pvt.",
+        "years": "12/2021 - 07/2022",
+        "description": [
+          "EXL Service India Pvt.",
+          "Project Description – Insurance Domain ( Global Products and Platform)",
+          "Ltd ,Noida, India",
+          "Business intelligence report creation for insurance data, data analysis, and",
+          "stakeholder interaction.",
+          "Provided guidance and support to junior staff members on daily tasks, projects,",
+          "and objectives.",
+          "Coordinated with other departments to ensure smooth flow of operations.",
+          "Performed data analysis and created reports to identify trends or discrepancies",
+          "in the data.",
+          "Created and managed documentation for database management system.",
+          "Monitored database performance, identified issues, and provided solutions for",
+          "improvement.",
+          "Provided technical guidance on the use of database tools such as SQL Server",
+          "Management Studio.",
+          "Resolved complex queries by analyzing query plans and optimizing indexes",
+          "when necessary.",
+          "Developed and maintained data models to analyze customer insurance",
+          "coverage, trends, and pricing.",
+          "Identified areas of improvement in existing policies and procedures related to",
+          "data management.",
+          "Utilized SQL programming language to query databases for reporting",
+          "purposes.",
+          "Created detailed presentations summarizing findings from complex analyses",
+          "with recommendations for actionable insights.",
+          "Collaborated with stakeholders across multiple departments to ensure accurate",
+          "interpretation of results.",
+          "Generated comprehensive reports outlining customer demographics, risk",
+          "profiles, claims history.",
+          "Worked with internal teams to understand business needs and changing",
+          "strategies.",
+          "Cleaned and manipulated raw data"
+        ]
+      },
+      {
+        "title": "Data Analyst",
+        "years": "09/2018 - 12/2021",
+        "description": [
+          "Company- NISG",
+          "DISHA Project - DISHA Dashboard brings data from 44 flagship government",
+          "DELHI,",
+          "schemes (healthcare, banking, finance, and citizen service delivery )to one",
+          "Client- Department of",
+          "place for the first time. This helps government officials at all levels explore and",
+          "Rural Development",
+          "assess key government initiatives for any geographic level, at any time period.",
+          "New Delhi, India",
+          "The DISHA Dashboard helps Members of Parliament (MPs), Members of",
+          "Legislative Assembly (MLAs), and District Officials track the performance of all",
+          "major flagship schemes in their districts and constituencies.",
+          "Data management for DISHA Project, responding to user queries, database",
+          "maintenance, and report generation.",
+          "Analyzed large datasets to identify trends, patterns and correlations for",
+          "business insights.",
+          "Worked on multiple Government of India domain schemes including",
+          "healthcare, banking, finance, and citizen service delivery, ensuring accurate",
+          "data management and process implementation.",
+          "Implemented data privacy controls to protect PHI (Protected Health",
+          "Information) in accordance with HIPAA regulations for national health",
+          "schemes governed by NHA and WHO guidelines.",
+          "Collaborated with functional, security, and compliance teams to identify,",
+          "assess, and mitigate HIPAA-related risks across healthcare data workflows.",
+          "Developed dashboards with POWER BI to monitor key performance indicators.",
+          "Gathered requirements from stakeholders (All government ministry schemes)",
+          "to design data models and reports.",
+          "Facilitate use of MIS, GIS, and digital monitoring tools for real-time project",
+          "tracking.",
+          "Leveraged SQL queries to extract, transform and load data into databases.",
+          "Conducted exploratory analysis of complex datasets using SQL, Python",
+          "libraries such as NumPy and Pandas.",
+          "Defined KPIs based on collected data sources.",
+          "Built visualizations that enabled users to quickly interpret results from complex",
+          "analyses."
+        ]
+      },
+      {
+        "title": "Programmer",
+        "company": "Information System Pvt",
+        "years": "04/2017 - 09/2018",
+        "description": [
+          "Company - Akal",
+          "Project Description – E – Transport ( Vahan 4 & Sarathi 4 )",
+          "Information System Pvt",
+          "Development and maintenance of data replication packages, troubleshooting",
+          "Ltd, New Delhi",
+          "database issues, and query development.",
+          "Client - National",
+          "Analyzed source system transaction patterns and designed CDC architecture",
+          "Informatics Centre",
+          "in ODI 11g/12c to support scalable incremental data movement for national e-",
+          "New Delhi, India",
+          "Transport applications.",
+          "Ensured data quality and compliance by validating CDC data against",
+          "business rules and regulatory reporting standards mandated by Government of",
+          "India systems.",
+          "Supported production deployments and post-release validation of CDC",
+          "processes, including backfilling data and reinitializing journals when required.",
+          "Analyzed requirements and designed database schemas for applications.",
+          "Collaborated closely with project managers, designers, and other developers in",
+          "order to complete tasks efficiently and effectively.",
+          "Generated reports from databases using SQL queries.",
+          "Created SQL Server Integration Services packages for incremental and full",
+          "loads of data from various sources.",
+          "Developed ETL packages to extract, transform, and load data from multiple",
+          "sources into a data warehouse.",
+          "Involved in creating database objects such as tables, views, indexes based on",
+          "business requirements.",
+          "Optimized existing queries for better performance using SQL query tuning",
+          "techniques.",
+          "Designed complex reports using SQL Server Reporting Services.",
+          "Integrated multiple data sources into one unified view using views or joins in",
+          "SQL queries.",
+          "Developed ETL processes using SSIS packages for loading data from various",
+          "sources into a data warehouse environment.",
+          "Generated ad hoc reports upon request from stakeholders utilizing Microsoft",
+          "Excel Pivot Tables or Access Queries.",
+          "Software Developer (Data Integration/ODI)",
+          "Project Description – E-Transport ( Vahan & Sarathi )",
+          "Development and maintenance of data replication packages, troubleshooting",
+          "database issues, and report generation.",
+          "Developed and implemented data warehouse models for various reporting",
+          "requirements using SQL Server 2008, 2012, 2014.",
+          "Configured and managed journalizing (Simple and Consistent CDC) using",
+          "ODI Knowledge Modules, handled subscription management, and ensured",
+          "data consistency across multiple transport databases while processing high-",
+          "volume transactional data.",
+          "Designed and implemented Change Data Capture (CDC) in ODI 11g and 12c",
+          "to capture incremental changes (INSERT, UPDATE, DELETE) from source",
+          "transport systems (vehicle registration, license, permit data) and load them into",
+          "the central data warehouse, ensuring near real-time data availability.",
+          "Created SSIS packages to extract, transform and load data from multiple",
+          "sources into the Data Warehouse.",
+          "Worked with Business Intelligence tools such as Tableau and Power BI for",
+          "creating interactive dashboards.",
+          "Maintained documentation related to all aspects of Database Design and",
+          "Development activities like ER diagrams, DDL scripts.",
+          "Investigated issues reported by end users related to data quality and accuracy",
+          "within the Data Warehouse environment."
+        ]
+      },
+      {
+        "title": "Company - SISL",
+        "company": "Infotech Pvt Ltd Delhi,",
+        "years": "04/2016 - 03/2017",
+        "description": [
+          "Infotech Pvt Ltd Delhi,",
+          "Client -National",
+          "Informatics Centre",
+          "New Delhi, India"
+        ]
+      }
+    ],
+    "education": [
+      {
+        "description": [
+          "02/2015"
+        ]
+      },
+      {
+        "description": [
+          "CDAC-NOIDA",
+          "07/2014"
+        ],
+        "degree": "PG-DIPLOMA in Advance Computing"
+      },
+      {
+        "description": [
+          "R.D. Engineering College, Ghaziabad",
+          "06/2010",
+          "06/2008",
+          "Standard 12th",
+          "U.P. BOARD",
+          "Standard 10th",
+          "U.P. BOARD"
+        ],
+        "degree": "Bachelor of Technology (B.Tech.) in Information Technology"
+      }
+    ],
+    "technicalSkills": [
+      "Data Analysis",
+      "Business Intelligence",
+      "Data Modeling (Erwin & SQL Server, Conceptual,",
+      "Logical & Physical Modeling)",
+      "Advanced Excel",
+      "Client management (Business rules)",
+      "Odi 11g (CDC workflows )",
+      "MS SQL",
+      "Microsoft Azure Cloud environment",
+      "Project Monitoring",
+      "Powerbi",
+      "ETL",
+      "Data Warehouse",
+      "Agile Methodolgy",
+      "Python",
+      "R",
+      "Tableau",
+      "T-SQL",
+      "Business",
+      "Intelligence",
+      "Data Modeling",
+      "Advanced Excel",
+      "Client",
+      "management",
+      "Microsoft Azure",
+      "Cloud",
+      "environment",
+      "Data Analysis",
+      "MS Sql",
+      "Data warehouse",
+      "Data Analysis",
+      "Data Modeling",
+      "Advanced Excel",
+      "Power BI",
+      "Data Analysis",
+      "MS SQL 2008 &",
+      "2021",
+      "Data warehouse",
+      "ETL",
+      "Compliance &",
+      "Regulatory",
+      "Reporting",
+      "T-SQL",
+      "Project",
+      "Monitoring",
+      "Data Analysis",
+      "Data Modeling",
+      "Advanced Excel",
+      "Power BI",
+      "Data Analysis",
+      "MS Sql Server",
+      "2012",
+      "T-SQL",
+      "Project",
+      "Monitoring",
+      "Data warehouse",
+      "ETL",
+      "Python",
+      "Data Analysis",
+      "Data Modeling",
+      "Advanced Excel",
+      "Power BI",
+      "Data Analysis",
+      "MS Sql 2008 &",
+      "2021",
+      "T-SQL",
+      "Data warehouse",
+      "SSIS , SSRS",
+      "Data Analysis",
+      "Data Modeling",
+      "Advanced Excel",
+      "Power BI",
+      "Data Analysis",
+      "MS Sql 2008 &",
+      "2012",
+      "Data warehouse",
+      "Project",
+      "Monitoring",
+      "Apache Airflow",
+      "Python",
+      "R",
+      "Data Pipeline",
+      "Data Analysis",
+      "Data Modeling",
+      "Advanced Excel",
+      "Power BI",
+      "Data Analysis",
+      "MS Sql 2008",
+      "PostgreSql",
+      "Data warehouse",
+      "ODI 11 G",
+      "ELT",
+      "Data Analysis",
+      "Data Modeling",
+      "Advanced Excel",
+      "Power BI",
+      "Data Analysis",
+      "MS Sql 2008",
+      "PostgreSql",
+      "Data warehouse",
+      "ODI 11 G & 12 C",
+      "ELT"
+    ],
+    "certifications": [
+      "B1",
+      "PG-DPLOMA IN ADVANCE COMPUTING FROM CDAC NOIDA"
+    ],
+    "languages": [
+      "Hindi: First Language",
+      "English",
+      "Intermediate (B1)"
+    ],
+    "awards": [
+      "Awarded a Certificate of Appreciation by the Ministry of Electronics and Information",
+      "Technology, Punjab Civil Secretariat, and Chandigarh, for successfully completing the",
+      "migration of all RTOs in Punjab State ahead of schedule, demonstrating efficiency, dedication,",
+      "and exceptional project execution."
+    ]
+  },
+  "evaluation": {
+    "blocks": [
+      {
+        "block": "personalInfo",
+        "modelConfidence": {
+          "value": 0.1159,
+          "type": "raw_model_probability"
+        },
+        "extractionEvaluation": {
+          "status": "CORRECT",
+          "extractionConfidence": 1.0,
+          "cosineSimilarity": 1.0,
+          "sourceMatch": true,
+          "sourceCoverage": 100.0,
+          "missingContent": [],
+          "incorrectContent": [],
+          "wrongBlockContent": [],
+          "hallucinatedContent": [],
+          "confidenceType": "evidence_based",
+          "fields": {
+            "name": {
+              "status": "CORRECT",
+              "source": "A.BHARGAVA",
+              "extracted": "A.BHARGAVA"
+            },
+            "email": {
+              "status": "CORRECT",
+              "source": "arunbhargava.nic@gmail.com",
+              "extracted": "arunbhargava.nic@gmail.com"
+            },
+            "phone": {
+              "status": "CORRECT",
+              "source": "9557824150",
+              "extracted": "9557824150"
+            },
+            "location": {
+              "status": "CORRECT",
+              "source": "Bengaluru, Karnataka 560100",
+              "extracted": "Bengaluru, Karnataka 560100"
+            },
+            "dateOfBirth": {
+              "status": "CORRECT",
+              "source": "05/07/93",
+              "extracted": "05/07/93"
+            }
+          }
+        },
+        "llmVerification": {
+          "missing": [],
+          "incorrect": [],
+          "hallucinated": [],
+          "status": "LLM_ERROR",
+          "confidence": null,
+          "reason": "Set OPENROUTER_API_KEY in the environment to use OpenRouter."
+        },
+        "confidenceReason": "The model favored a different section for one or more spans; this is its actual probability for the assigned section."
+      },
+      {
+        "block": "summary",
+        "modelConfidence": {
+          "value": 0.3887,
+          "type": "raw_model_probability"
+        },
+        "extractionEvaluation": {
+          "status": "CORRECT",
+          "extractionConfidence": 1.0,
+          "cosineSimilarity": 1.0,
+          "sourceMatch": true,
+          "sourceCoverage": 100.0,
+          "missingContent": [],
+          "incorrectContent": [],
+          "wrongBlockContent": [],
+          "hallucinatedContent": [],
+          "confidenceType": "evidence_based"
+        },
+        "llmVerification": {
+          "missing": [],
+          "incorrect": [],
+          "hallucinated": [],
+          "status": "LLM_ERROR",
+          "confidence": null,
+          "reason": "Set OPENROUTER_API_KEY in the environment to use OpenRouter."
+        },
+        "confidenceReason": "Low model probability for one or more contributing spans."
+      },
+      {
+        "block": "technicalSkills",
+        "modelConfidence": {
+          "value": 0.1486,
+          "type": "raw_model_probability"
+        },
+        "extractionEvaluation": {
+          "status": "CORRECT",
+          "extractionConfidence": 1.0,
+          "cosineSimilarity": 1.0,
+          "sourceMatch": true,
+          "sourceCoverage": 100.0,
+          "missingContent": [],
+          "incorrectContent": [],
+          "wrongBlockContent": [],
+          "hallucinatedContent": [],
+          "confidenceType": "evidence_based"
+        },
+        "llmVerification": {
+          "missing": [],
+          "incorrect": [],
+          "hallucinated": [],
+          "status": "LLM_ERROR",
+          "confidence": null,
+          "reason": "Set OPENROUTER_API_KEY in the environment to use OpenRouter."
+        },
+        "confidenceReason": "The model favored a different section for one or more spans; this is its actual probability for the assigned section."
+      },
+      {
+        "block": "workExperience",
+        "modelConfidence": {
+          "value": 0.2282,
+          "type": "raw_model_probability"
+        },
+        "extractionEvaluation": {
+          "status": "INCORRECT",
+          "extractionConfidence": 0.9979,
+          "cosineSimilarity": 0.9994,
+          "sourceMatch": false,
+          "sourceCoverage": 100.0,
+          "missingContent": [],
+          "incorrectContent": [
+            "Mantra Softech Pvt.",
+            "NETWORK LTD.",
+            "EXL Service India Pvt.",
+            "healthcare, banking, finance, and citizen service delivery, ensuring accurate",
+            "Information System Pvt",
+            "Analyzed source system transaction patterns and designed CDC architecture",
+            "Infotech Pvt Ltd Delhi,",
+            "New Delhi, India"
+          ],
+          "wrongBlockContent": [],
+          "hallucinatedContent": [],
+          "confidenceType": "evidence_based"
+        },
+        "llmVerification": {
+          "missing": [],
+          "incorrect": [],
+          "hallucinated": [],
+          "status": "LLM_ERROR",
+          "confidence": null,
+          "reason": "Set OPENROUTER_API_KEY in the environment to use OpenRouter."
+        },
+        "confidenceReason": "The model favored a different section for one or more spans; this is its actual probability for the assigned section."
+      },
+      {
+        "block": "education",
+        "modelConfidence": {
+          "value": 0.3677,
+          "type": "raw_model_probability"
+        },
+        "extractionEvaluation": {
+          "status": "CORRECT",
+          "extractionConfidence": 1.0,
+          "cosineSimilarity": 1.0,
+          "sourceMatch": true,
+          "sourceCoverage": 100.0,
+          "missingContent": [],
+          "incorrectContent": [],
+          "wrongBlockContent": [],
+          "hallucinatedContent": [],
+          "confidenceType": "evidence_based"
+        },
+        "llmVerification": {
+          "missing": [],
+          "incorrect": [],
+          "hallucinated": [],
+          "status": "LLM_ERROR",
+          "confidence": null,
+          "reason": "Set OPENROUTER_API_KEY in the environment to use OpenRouter."
+        },
+        "confidenceReason": "Low model probability for one or more contributing spans."
+      },
+      {
+        "block": "awards",
+        "modelConfidence": {
+          "value": 0.0187,
+          "type": "raw_model_probability"
+        },
+        "extractionEvaluation": {
+          "status": "CORRECT",
+          "extractionConfidence": 1.0,
+          "cosineSimilarity": 1.0,
+          "sourceMatch": true,
+          "sourceCoverage": 100.0,
+          "missingContent": [],
+          "incorrectContent": [],
+          "wrongBlockContent": [],
+          "hallucinatedContent": [],
+          "confidenceType": "evidence_based"
+        },
+        "llmVerification": {
+          "missing": [],
+          "incorrect": [],
+          "hallucinated": [],
+          "status": "LLM_ERROR",
+          "confidence": null,
+          "reason": "Set OPENROUTER_API_KEY in the environment to use OpenRouter."
+        },
+        "confidenceReason": "The model favored a different section for one or more spans; this is its actual probability for the assigned section."
+      },
+      {
+        "block": "languages",
+        "modelConfidence": {
+          "value": 0.1329,
+          "type": "raw_model_probability"
+        },
+        "extractionEvaluation": {
+          "status": "CORRECT",
+          "extractionConfidence": 1.0,
+          "cosineSimilarity": 1.0,
+          "sourceMatch": true,
+          "sourceCoverage": 100.0,
+          "missingContent": [],
+          "incorrectContent": [],
+          "wrongBlockContent": [],
+          "hallucinatedContent": [],
+          "confidenceType": "evidence_based"
+        },
+        "llmVerification": {
+          "missing": [],
+          "incorrect": [],
+          "hallucinated": [],
+          "status": "LLM_ERROR",
+          "confidence": null,
+          "reason": "Set OPENROUTER_API_KEY in the environment to use OpenRouter."
+        },
+        "confidenceReason": "The model favored a different section for one or more spans; this is its actual probability for the assigned section."
+      },
+      {
+        "block": "certifications",
+        "modelConfidence": {
+          "value": 0.6391,
+          "type": "raw_model_probability"
+        },
+        "extractionEvaluation": {
+          "status": "CORRECT",
+          "extractionConfidence": 1.0,
+          "cosineSimilarity": 1.0,
+          "sourceMatch": true,
+          "sourceCoverage": 100.0,
+          "missingContent": [],
+          "incorrectContent": [],
+          "wrongBlockContent": [],
+          "hallucinatedContent": [],
+          "confidenceType": "evidence_based"
+        },
+        "llmVerification": {
+          "missing": [],
+          "incorrect": [],
+          "hallucinated": [],
+          "status": "LLM_ERROR",
+          "confidence": null,
+          "reason": "Set OPENROUTER_API_KEY in the environment to use OpenRouter."
+        }
+      }
+    ],
+    "missingBlocks": [],
+    "cosineSimilarity": 0.9996,
+    "evaluationSummary": {
+      "totalBlocks": 8,
+      "correctBlocks": 7,
+      "partialBlocks": 0,
+      "incorrectBlocks": 1,
+      "missingBlocks": 0,
+      "notVerifiedBlocks": 0,
+      "averageModelConfidence": 0.255,
+      "averageExtractionConfidence": 0.9997,
+      "averageCosineSimilarity": 0.9999,
+      "sourceGroundedCorrectness": 99.18,
+      "sourceContentRetentionF1": 99.59,
+      "sourceCoverage": 100.0,
+      "llmVerification": {
+        "status": "LLM_ERROR",
+        "eligible": 8,
+        "submitted": 0,
+        "reviewed": 0,
+        "verifiedCorrect": 0,
+        "verifiedPartial": 0,
+        "verifiedIncorrect": 0,
+        "errors": 8,
+        "notVerified": 0,
+        "verificationCoverage": 0.0,
+        "reason": "Set OPENROUTER_API_KEY in the environment to use OpenRouter.",
+        "llmVerifiedAccuracy": null
+      }
+    },
+    "metricDefinitions": {
+      "sourceContentRetentionF1": "Source token retention F1 (multiset precision and recall); not semantic or human-labelled accuracy.",
+      "groundTruthScope": "Converted original resume text; PDF conversion errors are not measured.",
+      "sourceCoverage": "Percentage of meaningful original source lines completely retained in the corresponding block.",
+      "modelConfidence": "Minimum actual classifier probability across contributing source spans for the assigned section. Not confidence in final JSON correctness.",
+      "extractionConfidence": "Uncalibrated evidence score: geometric mean of source-supported token precision, source token completeness, complete-line coverage, supported-field fraction and TF-IDF cosine. A successful correct LLM review adds its confidence as a sixth factor; partial/incorrect review multiplies the base score by (1 - LLM confidence). Errors add no positive evidence. Unresolved verification returns null; averages exclude unavailable scores. This is not a statistically calibrated probability or ML accuracy.",
+      "sourceGroundedCorrectness": "Percentage of extracted tokens supported by their corresponding original block; omissions are reported separately by completeness, source coverage and retention F1. Not ML model accuracy.",
+      "sourceMatch": "Deterministic comparison found no missing, duplicated, wrong-block or hallucinated content; independent judge findings are reported separately.",
+      "cosineSimilarity": "TF-IDF text similarity between corresponding source and extracted blocks; not extraction accuracy, semantic proof or LLM verification.",
+      "llmVerifiedAccuracy": "Successfully reviewed VERIFIED_CORRECT blocks / successfully reviewed blocks * 100; excludes errors and NOT_VERIFIED.",
+      "verificationCoverage": "Successfully reviewed blocks / eligible blocks * 100."
+    }
+  }
+}

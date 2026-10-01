@@ -27,6 +27,7 @@ from typing import Any
 
 from .models import (
     BlockResolution,
+    SemanticSpanResolution,
     IntegrityReport,
     LLMConfig,
     LLMResolutionResult,
@@ -46,13 +47,16 @@ interests, references, other, unknown.
 
 Rules:
 - Do not invent content. Classify each supplied block only.
-- Each item shows the block text, the ML prediction with alternatives, the
-  reasons it was escalated for review, and neighbouring blocks' labels.
+- Each item shows the block text, its B3 semantic spans with source line
+  ranges and ML probabilities, the reasons it was escalated for review, and
+  neighbouring blocks' labels. A mixed block may contain more than one section.
 - Prefer EXPERIENCE when a block contains a job title/company/date range
   and responsibilities, even if there is no WORK EXPERIENCE heading.
 - Use "unknown" only when the block is genuinely unclassifiable.
+- For a mixed block, also return "span_verifications": [{{"start_line_id": ..., "end_line_id": ..., "section": ..., "confidence": 0.0-1.0, "reason": ...}}] for each supplied span.
+- Do not merge spans. Keep each span's source line range intact.
 - Reply with ONLY a JSON object mapping block id (string) to an object
-  {{"section": ..., "confidence": 0.0-1.0, "reason": "short factual explanation"}}.
+  {{"section": ..., "confidence": 0.0-1.0, "reason": "short factual explanation", "span_verifications": []}}.
 
 Schema example:
 {{"B000003": {{"section": "experience", "confidence": 0.9, "reason": "..."}}}}
@@ -104,6 +108,10 @@ class AnthropicLLMClient(LLMClient):
     """
 
     ENV_VAR = "ANTHROPIC_API_KEY"
+    OPENROUTER_ENV_VAR = "OPENROUTER_API_KEY"
+    OPENROUTER_BASE_URL = "https://openrouter.ai/api"
+    DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
+    DEFAULT_OPENROUTER_MODEL = "anthropic/claude-haiku-4.5"
 
     def __init__(self, config: LLMConfig):
         import os
@@ -113,23 +121,221 @@ class AnthropicLLMClient(LLMClient):
             import anthropic
         except ImportError as exc:
             raise RuntimeError(
-                "resolve with Anthropic needs the anthropic package: pip install anthropic"
+                "LLM verification needs the anthropic package: pip install anthropic"
             ) from exc
-        api_key = os.getenv(self.ENV_VAR)
-        if not api_key:
-            raise RuntimeError(
-                f"resolve with Anthropic needs {self.ENV_VAR} in the environment "
-                "(escalated blocks stay explicitly unresolved without it)."
-            )
-        self._client = anthropic.Anthropic(api_key=api_key, timeout=config.timeout_seconds)
+        openrouter_key = os.getenv(self.OPENROUTER_ENV_VAR)
+        if openrouter_key:
+            self.provider = "openrouter"
+            api_key = openrouter_key
+            self.base_url = self.OPENROUTER_BASE_URL
+            self.model = (self.DEFAULT_OPENROUTER_MODEL
+                          if config.model == self.DEFAULT_ANTHROPIC_MODEL else config.model)
+        else:
+            self.provider = "anthropic"
+            api_key = os.getenv(self.ENV_VAR)
+            self.base_url = None
+            self.model = config.model
+            if not api_key:
+                raise RuntimeError(
+                    f"Set {self.OPENROUTER_ENV_VAR} for OpenRouter or {self.ENV_VAR} for Anthropic. "
+                    "Unverified blocks remain explicitly unresolved without an LLM key."
+                )
+        client_options = {"api_key": api_key, "timeout": config.timeout_seconds}
+        if self.base_url:
+            client_options["base_url"] = self.base_url
+        self._client = anthropic.Anthropic(**client_options)
 
     def complete(self, prompt: str) -> str:
         resp = self._client.messages.create(
-            model=self.config.model,
+            model=self.model,
             max_tokens=self.config.max_tokens,
             messages=[{"role": "user", "content": prompt}],
         )
         return str(resp.content[0].text)
+
+
+class NvidiaNIMLLMClient(LLMClient):
+    """OpenAI-compatible client for NVIDIA's hosted NIM inference endpoint."""
+
+    ENV_VAR = "NVIDIA_API_KEY"
+    BASE_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+    DEFAULT_MODEL = "nvidia/nemotron-3.5-lightning-30b-a3b"
+
+    def __init__(self, config: LLMConfig):
+        import os
+        self.config = config
+        self.model = config.model if config.model != AnthropicLLMClient.DEFAULT_ANTHROPIC_MODEL else self.DEFAULT_MODEL
+        self.api_key = os.getenv(self.ENV_VAR)
+        if not self.api_key:
+            raise RuntimeError(f"Set {self.ENV_VAR} in the environment to use NVIDIA NIM.")
+
+    def complete(self, prompt: str) -> str:
+        import socket
+        import time
+        import urllib.error
+        import urllib.request
+
+        body = json.dumps({
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": self.config.max_tokens,
+            "temperature": 0.1,
+            "chat_template_kwargs": {"enable_thinking": False},
+        }).encode("utf-8")
+        request = urllib.request.Request(
+            self.BASE_URL, data=body,
+            headers={"Authorization": f"Bearer {self.api_key}",
+                     "Content-Type": "application/json"},
+            method="POST")
+        payload = None
+        retryable_statuses = {429, 500, 502, 503, 504}
+        max_retries = self.config.transport_retries
+        for attempt in range(max_retries + 1):
+            try:
+                with urllib.request.urlopen(request, timeout=self.config.timeout_seconds) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                break
+            except urllib.error.HTTPError as exc:
+                detail = exc.read().decode("utf-8", errors="replace")[:500]
+                if exc.code not in retryable_statuses or attempt == max_retries:
+                    raise RuntimeError(
+                        f"NVIDIA NIM HTTP {exc.code} after {attempt + 1} attempt(s): {detail}"
+                    ) from exc
+                retry_after = (exc.headers.get("Retry-After") if exc.headers else None)
+                try:
+                    delay = min(8.0, max(0.0, float(retry_after))) if retry_after else float(2 ** attempt)
+                except ValueError:
+                    delay = float(2 ** attempt)
+                time.sleep(delay)
+            except (TimeoutError, socket.timeout) as exc:
+                if attempt == max_retries:
+                    raise RuntimeError(
+                        f"NVIDIA NIM timed out after {attempt + 1} attempt(s) "
+                        f"({self.config.timeout_seconds:g}s per attempt)."
+                    ) from exc
+                time.sleep(min(8.0, float(2 ** attempt)))
+            except urllib.error.URLError as exc:
+                if isinstance(exc.reason, (TimeoutError, socket.timeout)):
+                    if attempt == max_retries:
+                        raise RuntimeError(
+                            f"NVIDIA NIM timed out after {attempt + 1} attempt(s) "
+                            f"({self.config.timeout_seconds:g}s per attempt)."
+                        ) from exc
+                    time.sleep(min(8.0, float(2 ** attempt)))
+                    continue
+                raise RuntimeError(f"NVIDIA NIM connection failed: {exc.reason}") from exc
+        try:
+            content = payload["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise RuntimeError("NVIDIA NIM returned no chat completion content.") from exc
+        if not isinstance(content, str) or not content.strip():
+            raise RuntimeError("NVIDIA NIM returned empty chat completion content.")
+        return content
+
+
+class OpenRouterLLMClient(LLMClient):
+    """OpenRouter API client for hosted models (NVIDIA Nemotron, Claude, Llama, etc.)."""
+
+    ENV_VAR = "OPENROUTER_API_KEY"
+    BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
+    DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b"
+
+    def __init__(self, config: LLMConfig):
+        import os
+        self.config = config
+        self.model = config.model if config.model and config.model != AnthropicLLMClient.DEFAULT_ANTHROPIC_MODEL else self.DEFAULT_MODEL
+        self.api_key = os.getenv(self.ENV_VAR)
+        if not self.api_key:
+            raise RuntimeError(f"Set {self.ENV_VAR} in the environment to use OpenRouter.")
+
+    def complete(self, prompt: str) -> str:
+        import socket
+        import time
+        import urllib.error
+        import urllib.request
+
+        req_max_tokens = min(self.config.max_tokens, 1500)
+        payload_dict: dict[str, Any] = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": req_max_tokens,
+            "temperature": 0.1,
+            "reasoning": {
+                "effort": "low",
+                "exclude": True,
+            },
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
+        body = json.dumps(payload_dict).encode("utf-8")
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/resume-parser",
+            "X-Title": "Resume Section Classifier",
+        }
+        request = urllib.request.Request(self.BASE_URL, data=body, headers=headers, method="POST")
+        payload = None
+        retryable_statuses = {429, 500, 502, 503, 504}
+        max_retries = self.config.transport_retries
+        for attempt in range(max_retries + 1):
+            try:
+                with urllib.request.urlopen(request, timeout=self.config.timeout_seconds) as response:
+                    payload = json.loads(response.read().decode("utf-8"), strict=False)
+                break
+            except urllib.error.HTTPError as exc:
+                detail = exc.read().decode("utf-8", errors="replace")[:500]
+                if exc.code == 402 and attempt < max_retries:
+                    m_afford = re.search(r"can only afford (\d+)", detail)
+                    if m_afford:
+                        affordable = max(256, int(m_afford.group(1)) - 100)
+                        payload_dict["max_tokens"] = affordable
+                        body = json.dumps(payload_dict).encode("utf-8")
+                        request = urllib.request.Request(self.BASE_URL, data=body, headers=headers, method="POST")
+                        time.sleep(0.5)
+                        continue
+                if exc.code not in retryable_statuses or attempt == max_retries:
+                    raise RuntimeError(
+                        f"OpenRouter HTTP {exc.code} after {attempt + 1} attempt(s): {detail}"
+                    ) from exc
+                retry_after = (exc.headers.get("Retry-After") if exc.headers else None)
+                try:
+                    delay = min(8.0, max(0.0, float(retry_after))) if retry_after else float(2 ** attempt)
+                except ValueError:
+                    delay = float(2 ** attempt)
+                time.sleep(delay)
+            except (TimeoutError, socket.timeout) as exc:
+                if attempt == max_retries:
+                    raise RuntimeError(
+                        f"OpenRouter timed out after {attempt + 1} attempt(s) "
+                        f"({self.config.timeout_seconds:g}s per attempt)."
+                    ) from exc
+                time.sleep(min(8.0, float(2 ** attempt)))
+            except urllib.error.URLError as exc:
+                if isinstance(exc.reason, (TimeoutError, socket.timeout)):
+                    if attempt == max_retries:
+                        raise RuntimeError(
+                            f"OpenRouter timed out after {attempt + 1} attempt(s) "
+                            f"({self.config.timeout_seconds:g}s per attempt)."
+                        ) from exc
+                    time.sleep(min(8.0, float(2 ** attempt)))
+                    continue
+                raise RuntimeError(f"OpenRouter connection failed: {exc.reason}") from exc
+        if not isinstance(payload, dict):
+            raise RuntimeError("OpenRouter returned non-dict JSON response.")
+        if "error" in payload:
+            raise RuntimeError(f"OpenRouter API error: {payload['error']}")
+        try:
+            choice = payload["choices"][0]
+            message = choice.get("message", {})
+            content = message.get("content")
+            if not content or not str(content).strip():
+                content = message.get("reasoning") or message.get("reasoning_content") or choice.get("text")
+        except (KeyError, IndexError, TypeError) as exc:
+            raise RuntimeError("OpenRouter returned no chat completion content.") from exc
+        if not isinstance(content, str) or not content.strip():
+            finish_reason = choice.get("finish_reason") if "choice" in locals() and isinstance(choice, dict) else None
+            raise RuntimeError(f"OpenRouter returned empty chat completion content (finish_reason={finish_reason}).")
+        return content
 
 
 # ---------------------------------------------------------------- prompt + parsing (pure)
@@ -142,7 +348,38 @@ def build_resolution_prompt(
 
 
 def _strip_fences(text: str) -> str:
+    # Match markdown code block
+    m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text.strip(), re.IGNORECASE)
+    if m:
+        return m.group(1).strip()
     return re.sub(r"^```(json)?|```$", "", text.strip(), flags=re.M).strip()
+
+
+def parse_json_object(text: str) -> dict:
+    raw = _strip_fences(text)
+    decoder = json.JSONDecoder(strict=False)
+    try:
+        value = json.loads(raw, strict=False)
+    except json.JSONDecodeError:
+        # Decode the first balanced object, ignoring surrounding prose/fences.
+        start = raw.find("{")
+        if start < 0:
+            raise ValueError("LLM response contains no JSON object")
+        value, _ = decoder.raw_decode(raw[start:])
+    if not isinstance(value, dict):
+        raise ValueError("LLM response is not a JSON object")
+    return value
+
+
+def complete_json(client, prompt: str) -> dict:
+    for attempt in range(2):
+        raw = client.complete(prompt if attempt == 0 else prompt +
+                              "\nYour previous response was invalid. Return ONLY one strict valid JSON object. Escape quotes and newlines inside strings; no Markdown or commentary.")
+        try:
+            return parse_json_object(raw)
+        except (ValueError, json.JSONDecodeError):
+            if attempt:
+                raise
 
 
 def parse_resolution_response(
@@ -156,11 +393,9 @@ def parse_resolution_response(
     error is non-empty iff the whole response was unusable.
     """
     try:
-        data = json.loads(_strip_fences(text))
-    except (json.JSONDecodeError, ValueError) as exc:
+        data = parse_json_object(text)
+    except ValueError as exc:
         return {}, [], f"unparseable LLM response: {exc}"
-    if not isinstance(data, dict):
-        return {}, [], "LLM response is not a JSON object"
     entries: dict[str, dict[str, Any]] = {}
     invalid_ids: list[str] = []
     for block_id, value in data.items():
@@ -169,18 +404,39 @@ def parse_resolution_response(
         if isinstance(value, dict):
             try:
                 section = SectionLabel(value.get("section"))
-            except ValueError:
-                section = None
-            conf = value.get("confidence")
-            if section is not None and not isinstance(conf, bool) \
-                    and isinstance(conf, (int, float)) and 0.0 <= float(conf) <= 1.0:
+                conf = value.get("confidence")
+                if (isinstance(conf, bool) or not isinstance(conf, (int, float))
+                        or not 0.0 <= float(conf) <= 1.0):
+                    raise ValueError("invalid block confidence")
+                raw_spans = value.get("span_verifications", [])
+                if not isinstance(raw_spans, list):
+                    raise ValueError("span_verifications must be an array")
+                span_verifications = []
+                for raw_span in raw_spans:
+                    if not isinstance(raw_span, dict):
+                        raise ValueError("span verification must be an object")
+                    span_section = SectionLabel(raw_span.get("section"))
+                    span_confidence = raw_span.get("confidence")
+                    start_id, end_id = raw_span.get("start_line_id"), raw_span.get("end_line_id")
+                    if (not isinstance(start_id, str) or not isinstance(end_id, str)
+                            or isinstance(span_confidence, bool)
+                            or not isinstance(span_confidence, (int, float))
+                            or not 0.0 <= float(span_confidence) <= 1.0):
+                        raise ValueError("invalid span verification fields")
+                    span_verifications.append({
+                        "start_line_id": start_id, "end_line_id": end_id,
+                        "section": span_section, "confidence": float(span_confidence),
+                        "reason": raw_span.get("reason", "") if isinstance(raw_span.get("reason", ""), str) else "",
+                    })
                 reason = value.get("reason", "")
                 entries[bid] = {
-                    "section": section,
-                    "confidence": float(conf),
+                    "section": section, "confidence": float(conf),
                     "reason": reason if isinstance(reason, str) else "",
+                    "span_verifications": span_verifications,
                 }
                 valid = True
+            except (ValueError, TypeError):
+                valid = False
         if not valid:
             invalid_ids.append(bid)
     return entries, invalid_ids, ""
@@ -212,6 +468,7 @@ def _request_items(
             "id": bid,
             "heading": block.display_lines[0].text if block.display_lines and block.display_lines[0].is_header else None,
             "text": block.text,
+            "candidate_semantic_spans": verdict.evidence.get("semantic_spans", []),
             "ml_prediction": verdict.predicted_section.value,
             "ml_confidence": verdict.confidence,
             "alternatives": [
@@ -262,6 +519,8 @@ def resolve_escalated(
         raw = client.complete(prompt)
         entries, invalid_ids, parse_error = parse_resolution_response(raw)
         if parse_error:
+            raw = client.complete(prompt + "\nReturn ONLY strict valid JSON. Escape all quotes and newlines in strings. No Markdown or commentary.")
+            entries, invalid_ids, parse_error = parse_resolution_response(raw)
             error = parse_error
     except Exception as exc:  # transport failure: explicit, never a guess
         error = f"{REASON_CALL_FAILED}: {type(exc).__name__}: {str(exc)[:300]}"
@@ -272,15 +531,36 @@ def resolve_escalated(
         verdict = by_verdict[bid]
         if bid in entries and not error:
             e = entries[bid]
-            resolutions.append(BlockResolution(
-                block_id=bid, document_id=seg.document_id,
-                resolved_section=e["section"], confidence=e["confidence"],
-                reason=e["reason"], resolved=True, source="llm",
-                source_line_ids=line_ids.get(bid, []),
-                b4_reasons=list(verdict.reasons),
-                model=config.model, prompt_version=config.prompt_version,
-            ))
-            continue
+            requested_spans = verdict.evidence.get("semantic_spans", [])
+            span_results = e.get("span_verifications", [])
+            expected_ranges = {(x.get("start_line_id"), x.get("end_line_id")) for x in requested_spans}
+            returned_ranges = {(x["start_line_id"], x["end_line_id"]) for x in span_results}
+            invalid_span_response = bool(span_results and returned_ranges != expected_ranges)
+            if not invalid_span_response:
+                if not span_results and requested_spans:
+                    span_resolutions = [
+                        SemanticSpanResolution(
+                            start_line_id=s.get("start_line_id", ""),
+                            end_line_id=s.get("end_line_id", ""),
+                            section=SectionLabel(e["section"]),
+                            confidence=e["confidence"],
+                            reason=e["reason"],
+                        )
+                        for s in requested_spans
+                    ]
+                else:
+                    span_resolutions = [SemanticSpanResolution(**span) for span in span_results]
+                resolutions.append(BlockResolution(
+                    block_id=bid, document_id=seg.document_id,
+                    resolved_section=e["section"], confidence=e["confidence"],
+                    reason=e["reason"], resolved=True, source="llm",
+                    source_line_ids=line_ids.get(bid, []),
+                    b4_reasons=list(verdict.reasons),
+                    model=config.model, prompt_version=config.prompt_version,
+                    span_resolutions=span_resolutions,
+                ))
+                continue
+            invalid_ids.append(bid)
         # Explicitly unresolved: whole-call failure, invalid entry, or silence.
         if error:
             reason = error
