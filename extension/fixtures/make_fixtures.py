@@ -241,6 +241,12 @@ build("f7", [
     J("education", "BSc Computer Science", "State University", "2012-09-01", "2016-06-30",
       raw="2012 – 2016", conf=0.9, gran=("year", "year"), page=0,
       lines=["BSc Computer Science, State University, 2016"]),
+    J("projects", "Cognos TM1 Health Dashboard", "Tata Consultancy Services", "2019-01-01", "2019-11-30",
+      raw="Jan 2019 – Nov 2019", conf=0.9, page=0,
+      lines=["Cognos TM1 Health Dashboard | Tata Consultancy Services", "Jan 2019 – Nov 2019"]),
+    J("projects", "Real-time Trade Reconciliation Engine", None, "2023-03-01", "2023-12-31",
+      raw="Mar 2023 – Dec 2023", conf=0.85, page=1,
+      lines=["Real-time Trade Reconciliation Engine", "Mar 2023 – Dec 2023"]),
 ], {"percent": 82, "label": "Accurate", "trust_rate": 0.8},
     candidate={"name": "Ankur Sharma", "sha256": "fixf7"})
 print("done")

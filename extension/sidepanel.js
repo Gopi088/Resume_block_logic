@@ -52,9 +52,9 @@
     eduToggle: document.getElementById("eduToggle"),
     eduCount: document.getElementById("eduCount"),
     eduList: document.getElementById("eduList"),
-    otherToggle: document.getElementById("otherToggle"),
-    otherCount: document.getElementById("otherCount"),
-    otherList: document.getElementById("otherList"),
+    projToggle: document.getElementById("projToggle"),
+    projCount: document.getElementById("projCount"),
+    projList: document.getElementById("projList"),
     savedNotes: document.getElementById("savedNotes"),
     resumeNote: document.getElementById("resumeNote"),
     resumeNoteError: document.getElementById("resumeNoteError"),
@@ -76,8 +76,8 @@
   el.eduToggle.addEventListener("click", function () {
     toggleSublist(el.eduList, el.eduToggle);
   });
-  el.otherToggle.addEventListener("click", function () {
-    toggleSublist(el.otherList, el.otherToggle);
+  el.projToggle.addEventListener("click", function () {
+    toggleSublist(el.projList, el.projToggle);
   });
   el.markReviewedBtn.addEventListener("click", onMarkReviewed);
   el.resumeNote.addEventListener("input", function () {
@@ -515,31 +515,38 @@
   function renderTimeline(r, jobs) {
     el.timeline.innerHTML = "";
     el.eduList.innerHTML = "";
-    el.otherList.innerHTML = "";
+    el.projList.innerHTML = "";
     state.flaggedIds = [];
 
-    // Partition dated jobs through the sanity gate. Double-invalid rows
-    // and dated non-job blocks move to "Other text found".
-    var kept = [], other = [];
+    // Partition timeline-bearing entries: dated experience jobs through
+    // the sanity gate, plus dated projects and dated education.
+    // Anything else (undated, unclassified, double-invalid) is dropped.
+    var kept = [];
     (jobs || []).forEach(function (ev) {
       var g = T.sanitizeRow(ev);
-      if (!g) { other.push({ ev: ev }); return; }
+      if (!g) return;
       kept.push({ ev: ev, title: g.title, employer: g.employer,
                   uncertain: g.uncertain, reasons: g.reasons });
-    });
-    (r.events || []).forEach(function (ev) {
-      if (T.entryType(ev.section) === "unclassified") other.push({ ev: ev });
     });
     kept.sort(function (a, b) {
       return (a.ev.start_date || "") < (b.ev.start_date || "") ? 1 : -1;
     });
 
-    // Dated education rows (invalid titles move to Other as well).
+    // Dated project rows (most recent first). Invalid project names are dropped.
+    var projItems = [];
+    (r.events || []).forEach(function (e) {
+      if (e.section !== "projects" || !e.start_date) return;
+      if (T.isValidTitle(e.title)) projItems.push(e);
+    });
+    projItems.sort(function (a, b) {
+      return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
+    });
+
+    // Dated education rows (invalid titles dropped as well).
     var eduItems = [];
     (r.events || []).forEach(function (e) {
       if (T.entryType(e.section) !== "education" || !e.start_date) return;
       if (T.isValidTitle(e.title)) eduItems.push(e);
-      else other.push({ ev: e });
     });
     eduItems.sort(function (a, b) {
       return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
@@ -655,14 +662,19 @@
       el.eduList.appendChild(renderEduRow(it, showDots));
     });
 
-    // Other text found (collapsed).
-    el.otherToggle.hidden = !other.length;
-    el.otherCount.textContent = other.length ? "· " + other.length : "";
-    other.forEach(function (o) { el.otherList.appendChild(renderOtherRow(o)); });
+    // Projects group (dated only).
+    el.projToggle.hidden = !projItems.length;
+    el.projCount.textContent = projItems.length ? "· " + projItems.length : "";
+    projItems.forEach(function (it) {
+      if (Number(it.confidence) < T.CONF_MEDIUM || precFor(it).inferred) {
+        state.flaggedIds.push("row-" + it.entry_id);
+      }
+      el.projList.appendChild(renderProjRow(it, showDots));
+    });
 
     renderAttention(r.gaps || []);
 
-    var hasContent = kept.length || eduItems.length || other.length;
+    var hasContent = kept.length || eduItems.length || projItems.length;
     el.empty.hidden = !!hasContent;
     if (!hasContent) {
       el.snapshot.hidden = true;
@@ -747,9 +759,21 @@
   }
 
   function markShowing(li) {
-    var prev = document.querySelector("#timeline li.showing, #eduList li.showing, #otherList li.showing");
+    var prev = document.querySelector("#timeline li.showing, #eduList li.showing, #projList li.showing");
     if (prev) prev.classList.remove("showing");
     if (li) li.classList.add("showing");
+  }
+
+  /* Displayed row heading as a search phrase (what the recruiter sees is
+     what gets highlighted). Falls back to raw title when unset. */
+  function labelPhrase(it) {
+    var words = wordsOf(it._label || it.title || "", 10);
+    if (words.length >= 2 && /[a-zA-Z]{3,}/.test(words.join(" "))) return words.join(" ");
+    var rare = "";
+    wordsOf((it._label || it.title || ""), 12).forEach(function (w) {
+      if (/^[A-Za-z]{7,}$/.test(w) && w.length > rare.length) rare = w;
+    });
+    return rare || null;
   }
 
   function navigateToAnchor(it, ak) {
@@ -762,9 +786,11 @@
     }
     var texts = [];
     if (ak.kind === "text") {
+      var label0 = labelPhrase(it);
+      if (label0) texts.push(label0);
+      if (it.evidence && it.evidence.raw_range) texts.push(it.evidence.raw_range);
       var phrases = fragmentPhrases(it);
       phrases.forEach(function (p) { texts.push(p); });
-      if (it.evidence && it.evidence.raw_range) texts.unshift(it.evidence.raw_range);
     }
     var done = function (ok, viaPage) {
       if (ok) {
@@ -798,6 +824,8 @@
      then header/date/excerpt anchors. The viewer tries each in order. */
   function pagePhrases(it) {
     var out = [];
+    var label = labelPhrase(it);
+    if (label) out.push(label);
     var q = anchorQuote(it);
     if (q) out.push(q);
     fragmentPhrases(it).forEach(function (p) {
@@ -946,6 +974,7 @@
     li.id = rowIdFor(ev);
     li.className = "titem";
     var line1 = k.employer || k.title;
+    ev._label = line1;
     var line2 = [];
     if (k.title && k.title !== line1) line2.push(k.title);
     var city = ev.location ? String(ev.location).trim() : "";
@@ -983,7 +1012,7 @@
     return li;
   }
 
-  /* Dated education rows use the same two-line pattern. */
+  /* Dated education rows: organisation name first, dates second. */
   function renderEduRow(it, showDots) {
     var li = document.createElement("li");
     li.id = rowIdFor(it);
@@ -993,9 +1022,8 @@
     if (precFor(it).inferred) reasons.push("Dates estimated");
     var org = (it.organization && T.isValidEmployer(it.organization, it.location))
       ? String(it.organization).trim() : null;
-    var line2 = [];
-    if (org) line2.push(org);
-    line2.push(datesDuration(it));
+    var heading = org || it.title;
+    it._label = heading;
     var ak = anchorInfo(it);
     var clickable = ak.kind !== "none";
     var row = clickable ? document.createElement("button") : document.createElement("div");
@@ -1005,11 +1033,11 @@
     text.className = "trowtext";
     var l1 = document.createElement("span");
     l1.className = "ttitle";
-    l1.textContent = it.title;
+    l1.textContent = heading;
     text.appendChild(l1);
     var l2 = document.createElement("span");
     l2.className = "tsub";
-    l2.textContent = line2.join(" · ");
+    l2.textContent = datesDuration(it);
     text.appendChild(l2);
     row.appendChild(text);
     if (reasons.length && showDots) {
@@ -1022,22 +1050,24 @@
     if (reasons.length) state.flaggedIds.push(li.id);
     if (clickable) {
       row.appendChild(magIcon());
-      row.setAttribute("aria-label", it.title + ". Activate to show in resume.");
+      row.setAttribute("aria-label", heading + ". Activate to show in resume.");
       row.addEventListener("click", function () { jumpNow(it, ak); });
     }
     li.appendChild(row);
     return li;
   }
 
-  /* "Other text found" rows: dates plus a muted label only. Invalid fields
-     are never displayed. Clickable when an anchor exists. */
-  function renderOtherRow(o) {
-    var ev = o.ev;
+  /* Dated project rows: project name first, dates second. */
+  function renderProjRow(it, showDots) {
     var li = document.createElement("li");
-    li.id = rowIdFor(ev);
+    li.id = rowIdFor(it);
     li.className = "titem";
-    var label = ev.raw_range || T.fmtRange(ev, precFor(ev)).text;
-    var ak = anchorInfo(ev);
+    var reasons = [];
+    if (Number(it.confidence) < T.CONF_MEDIUM) reasons.push("Low confidence");
+    if (precFor(it).inferred) reasons.push("Dates estimated");
+    var heading = it.title;
+    it._label = heading;
+    var ak = anchorInfo(it);
     var clickable = ak.kind !== "none";
     var row = clickable ? document.createElement("button") : document.createElement("div");
     if (clickable) row.type = "button";
@@ -1045,18 +1075,26 @@
     var text = document.createElement("span");
     text.className = "trowtext";
     var l1 = document.createElement("span");
-    l1.className = "ttitle muted";
-    l1.textContent = label;
+    l1.className = "ttitle";
+    l1.textContent = heading;
     text.appendChild(l1);
     var l2 = document.createElement("span");
-    l2.className = "tsub muted";
-    l2.textContent = "Unclear entry";
+    l2.className = "tsub";
+    l2.textContent = datesDuration(it);
     text.appendChild(l2);
     row.appendChild(text);
+    if (reasons.length && showDots) {
+      var dot = document.createElement("span");
+      dot.className = "amberdot";
+      dot.title = reasons.join("; ");
+      dot.setAttribute("aria-label", reasons.join("; "));
+      row.appendChild(dot);
+    }
+    if (reasons.length) state.flaggedIds.push(li.id);
     if (clickable) {
       row.appendChild(magIcon());
-      row.setAttribute("aria-label", label + ", unclear entry. Activate to show in resume.");
-      row.addEventListener("click", function () { jumpNow(ev, ak); });
+      row.setAttribute("aria-label", heading + ". Activate to show in resume.");
+      row.addEventListener("click", function () { jumpNow(it, ak); });
     }
     li.appendChild(row);
     return li;
