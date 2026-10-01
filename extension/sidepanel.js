@@ -669,12 +669,49 @@
       if (Number(it.confidence) < T.CONF_MEDIUM || precFor(it).inferred) {
         state.flaggedIds.push("row-" + it.entry_id);
       }
-      el.projList.appendChild(renderProjRow(it, showDots));
+      el.projList.appendChild(renderTitledRow(it, showDots));
+    });
+
+    // Any other dated section gets its own collapsed group, most recent first.
+    var extraWrap = document.getElementById("extraGroups");
+    extraWrap.innerHTML = "";
+    var extraSections = {};
+    var extraOrder = [];
+    (r.events || []).forEach(function (e) {
+      if (!e.start_date) return;
+      if (e.section === "experience" || e.section === "projects") return;
+      if (T.entryType(e.section) === "education") return;
+      if (!extraSections[e.section]) { extraSections[e.section] = []; extraOrder.push(e.section); }
+      extraSections[e.section].push(e);
+    });
+    extraOrder.forEach(function (sec) {
+      var items = extraSections[sec].sort(function (a, b) {
+        return (a.start_date || "") < (b.start_date || "") ? 1 : -1;
+      });
+      var toggle = document.createElement("button");
+      toggle.className = "section-toggle";
+      toggle.type = "button";
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.innerHTML = '<span class="section-title">' + esc(sectionLabel(sec)) +
+        ' <span class="muted">· ' + items.length + "</span></span>" +
+        '<span class="chev" aria-hidden="true">▸</span>';
+      var list = document.createElement("ol");
+      list.className = "timeline sublist";
+      list.hidden = true;
+      toggle.addEventListener("click", function () { toggleSublist(list, toggle); });
+      extraWrap.appendChild(toggle);
+      extraWrap.appendChild(list);
+      items.forEach(function (it) {
+        if (Number(it.confidence) < T.CONF_MEDIUM || precFor(it).inferred) {
+          state.flaggedIds.push("row-" + it.entry_id);
+        }
+        list.appendChild(renderTitledRow(it, showDots));
+      });
     });
 
     renderAttention(r.gaps || []);
 
-    var hasContent = kept.length || eduItems.length || projItems.length;
+    var hasContent = kept.length || eduItems.length || projItems.length || extraOrder.length;
     el.empty.hidden = !!hasContent;
     if (!hasContent) {
       el.snapshot.hidden = true;
@@ -714,6 +751,12 @@
         ym(g.startYm || g.start_date) + " – " + ym(g.endYm || g.end_date));
     });
     el.attentionCard.hidden = el.attentionList.children.length === 0;
+  }
+
+  function sectionLabel(sec) {
+    var s = String(sec || "").trim().toLowerCase().replace(/[_-]+/g, " ");
+    if (!s) return "Other";
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
   function rowIdFor(it) {
@@ -1057,8 +1100,9 @@
     return li;
   }
 
-  /* Dated project rows: project name first, dates second. */
-  function renderProjRow(it, showDots) {
+  /* Dated titled rows (projects and other dated sections): title first,
+     dates second. */
+  function renderTitledRow(it, showDots) {
     var li = document.createElement("li");
     li.id = rowIdFor(it);
     li.className = "titem";

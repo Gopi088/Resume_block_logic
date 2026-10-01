@@ -46,17 +46,19 @@
         <p class="timeline-head">Career timeline <span class="muted">· Newest first</span></p>
         <ol id="timeline" class="timeline"></ol>
 
+        <button id="projToggle" class="section-toggle" type="button" aria-expanded="false" hidden>
+          <span class="section-title">Projects <span id="projCount" class="muted"></span></span>
+          <span class="chev" aria-hidden="true">▸</span>
+        </button>
+        <ol id="projList" class="timeline sublist" hidden></ol>
+
         <button id="eduToggle" class="section-toggle" type="button" aria-expanded="false" hidden>
           <span class="section-title">Education <span id="eduCount" class="muted"></span></span>
           <span class="chev" aria-hidden="true">▸</span>
         </button>
         <ol id="eduList" class="timeline sublist" hidden></ol>
 
-        <button id="projToggle" class="section-toggle" type="button" aria-expanded="false" hidden>
-          <span class="section-title">Projects <span id="projCount" class="muted"></span></span>
-          <span class="chev" aria-hidden="true">▸</span>
-        </button>
-        <ol id="projList" class="timeline sublist" hidden></ol>
+        <div id="extraGroups"></div>
       </section>
 
       <div id="stateEmpty" class="state" hidden>
