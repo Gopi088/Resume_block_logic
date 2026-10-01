@@ -43,8 +43,6 @@
     snapRole: document.getElementById("snapRole"),
     snapTotals: document.getElementById("snapTotals"),
     tenureBar: document.getElementById("tenureBar"),
-    trustChip: document.getElementById("trustChip"),
-    flaggedLink: document.getElementById("flaggedLink"),
     timelineToggle: document.getElementById("timelineToggle"),
     timelineToggleLabel: document.getElementById("timelineToggleLabel"),
     timelineChev: document.getElementById("timelineChev"),
@@ -519,18 +517,6 @@
         el.snapTotals.textContent = "Experience couldn't be calculated";
       }
     }
-
-    // Trust chip + flagged link.
-    el.trustChip.className = "chip " + (trust.level === "reliable" ? "reliable" : trust.level === "check" ? "check" : "manual");
-    el.trustChip.textContent = trust.label;
-    var score = (r.accuracy && r.accuracy.percent != null) ? r.accuracy.percent + "%" : "no score";
-    el.trustChip.title = "Parser score: " + score;
-    var flagged = state.flaggedIds || [];
-    el.flaggedLink.hidden = !(trust.level !== "reliable" && flagged.length);
-    if (flagged.length && trust.level !== "reliable") {
-      el.flaggedLink.textContent = flagged.length + (flagged.length === 1 ? " item needs checking" : " items need checking");
-      el.flaggedLink.onclick = function () { gotoFirstFlagged(flagged[0]); };
-    }
   }
 
   var barTipEl = null;
@@ -558,17 +544,6 @@
 
   function openTimeline() {
     if (el.timelineWrap.hidden) el.timelineToggle.click();
-  }
-
-  function gotoFirstFlagged(rowId) {
-    openTimeline();
-    var row = rowId && document.getElementById(rowId);
-    if (!row) return;
-    if (row.scrollIntoView) {
-      row.scrollIntoView({ block: "center", behavior: state.reduceMotion ? "auto" : "smooth" });
-    }
-    var btn = row.querySelector(".trowmain");
-    if (btn) btn.click();
   }
 
   function renderTimeline(r, jobs) {
