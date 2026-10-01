@@ -42,7 +42,6 @@
     name: document.getElementById("candName"),
     snapRole: document.getElementById("snapRole"),
     snapTotals: document.getElementById("snapTotals"),
-    tenureBar: document.getElementById("tenureBar"),
     timelineToggle: document.getElementById("timelineToggle"),
     timelineToggleLabel: document.getElementById("timelineToggleLabel"),
     timelineChev: document.getElementById("timelineChev"),
@@ -488,52 +487,17 @@
 
     // Totals only from qualifying jobs; hidden entirely when manual.
     el.snapTotals.hidden = true;
-    el.tenureBar.innerHTML = "";
-    el.tenureBar.hidden = true;
     if (!manual) {
       var totals = T.snapshotTotals(jobs);
       if (totals.computable && totals.totalMonths > 0) {
         el.snapTotals.hidden = false;
         el.snapTotals.textContent = T.durationWords(totals.totalMonths) + " experience · " +
           totals.employerCount + " employer" + (totals.employerCount === 1 ? "" : "s");
-        if (totals.employers.length) {
-          el.tenureBar.hidden = false;
-          var max = totals.totalMonths;
-          totals.employers.forEach(function (emp) {
-            var seg = document.createElement("button");
-            seg.type = "button";
-            seg.style.width = Math.max(2, Math.round(100 * emp.months / max)) + "%";
-            seg.setAttribute("aria-label", emp.name + ", " + T.durationWords(emp.months));
-            seg.addEventListener("mouseenter", function () { showBarTip(seg, emp); });
-            seg.addEventListener("focus", function () { showBarTip(seg, emp); });
-            seg.addEventListener("mouseleave", hideBarTip);
-            seg.addEventListener("blur", hideBarTip);
-            seg.addEventListener("click", function () { openTimeline(); });
-            el.tenureBar.appendChild(seg);
-          });
-        }
       } else {
         el.snapTotals.hidden = false;
         el.snapTotals.textContent = "Experience couldn't be calculated";
       }
     }
-  }
-
-  var barTipEl = null;
-  function showBarTip(seg, emp) {
-    hideBarTip();
-    barTipEl = document.createElement("span");
-    barTipEl.className = "bartip";
-    barTipEl.textContent = emp.name + " · " + T.durationWords(emp.months);
-    el.tenureBar.style.position = "relative";
-    el.tenureBar.appendChild(barTipEl);
-    var br = el.tenureBar.getBoundingClientRect(), sr = seg.getBoundingClientRect();
-    barTipEl.style.left = Math.max(0, Math.min(sr.left - br.left, br.width - 40)) + "px";
-    barTipEl.style.top = "-24px";
-  }
-  function hideBarTip() {
-    if (barTipEl && barTipEl.parentNode) barTipEl.parentNode.removeChild(barTipEl);
-    barTipEl = null;
   }
 
   /* ---------------- timeline ---------------- */

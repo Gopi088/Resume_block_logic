@@ -29,10 +29,6 @@
   --ct-chip-manual-ink: #5d6672;
   --ct-focus-ring: #1a73e8;
   --ct-rail: #c9ced6;
-  --ct-tenure-1: #2f4b7c;
-  --ct-tenure-2: #5b7bb4;
-  --ct-tenure-3: #8ba3d4;
-  --ct-tenure-4: #b9c8e8;
   --ct-font-sm: 12px;
   --ct-font-body: 14px;
   --ct-font-title: 15px;
@@ -69,11 +65,7 @@
     --ct-chip-manual-ink: #9aa3ad;
     --ct-focus-ring: #8ab4f8;
     --ct-rail: #4a515a;
-    --ct-tenure-1: #8ba3d4;
-    --ct-tenure-2: #6d89c4;
-    --ct-tenure-3: #546da8;
-    --ct-tenure-4: #3d5386;
-    --ct-showing-outline: #8ab4f8;
+            --ct-showing-outline: #8ab4f8;
   }
 }
 
@@ -123,24 +115,6 @@ body {
 .showlink:hover { text-decoration: underline; }
 .showlink svg { width: 12px; height: 12px; flex-shrink: 0; }
 
-.tenurebar {
-  display: flex; height: 6px; border-radius: 3px; overflow: hidden;
-  background: var(--ct-line); margin-top: 8px;
-}
-.tenurebar button {
-  border: 0; padding: 0; cursor: pointer; height: 100%; min-width: 4px;
-  background: var(--ct-tenure-1);
-}
-.tenurebar button:nth-child(4n+2) { background: var(--ct-tenure-2); }
-.tenurebar button:nth-child(4n+3) { background: var(--ct-tenure-3); }
-.tenurebar button:nth-child(4n+4) { background: var(--ct-tenure-4); }
-.tenurebar button:focus-visible { outline: 2px solid var(--ct-focus-ring); outline-offset: 1px; }
-.bartip {
-  position: absolute; z-index: 5; background: var(--ct-ink); color: var(--ct-bg);
-  font-size: var(--ct-font-sm); padding: 3px 8px; border-radius: 4px;
-  pointer-events: none; white-space: nowrap;
-}
-
 .btn {
   border: 1px solid var(--ct-line); background: var(--ct-bg); color: var(--ct-ink);
   border-radius: var(--ct-radius); padding: 7px 10px; font: inherit;
@@ -154,7 +128,7 @@ body {
   justify-content: center; gap: 6px;
 }
 .btn:focus-visible, .link-btn:focus-visible, .showlink:focus-visible,
-.trowmain:focus-visible, .section-toggle:focus-visible, .tenurebar button:focus-visible {
+.trowmain:focus-visible, .section-toggle:focus-visible {
   outline: 2px solid var(--ct-focus-ring); outline-offset: 2px;
 }
 .chev { color: var(--ct-muted); flex-shrink: 0; font-size: 12px; }
