@@ -190,3 +190,42 @@ def test_resolve_file_url_windows_mapping(tmp_path, monkeypatch):
         pass
     else:
         raise AssertionError("expected ValueError for unreachable file")
+
+
+def test_comma_header_role_company():
+    from backend.server import _comma_header, _entry_org, _entry_title
+
+    # Clean "Role, Company" header.
+    assert _comma_header(
+        "Senior Accounting & Reconciliation Analyst, Ameriprise Financial"
+    ) == ("Senior Accounting & Reconciliation Analyst", "Ameriprise Financial")
+    # Trailing date range on the same line is stripped, not attributed.
+    assert _comma_header(
+        "Analyst , Citicorp Services India Pvt. Ltd. August 2022 - July 2024"
+    ) == ("Analyst", "Citicorp Services India Pvt. Ltd.")
+    assert _comma_header(
+        "Equity Research Intern , Angel Broking June 2021 - July 2021"
+    ) == ("Equity Research Intern", "Angel Broking")
+    # Bare locations are never organizations, even multi-word ones.
+    assert _comma_header("Indian Institute of Information Technology, Allahabad") == (None, None)
+    # Bullet sentences with commas never match (no org signal, lowercase).
+    assert _comma_header(
+        "Processed capital activities including purchases, redemptions, transfers"
+    ) == (None, None)
+    assert _comma_header("Managed investor banking instructions, seamlessly handling payments") == (None, None)
+    # Full entry paths pick up comma headers.
+    text = ("Senior Accounting & Reconciliation Analyst, Ameriprise Financial\n"
+            "IBOR Accounting July 2024 - Present\nNoida")
+    assert _entry_title(text, None, "July 2024 - Present") == \
+        "Senior Accounting & Reconciliation Analyst"
+    assert _entry_org(text) == "Ameriprise Financial"
+
+
+def test_location_never_becomes_org_or_location():
+    from backend.server import _entry_location, _entry_org
+
+    # Standalone location lines are rejected as organizations.
+    assert _entry_org("IBOR Accounting July 2024 - Present\nNoida\nPerform analysis") is None
+    # Section headers are not locations.
+    assert _entry_location("Cash trade & Settlement Gurgaon\nExperience") is None
+    assert _entry_location("something\nHyderabad, India\nExperience") is None

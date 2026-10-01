@@ -412,10 +412,14 @@ def _candidate_identity(out: dict, entries: dict) -> dict:
     current_role = current_org = None
     if exp_events:
         recent = entries.get(exp_events[0]["entry_id"], {})
-        current_org = _entry_org(recent.get("text", ""))
-        current_role = _entry_title(
-            recent.get("text", ""), current_org, exp_events[0].get("raw_range")
-        )
+        ordered = sorted(entries.values(), key=lambda e: e.get("index", -1))
+        current_role, current_org = _resolve_header(recent, ordered)
+        if current_org is None:
+            current_org = _entry_org(recent.get("text", ""))
+        if current_role is None:
+            current_role = _entry_title(
+                recent.get("text", ""), current_org, exp_events[0].get("raw_range")
+            )
     years = _years_span(out.get("timeline", {}).get("events", []))
     return {
         "name": name,
@@ -540,6 +544,111 @@ def _has_company(text: str) -> bool:
     return bool(re.search(r"company\s*-\s*[A-Za-z]", _clean_md(text), re.I))
 
 
+def _match_comma_head(head: str) -> tuple[str | None, str | None]:
+    """Match one pre-cleaned header candidate of the form 'Role, Organization'.
+    The org must carry an organization signal or be a short multi-word
+    Title-Case name, so bullet sentences with commas never match."""
+    import re
+
+    if "," not in head:
+        return None, None
+    role, _, org = head.partition(",")
+    role, org = role.strip(" \t-–—:,"), org.strip(" \t-–—:,")
+    if not (2 <= len(role) <= 50 and 2 <= len(org) <= 60):
+        return None, None
+    if re.search(r"\d{4}|present|current", role, re.I):
+        return None, None
+    org_words = org.split()
+    # Single-word orgs (e.g. a bare "Allahabad") must carry an explicit
+    # organization signal; otherwise they are almost always locations.
+    org_ok = (
+        re.search(r"\b(?:" + _ORG_SIGNAL + r")\b", org, re.I) is not None
+        or (
+            len(org_words) >= 2
+            and len(org_words) <= 4
+            and all(re.match(r"^[A-Z][A-Za-z.\-&']*$", w) for w in org_words)
+        )
+    )
+    if not org_ok:
+        return None, None
+    return role, org
+
+
+def _tail_comma(text: str) -> tuple[str | None, str | None]:
+    """Comma header borrowed from a previous entry's TAIL only (B7 often
+    splits right after the header line, leaving it at the previous entry's
+    end). Restricting to the tail avoids attributing an earlier job's header
+    to a later, unrelated entry."""
+    lines = [ln for ln in (text or "").splitlines() if ln.strip()]
+    for ln in lines[-2:]:
+        c = _clean_pipe_line(ln)
+        if not c or "@" in c or "://" in c or "," not in c:
+            continue
+        import re
+
+        mdate = re.search(
+            r"(?:(?:19|20)\d{2}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s*\d{2,4})",
+            c,
+            re.I,
+        )
+        head = c[: mdate.start()].strip() if mdate else c
+        head = re.sub(r"\s+" + _DATE_TRAIL + r"\s*$", "", head, flags=re.I).strip()
+        role, org = _match_comma_head(head)
+        if role:
+            return role, org
+    return None, None
+
+
+_ORG_SIGNAL = (
+    r"Inc|LLC|LLP|Ltd|Pvt|Corp|GmbH|Pty|Technologies|Technology|Systems|"
+    r"Solutions|Services|Group|Bank|Banks|University|College|School|Institute|"
+    r"Limited|Company|Financial|Broking|Securities|Capital|Holdings|Insurance|"
+    r"Analytics|Consulting|Advisory|Partners|Enterprises|Industries"
+)
+
+_DATE_TRAIL = (
+    r"(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s*\d{4}"
+    r"\s*[–—\-/]\s*(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s*\d{4}|present|current|now)"
+    r"|(?:19|20)\d{2}\s*[–—\-/]\s*(?:(?:19|20)\d{2}|present|current))"
+)
+
+
+def _comma_header(text: str) -> tuple[str | None, str | None]:
+    """Role, Company header lines, e.g. 'Senior Accounting & Reconciliation
+    Analyst, Ameriprise Financial' or 'Analyst, Citicorp Services India Pvt.
+    Ltd. August 2022 - July 2024' (trailing date range stripped).
+
+    Returns (role, org) or (None, None). The org part must carry an
+    organization signal or be a short Title-Case name, so bullet sentences
+    with commas never match.
+    """
+    import re
+
+    for ln in (text or "").splitlines():
+        c = _clean_pipe_line(ln)
+        if not c or "@" in c or "://" in c or "," not in c:
+            continue
+        # A date-bearing line still ends this entry's header zone, but judge
+        # the pre-date part first (headers often share the line with dates).
+        mdate = re.search(
+            r"(?:(?:19|20)\d{2}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s*\d{2,4})",
+            c,
+            re.I,
+        )
+        head = c[: mdate.start()].strip() if mdate else c
+        head = re.sub(r"\s+" + _DATE_TRAIL + r"\s*$", "", head, flags=re.I).strip()
+        if "," not in head:
+            if mdate:
+                break
+            continue
+        role, org = _match_comma_head(head)
+        if role:
+            return role, org
+        if mdate:
+            break
+    return None, None
+
+
 HEADER_SECTIONS = frozenset({"experience", "education", "projects"})
 
 
@@ -568,11 +677,22 @@ def _resolve_header(entry: dict, ordered_entries: list) -> tuple[str | None, str
     role, org = _pipe_header(text)
     if role:
         return role, org
+    role, org = _comma_header(text)
+    if role:
+        return role, org
     if _has_company(text):
         return None, None  # Company-style resumes resolve via their own path
     block_id = entry.get("block_id")
     idx = entry.get("index", -1)
-    for prev in reversed([e for e in ordered_entries if e.get("index", -1) < idx]):
+    prevs = [e for e in ordered_entries if e.get("index", -1) < idx]
+    # Comma headers are only borrowed from the immediately previous entry
+    # (B7 splits right after the header). Walking further back risks
+    # attributing an earlier job's header to an unrelated later entry.
+    if prevs and prevs[-1].get("block_id") == block_id:
+        role, org = _tail_comma(prevs[-1].get("text", ""))
+        if role:
+            return role, org
+    for prev in reversed(prevs):
         if prev.get("block_id") != block_id:
             break  # same-block entries are contiguous; never borrow across blocks
         role, org = _last_pipe(prev.get("text", ""))
@@ -587,6 +707,9 @@ def _entry_title(text: str, org: str | None = None, raw_range: str | None = None
     role, pipe_org = _pipe_header(text)
     if role:
         return role
+    comma_role, _ = _comma_header(text)
+    if comma_role:
+        return comma_role
     cleaned = _clean_md(text)
     if org:
         cleaned = cleaned.replace(org, " ")
@@ -806,6 +929,9 @@ def _entry_org(text: str) -> str | None:
     _, pipe_org = _pipe_header(text)
     if pipe_org:
         return pipe_org
+    _, comma_org = _comma_header(text)
+    if comma_org:
+        return _word_truncate(comma_org, 60)
     m = re.search(
         r"company\s*-\s*([A-Za-z][A-Za-z0-9 .,&()\-]{1,60})", _clean_md(text), re.I
     )
@@ -825,11 +951,23 @@ def _entry_org(text: str) -> str | None:
     if len(meaningful) >= 2:
         # Positional fallback: only accept short, date-free lines. Long
         # bullet fragments must never become the "organization" (they would
-        # then also corrupt the title via org-subtraction).
+        # then also corrupt the title via org-subtraction). Bare single
+        # tokens (e.g. a standalone "Noida" location line) are rejected
+        # unless they carry an explicit organization suffix.
         for cand in meaningful[1:3]:
             c = cand.strip(" \t-–—:,")
             if len(c) <= 60 and not re.search(r"\d{4}|present|current", c, re.I) \
                     and not re.match(r"^[*•\-–]", c):
+                if re.match(
+                    r"^(perform|managed|led|created|designed|implemented|analyzed|built|"
+                    r"maintained|responsible|assisted|collaborated|coordinated|executed|"
+                    r"delivered|improved|optimized|reduced|increased|achieved|resolved|"
+                    r"handled|processed|conducted)\b", c, re.I,
+                ):
+                    continue  # action-verb bullet fragment, not an employer
+                if " " not in c and not re.search(
+                        r"\b(Inc|LLC|LLP|Ltd|Pvt|Corp|GmbH|Pty|Bank|Labs|Works)\b", c, re.I):
+                    continue
                 return c[:100]
         return None
     return None
@@ -844,6 +982,13 @@ def _entry_location(text: str) -> str | None:
     lines = _entry_lines(text)
     if lines:
         last = lines[-1]
+        # A trailing section header ("Experience") is not a location.
+        if re.match(
+            r"^(experience|education|skills|projects|summary|certifications?|"
+            r"awards?|publications?|languages?|volunteering|interests|references?)\s*$",
+            last, re.I,
+        ):
+            return None
         if re.match(r"^[A-Z][a-z]+(, *[A-Z][a-z]+)?$", last) and len(last) <= 30:
             return last
     return None

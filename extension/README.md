@@ -38,6 +38,7 @@ Open the panel with `?fixture=N`, e.g. `sidepanel.html?fixture=2`:
 | `f4` | Empty / unreadable parse with Re-scan link |
 | `f5` | Human-checked note (preload storage key `review:fixf5`) |
 | `f6` | Anchor edge cases: dangling ids, no anchor, page-only |
+| `f8` | Comma-header resume (Ajit): `Role, Company` headers, standalone location lines never surface as org/location |
 
 ## Unit tests (no new dependencies)
 

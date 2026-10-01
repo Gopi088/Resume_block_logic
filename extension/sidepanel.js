@@ -113,7 +113,7 @@
 
   function fixtureParam() {
     try {
-      var m = /[?&]fixture=([1-7])\b/.exec(window.location.search || "");
+      var m = /[?&]fixture=([1-8])\b/.exec(window.location.search || "");
       return m ? m[1] : null;
     } catch (e) { return null; }
   }
@@ -993,12 +993,6 @@
     } catch (e) { cb(false); }
   }
 
-  function normEq(a, b) {
-    function norm(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
-    var na = norm(a), nb = norm(b);
-    return !!na && !!nb && (na === nb || na.indexOf(nb) === 0 || nb.indexOf(na) === 0);
-  }
-
   function datesDuration(ev) {
     var prec = precFor(ev);
     var fr = T.fmtRange(ev, prec);
@@ -1009,7 +1003,8 @@
   }
 
   /* Two-line job row. Line 1: employer if valid, else title. Line 2: title
-     (only if valid and different) · city · dates · duration. Whole row
+     (only if valid and different) · dates · duration. Locations are never
+     displayed (a bare "Noida" tells the recruiter nothing). Whole row
      clickable; magnifier icon on hover/focus only; static when no anchor. */
   function renderJobRow(k, showDots) {
     var ev = k.ev;
@@ -1020,8 +1015,6 @@
     ev._label = line1;
     var line2 = [];
     if (k.title && k.title !== line1) line2.push(k.title);
-    var city = ev.location ? String(ev.location).trim() : "";
-    if (city && !normEq(city, line1) && !normEq(city, k.title)) line2.push(city);
     line2.push(datesDuration(ev));
     var ak = anchorInfo(ev);
     var clickable = ak.kind !== "none";
