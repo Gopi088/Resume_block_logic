@@ -200,13 +200,18 @@ li:hover .mag, li:focus-within .mag { display: inline-flex; }
   display: inline-block; font-size: 11px; font-weight: 600; color: var(--ct-amber-ink);
 }
 
-/* attention card: visible gaps + unclear sections above the timeline button */
+/* attention card: potential gaps warning above the timeline button */
 .attention-card {
   background: var(--ct-wash);
   border: 1px solid var(--ct-line);
   border-radius: var(--ct-radius);
   padding: 8px 10px;
   margin-top: 10px;
+}
+.attention-card.attention-warning {
+  background: var(--ct-amber-wash);
+  border-color: var(--ct-amber-line);
+  border-left: 3px solid var(--ct-amber-line);
 }
 .attention-title {
   font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;

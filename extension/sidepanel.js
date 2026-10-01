@@ -660,7 +660,7 @@
     el.otherCount.textContent = other.length ? "· " + other.length : "";
     other.forEach(function (o) { el.otherList.appendChild(renderOtherRow(o)); });
 
-    renderAttention(r.gaps || [], other, r.undated || []);
+    renderAttention(r.gaps || []);
 
     var hasContent = kept.length || eduItems.length || other.length;
     el.empty.hidden = !!hasContent;
@@ -670,9 +670,8 @@
     }
   }
 
-  function renderAttention(gaps, other, undated) {
-    // Visible card above the timeline button: unidentified gaps and
-    // sections the timeline couldn't place. Display only, no actions.
+  function renderAttention(gaps) {
+    // Warning card: potential gaps only. Display only, no actions.
     el.attentionList.innerHTML = "";
     function addRow(main, sub) {
       var li = document.createElement("li");
@@ -699,17 +698,8 @@
       }
       var months = g.months != null ? g.months
         : (g.gap_months_approx != null ? Math.round(g.gap_months_approx) : 0);
-      addRow("Gap · " + T.durationWords(months),
+      addRow("Potential gap · " + T.durationWords(months),
         ym(g.startYm || g.start_date) + " – " + ym(g.endYm || g.end_date));
-    });
-    (other || []).forEach(function (o) {
-      var ev = o.ev || {};
-      addRow(ev.raw_range || T.fmtRange(ev, precFor(ev)).text, "Unclear entry");
-    });
-    (undated || []).forEach(function (u) {
-      if (!u || u.section === "contact") return;
-      var t = (u.title || "").trim();
-      addRow(t || "Unclear entry", t ? null : "No dates found");
     });
     el.attentionCard.hidden = el.attentionList.children.length === 0;
   }
